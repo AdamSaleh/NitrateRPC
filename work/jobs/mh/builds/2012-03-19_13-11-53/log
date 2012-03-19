@@ -1,0 +1,40 @@
+Started by user anonymous
+Checking out a fresh workspace because there's no workspace at /home/asaleh/Projects/Jenkins/NitratePlugin/NitrateIntegration/work/jobs/mh/workspace
+Checking out 
+ERROR: Failed to check out 
+[8mha:AAAAWB+LCAAAAAAAAABb85aBtbiIQSmjNKU4P08vOT+vOD8nVc8DzHWtSE4tKMnMz/PLL0ldFVf2c+b/lb5MDAwVRQxSaBqcITRIIQMEMIIUFgAAckCEiWAAAAA=[0morg.tmatesoft.svn.core.SVNException: svn: Malformed URL ''
+	at org.tmatesoft.svn.core.internal.wc.SVNErrorManager.error(SVNErrorManager.java:64)
+	at org.tmatesoft.svn.core.internal.wc.SVNErrorManager.error(SVNErrorManager.java:51)
+	at org.tmatesoft.svn.core.SVNURL.<init>(SVNURL.java:221)
+	at org.tmatesoft.svn.core.SVNURL.parseURIEncoded(SVNURL.java:125)
+	at hudson.scm.SubversionSCM$ModuleLocation.getSVNURL(SubversionSCM.java:1973)
+	at hudson.scm.SubversionSCM$CheckOutTask.invoke(SubversionSCM.java:673)
+	at hudson.scm.SubversionSCM$CheckOutTask.invoke(SubversionSCM.java:593)
+	at hudson.FilePath.act(FilePath.java:757)
+	at hudson.FilePath.act(FilePath.java:739)
+	at hudson.scm.SubversionSCM.checkout(SubversionSCM.java:586)
+	at hudson.scm.SubversionSCM.checkout(SubversionSCM.java:534)
+	at hudson.model.AbstractProject.checkout(AbstractProject.java:1171)
+	at hudson.model.AbstractBuild$AbstractRunner.checkout(AbstractBuild.java:521)
+	at hudson.model.AbstractBuild$AbstractRunner.run(AbstractBuild.java:416)
+	at hudson.model.Run.run(Run.java:1362)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:46)
+	at hudson.model.ResourceController.execute(ResourceController.java:88)
+	at hudson.model.Executor.run(Executor.java:145)
+Connecting to TCMS at fdg
+Using login: 
+ERROR: Publisher NitrateIntegration.TcmsPublisher aborted due to exception
+[8mha:AAAAWB+LCAAAAAAAAABb85aBtbiIQSmjNKU4P08vOT+vOD8nVc8DzHWtSE4tKMnMz/PLL0ldFVf2c+b/lb5MDAwVRQxSaBqcITRIIQMEMIIUFgAAckCEiWAAAAA=[0mjava.lang.NullPointerException
+	at com.redhat.nitrate.Auth$login.invoke(Auth.java:29)
+	at NitrateIntegration.TcmsPublisher.perform(TcmsPublisher.java:74)
+	at hudson.tasks.BuildStepMonitor$2.perform(BuildStepMonitor.java:27)
+	at hudson.model.AbstractBuild$AbstractRunner.perform(AbstractBuild.java:644)
+	at hudson.model.AbstractBuild$AbstractRunner.performAllBuildSteps(AbstractBuild.java:623)
+	at hudson.model.AbstractBuild$AbstractRunner.performAllBuildSteps(AbstractBuild.java:601)
+	at hudson.model.Build$RunnerImpl.post2(Build.java:159)
+	at hudson.model.AbstractBuild$AbstractRunner.post(AbstractBuild.java:570)
+	at hudson.model.Run.run(Run.java:1386)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:46)
+	at hudson.model.ResourceController.execute(ResourceController.java:88)
+	at hudson.model.Executor.run(Executor.java:145)
+Finished: FAILURE

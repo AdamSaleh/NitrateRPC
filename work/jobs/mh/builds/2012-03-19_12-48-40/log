@@ -1,0 +1,14 @@
+Started by user anonymous
+ERROR: Publisher NitrateIntegration.TcmsPublisher aborted due to exception
+[8mha:AAAAWB+LCAAAAAAAAABb85aBtbiIQSmjNKU4P08vOT+vOD8nVc8DzHWtSE4tKMnMz/PLL0ldFVf2c+b/lb5MDAwVRQxSaBqcITRIIQMEMIIUFgAAckCEiWAAAAA=[0mjava.lang.UnsupportedOperationException: Not supported yet.
+	at NitrateIntegration.TcmsPublisher.getRequiredMonitorService(TcmsPublisher.java:90)
+	at hudson.model.AbstractBuild$AbstractRunner.perform(AbstractBuild.java:640)
+	at hudson.model.AbstractBuild$AbstractRunner.performAllBuildSteps(AbstractBuild.java:623)
+	at hudson.model.AbstractBuild$AbstractRunner.performAllBuildSteps(AbstractBuild.java:601)
+	at hudson.model.Build$RunnerImpl.post2(Build.java:159)
+	at hudson.model.AbstractBuild$AbstractRunner.post(AbstractBuild.java:570)
+	at hudson.model.Run.run(Run.java:1386)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:46)
+	at hudson.model.ResourceController.execute(ResourceController.java:88)
+	at hudson.model.Executor.run(Executor.java:145)
+Finished: FAILURE
