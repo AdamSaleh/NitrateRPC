@@ -4,7 +4,7 @@ Short-Name: NitrateIntegration
 Long-Name: Unnamed - NitrateIntegration:NitrateIntegration:hpi:1.0-SNA
  PSHOT
 Url: http://jenkins-ci.org/plugin/NitrateIntegration
-Plugin-Version: 1.0-SNAPSHOT (private-03/19/2012 13:37-asaleh)
+Plugin-Version: 1.0-SNAPSHOT (private-03/26/2012 14:57-asaleh)
 Hudson-Version: 1.399
 Plugin-Dependencies: maven-plugin:1.399,subversion:1.11,ui-samples-plu
  gin:1.399

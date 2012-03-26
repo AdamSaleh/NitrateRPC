@@ -1,4 +1,5 @@
 package NitrateIntegration;
+
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.tasks.BuildStepMonitor;
@@ -21,7 +22,16 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 
 import com.redhat.nitrate.*;
+import hudson.tasks.junit.CaseResult;
+import hudson.tasks.junit.TestResult;
+import hudson.tasks.junit.TestResultAction;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
 import redstone.xmlrpc.XmlRpcFault;
+
 /**
  * Sample {@link Builder}.
  *
@@ -44,11 +54,13 @@ public class TcmsPublisher extends Recorder {
     public final String serverUrl;
     public final String username;
     public final String password;
-
+    private int run;
+    private int build;
     private TcmsConnection connection;
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
+
     @DataBoundConstructor
-    public TcmsPublisher(String serverUrl,String username, String password){
+    public TcmsPublisher(String serverUrl, String username, String password) {
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
@@ -58,42 +70,88 @@ public class TcmsPublisher extends Recorder {
             connection = null;
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
 
- 
+    private Integer getTcmsTestCaseId(String name){
+    try {
 
+    Hashtable<String,Object>  o = (Hashtable<String,Object>)  connection.invoke(new TestCase.get(name));
+    TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o,TestCase.class);
+    return testcase.case_id;
+    } catch (IllegalAccessException ex) {
+    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (InstantiationException ex) {
+    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (XmlRpcFault ex) {
+    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    return -1;
+    }
+
+    private Integer getTcmsCreateCase(String name){
+    try {
+
+    Hashtable<String,Object>  o = (Hashtable<String,Object>)  connection.invoke(new TestCase.get(name));
+    TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o,TestCase.class);
+    return testcase.case_id;
+    } catch (IllegalAccessException ex) {
+    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (InstantiationException ex) {
+    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (XmlRpcFault ex) {
+    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    return -1;
+    }
+
+    private void gatherTestInfo(AbstractBuild build, Launcher launcher, BuildListener listener){
+    
+        
+        TestResultAction tests = (TestResultAction) build.getTestResultAction();
+
+
+    if(tests!=null){
+    TestResult testresult= tests.getResult();
+    ArrayList<TestCaseRun.create> list = new ArrayList<TestCaseRun.create>();
+    for(CaseResult result:testresult.getFailedTests()){
+    TestCaseRun.create c = new TestCaseRun.create();
+    c.run=this.run;
+    c.caseVar = getTcmsTestCaseId(result.getName());
+    if(c.caseVar<0){
+    c.caseVar = getTcmsCreateCase(result.getName());
+    }
+    c.build= this.build;
+    c.case_run_status = TestCaseRun.FAILED;
+    }
+
+    }
+    }
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-        listener.getLogger().println("Connecting to TCMS at "+ serverUrl);
-        listener.getLogger().println("Using login: "+ username);
-        
-        Auth.login auth = new Auth.login(username,password);
+        listener.getLogger().println("Connecting to TCMS at " + serverUrl);
+        listener.getLogger().println("Using login: " + username);
+
+        Auth.login auth = new Auth.login(username, password);
         String session;
         try {
             session = auth.invoke(connection);
-            listener.getLogger().println("TCMS session started: "+ session);
-            if(session.length()>0){
+            listener.getLogger().println("TCMS session started: " + session);
+            if (session.length() > 0) {
                 connection.setSession(session);
             }
             connection.invoke(new Auth.logout());
             listener.getLogger().println("Logged out");
         } catch (XmlRpcFault ex) {
-            //Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
             listener.getLogger().println(ex.getMessage());
             return false;
         }
-        
-
-
         return true;
     }
 
     public BuildStepMonitor getRequiredMonitorService() {
-      return BuildStepMonitor.STEP;
+        return BuildStepMonitor.STEP;
     }
-
-
 
     /**
      * Descriptor for {@link HelloWorldBuilder}. Used as a singleton.
@@ -105,6 +163,7 @@ public class TcmsPublisher extends Recorder {
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<hudson.tasks.Publisher> {
+
         /**
          * To persist global configuration information,
          * simply store it in a field and call save().
@@ -112,14 +171,9 @@ public class TcmsPublisher extends Recorder {
          * <p>
          * If you don't want fields to be persisted, use <tt>transient</tt>.
          */
-       
-          /**
-       * Do not instantiate DescriptorImpl.
-       */
-      /*private DescriptorImpl() {
-         super(TcmsPublisher.class);
-      }*/
-
+        /**
+         * Do not instantiate DescriptorImpl.
+         */
         /**
          * Performs on-the-fly validation of the form field 'name'.
          *
@@ -128,13 +182,63 @@ public class TcmsPublisher extends Recorder {
          * @return
          *      Indicates the outcome of the validation. This is sent to the browser.
          */
-        public FormValidation doCheckName(@QueryParameter String value)
-                throws IOException, ServletException {
-            if (value.length() == 0)
-                return FormValidation.error("Please set a name");
-            if (value.length() < 4)
-                return FormValidation.warning("Isn't the name too short?");
+        public FormValidation doCheckServerUrl(@QueryParameter String value) {
+            if (value.length() == 0) {
+                return FormValidation.error("Please set an url");
+            }
+            try {
+                URL url = new URL(value);
+                boolean testTcmsConnection = TcmsConnection.testTcmsConnection(url);
+                if (testTcmsConnection == false) {
+                    return FormValidation.warning("XML-RPC Service not found");
+                }
+            } catch (MalformedURLException ex) {
+                return FormValidation.error("Url is malformed");
+            } catch (IOException ex) {
+                return FormValidation.warning("Connection error");
+            }
             return FormValidation.ok();
+        }
+
+        public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
+                @QueryParameter("username") final String username,
+                @QueryParameter("password") final String password,
+                @QueryParameter("product") final String product) {
+            FormValidation url_val = doCheckServerUrl(serverUrl);
+            if (url_val != FormValidation.ok()) {
+                return url_val;
+            }
+
+            TcmsConnection c = null;
+            try {
+                c = new TcmsConnection(serverUrl);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            Auth.login auth = new Auth.login(username, password);
+            String session;
+            try {
+                session = auth.invoke(c);
+                if (session.length() > 0) {
+                    c.setSession(session);
+                }
+            } catch (XmlRpcFault ex) {
+                return FormValidation.error("Possibly wrong username/password");
+            }
+
+            Product.check_product get_command = new Product.check_product();
+            get_command.name = product;
+            try {
+                Object o = c.invoke(get_command);
+            } catch (XmlRpcFault ex) {
+                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+                 return FormValidation.error("Product possibly doesn't exist");
+            }
+
+
+            return FormValidation.ok();
+
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
@@ -157,9 +261,7 @@ public class TcmsPublisher extends Recorder {
             // ^Can also use req.bindJSON(this, formData);
             //  (easier when there are many fields; need set* methods for this, like setUseFrench)
             save();
-            return super.configure(req,formData);
+            return super.configure(req, formData);
         }
-
     }
 }
-

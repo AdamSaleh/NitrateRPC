@@ -18,4 +18,10 @@
   <f:entry title="Password" field="password">
     <f:password value="${instance.password}"/>
   </f:entry>
+  <f:entry title="Product" field="product">
+    <f:textbox value="${instance.product}"/>
+  </f:entry>
+  <f:validateButton
+   title="${%Test Connection}" progress="${%Testing...}"
+   method="testConnection" with="serverUrl,username,password,product" />
 </j:jelly>
