@@ -18,18 +18,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 
 import com.redhat.nitrate.*;
-import hudson.tasks.junit.CaseResult;
-import hudson.tasks.junit.TestResult;
+import hudson.tasks.test.TestResult;
+
 import hudson.tasks.junit.TestResultAction;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
+
+import java.util.LinkedList;
 import redstone.xmlrpc.XmlRpcFault;
 
 /**
@@ -54,79 +52,112 @@ public class TcmsPublisher extends Recorder {
     public final String serverUrl;
     public final String username;
     public final String password;
+    public final String product;
     private int run;
     private int build;
+    private int product_id;
     private TcmsConnection connection;
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
 
     @DataBoundConstructor
-    public TcmsPublisher(String serverUrl, String username, String password) {
+    public TcmsPublisher(String serverUrl, String username, String password, String product) {
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
+        this.product = product;
         try {
             connection = new TcmsConnection(serverUrl);
-        } catch (MalformedURLException ex) {
-            connection = null;
+
+            Product.check_product get_command = new Product.check_product();
+            get_command.name = product;
+            Hashtable<String, Object> o = (Hashtable<String, Object>) connection.invoke(get_command);
+            Product p = (Product) TcmsConnection.hashtableToFields(o, Product.class);
+            this.product_id = p.id;
+        } catch (IllegalAccessException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            connection = null;
         }
 
     }
 
-    private Integer getTcmsTestCaseId(String name){
-    try {
-
-    Hashtable<String,Object>  o = (Hashtable<String,Object>)  connection.invoke(new TestCase.get(name));
-    TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o,TestCase.class);
-    return testcase.case_id;
-    } catch (IllegalAccessException ex) {
-    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (InstantiationException ex) {
-    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (XmlRpcFault ex) {
-    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    return -1;
-    }
-
-    private Integer getTcmsCreateCase(String name){
-    try {
-
-    Hashtable<String,Object>  o = (Hashtable<String,Object>)  connection.invoke(new TestCase.get(name));
-    TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o,TestCase.class);
-    return testcase.case_id;
-    } catch (IllegalAccessException ex) {
-    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (InstantiationException ex) {
-    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (XmlRpcFault ex) {
-    Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    return -1;
+    private Integer getTcmsTestCaseId(String name) {
+        try {
+            TestCase.filter f = new TestCase.filter();
+            f.summary__icontain = name;
+            Hashtable<String, Object> o = (Hashtable<String, Object>) connection.invoke(f);
+            TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o, TestCase.class);
+            return testcase.case_id;
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return -1;
     }
 
-    private void gatherTestInfo(AbstractBuild build, Launcher launcher, BuildListener listener){
-    
-        
+    private Integer tcmsCreateCase(TestResult result) {
+        try {
+            TestCase.create create = new TestCase.create();
+            create.product = this.product_id;
+            create.category = 0;
+            create.priority = 0;
+            create.summary = result.getName();
+            create.is_automated = 1;
+            create.action = result.getDescription();
+
+            Hashtable<String, Object> o = (Hashtable<String, Object>) connection.invoke(create);
+            TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o, TestCase.class);
+            return testcase.case_id;
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return -1;
+    }
+
+    private void CreateTestCaseRun(LinkedList<TcmsCommand> list, TestResult result, int status) {
+        TestCaseRun.create c = new TestCaseRun.create();
+        c.run = this.run;
+        c.caseVar = getTcmsTestCaseId(result.getName());
+        if (c.caseVar < 0) {
+            c.caseVar = tcmsCreateCase(result);
+        }
+        c.build = this.build;
+        c.case_run_status = status;
+        list.add(c);
+    }
+
+    private LinkedList<TcmsCommand> gatherTestInfo(LinkedList<TcmsCommand> list, AbstractBuild build) {
         TestResultAction tests = (TestResultAction) build.getTestResultAction();
 
+        if (tests != null) {
+            TestResult testresult = tests.getResult();
+            for (TestResult result : testresult.getFailedTests()) {
+                CreateTestCaseRun(list, result, TestCaseRun.FAILED);
+            }
+            for (TestResult result : testresult.getPassedTests()) {
+                CreateTestCaseRun(list, result, TestCaseRun.FAILED);
+            }
+            for (TestResult result : testresult.getSkippedTests()) {
+                CreateTestCaseRun(list, result, TestCaseRun.WAIVED);
+            }
 
-    if(tests!=null){
-    TestResult testresult= tests.getResult();
-    ArrayList<TestCaseRun.create> list = new ArrayList<TestCaseRun.create>();
-    for(CaseResult result:testresult.getFailedTests()){
-    TestCaseRun.create c = new TestCaseRun.create();
-    c.run=this.run;
-    c.caseVar = getTcmsTestCaseId(result.getName());
-    if(c.caseVar<0){
-    c.caseVar = getTcmsCreateCase(result.getName());
-    }
-    c.build= this.build;
-    c.case_run_status = TestCaseRun.FAILED;
+        }
+        return list;
     }
 
-    }
-    }
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
         listener.getLogger().println("Connecting to TCMS at " + serverUrl);
@@ -140,6 +171,13 @@ public class TcmsPublisher extends Recorder {
             if (session.length() > 0) {
                 connection.setSession(session);
             }
+            LinkedList<TcmsCommand> list = new LinkedList<TcmsCommand>();
+            list = gatherTestInfo(list,build);
+
+            for(TcmsCommand c:list){
+                connection.invoke(c);
+            }
+
             connection.invoke(new Auth.logout());
             listener.getLogger().println("Logged out");
         } catch (XmlRpcFault ex) {
@@ -232,8 +270,8 @@ public class TcmsPublisher extends Recorder {
             try {
                 Object o = c.invoke(get_command);
             } catch (XmlRpcFault ex) {
-                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-                 return FormValidation.error("Product possibly doesn't exist");
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+                return FormValidation.error("Product possibly doesn't exist");
             }
 
 
