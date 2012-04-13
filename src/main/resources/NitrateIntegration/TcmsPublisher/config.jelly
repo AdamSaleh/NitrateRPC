@@ -24,4 +24,7 @@
   <f:validateButton
    title="${%Test Connection}" progress="${%Testing...}"
    method="testConnection" with="serverUrl,username,password,product" />
+  <f:entry title="Path to test files" field="testPath">
+    <f:textbox value="${instance.testPath}"/>
+  </f:entry>
 </j:jelly>

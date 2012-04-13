@@ -1,5 +1,6 @@
 package NitrateIntegration;
 
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.tasks.BuildStepMonitor;
@@ -28,7 +29,13 @@ import java.net.URL;
 import java.util.Hashtable;
 
 import java.util.LinkedList;
-import redstone.xmlrpc.XmlRpcFault;
+
+import redstone.xmlrpc.*;
+import com.redhat.engineering.jenkins.testparser.Parser;
+import com.redhat.engineering.jenkins.testparser.results.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Sample {@link Builder}.
@@ -53,26 +60,39 @@ public class TcmsPublisher extends Recorder {
     public final String username;
     public final String password;
     public final String product;
+    public final String testPath;
+
     private int run;
     private int build;
     private int product_id;
+
+    private int product_category;
     private TcmsConnection connection;
+  
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
 
     @DataBoundConstructor
-    public TcmsPublisher(String serverUrl, String username, String password, String product) {
+    public TcmsPublisher(String serverUrl, String username, String password, String product, String testPath) {
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
         this.product = product;
+        this.testPath = testPath;
+
         try {
             connection = new TcmsConnection(serverUrl);
 
             Product.check_product get_command = new Product.check_product();
             get_command.name = product;
-            Hashtable<String, Object> o = (Hashtable<String, Object>) connection.invoke(get_command);
-            Product p = (Product) TcmsConnection.hashtableToFields(o, Product.class);
+
+            XmlRpcArray array = (XmlRpcArray) connection.invoke(get_command);
+            XmlRpcStruct struct =array.getStruct(0);
+            Product p = (Product) TcmsConnection.rpcStructToFields(struct, Product.class);
+
             this.product_id = p.id;
+            this.product_category = p.category;
+
+
         } catch (IllegalAccessException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
@@ -81,8 +101,6 @@ public class TcmsPublisher extends Recorder {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            connection = null;
         }
 
     }
@@ -91,8 +109,8 @@ public class TcmsPublisher extends Recorder {
         try {
             TestCase.filter f = new TestCase.filter();
             f.summary__icontain = name;
-            Hashtable<String, Object> o = (Hashtable<String, Object>) connection.invoke(f);
-            TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o, TestCase.class);
+            XmlRpcStruct struct = (XmlRpcStruct) connection.invoke(f);
+            TestCase testcase = (TestCase) TcmsConnection.rpcStructToFields(struct, TestCase.class);
             return testcase.case_id;
         } catch (IllegalAccessException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
@@ -104,19 +122,18 @@ public class TcmsPublisher extends Recorder {
         return -1;
     }
 
-    private Integer tcmsCreateCase(TestResult result) {
+    private Integer tcmsCreateCase(MethodResult result) {
         try {
             TestCase.create create = new TestCase.create();
             create.product = this.product_id;
-            create.category = 0;
-            create.priority = 0;
+            create.category = 4;
+            create.priority = 1;
             create.summary = result.getName();
-            create.is_automated = 1;
-            create.action = result.getDescription();
 
-            Hashtable<String, Object> o = (Hashtable<String, Object>) connection.invoke(create);
-            TestCase testcase = (TestCase) TcmsConnection.hashtableToFields(o, TestCase.class);
-            return testcase.case_id;
+
+            Object o = connection.invoke(create);
+            TestCase testcase = (TestCase) TcmsConnection.rpcStructToFields((XmlRpcStruct)o, null);
+            return testcase.case_id; 
         } catch (IllegalAccessException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
@@ -127,7 +144,7 @@ public class TcmsPublisher extends Recorder {
         return -1;
     }
 
-    private void CreateTestCaseRun(LinkedList<TcmsCommand> list, TestResult result, int status) {
+    private void CreateTestCaseRun(LinkedList<TcmsCommand> list, MethodResult result, int status) {
         TestCaseRun.create c = new TestCaseRun.create();
         c.run = this.run;
         c.caseVar = getTcmsTestCaseId(result.getName());
@@ -139,27 +156,73 @@ public class TcmsPublisher extends Recorder {
         list.add(c);
     }
 
-    private LinkedList<TcmsCommand> gatherTestInfo(LinkedList<TcmsCommand> list, AbstractBuild build) {
-        TestResultAction tests = (TestResultAction) build.getTestResultAction();
+    private LinkedList<TcmsCommand> gatherTestInfo(LinkedList<TcmsCommand> list, TestResults results) {
+   
 
-        if (tests != null) {
-            TestResult testresult = tests.getResult();
-            for (TestResult result : testresult.getFailedTests()) {
+  
+            for (MethodResult result : results.getFailedTests()) {
                 CreateTestCaseRun(list, result, TestCaseRun.FAILED);
             }
-            for (TestResult result : testresult.getPassedTests()) {
-                CreateTestCaseRun(list, result, TestCaseRun.FAILED);
+            for (MethodResult result : results.getPassedTests()) {
+                CreateTestCaseRun(list, result, TestCaseRun.PASSED);
             }
-            for (TestResult result : testresult.getSkippedTests()) {
+            for (MethodResult result : results.getSkippedTests()) {
                 CreateTestCaseRun(list, result, TestCaseRun.WAIVED);
             }
 
-        }
         return list;
     }
 
+    /**
+    * look for testng reports based in the configured parameter includes.
+    * 'filenamePattern' is
+    *   - an Ant-style pattern
+    *   - a list of files and folders separated by the characters ;:,
+    *
+    * NOTE: Shamelessly stolen from testng-plugin
+    */
+   static FilePath[] locateReports(FilePath workspace,
+        String filenamePattern) throws IOException, InterruptedException
+   {
+
+      // First use ant-style pattern
+      try {
+         FilePath[] ret = workspace.list(filenamePattern);
+         if (ret.length > 0) {
+            return ret;
+         }
+      } catch (Exception e) {}
+
+      // If it fails, do a legacy search
+      List<FilePath> files = new ArrayList<FilePath>();
+      String parts[] = filenamePattern.split("\\s*[;:,]+\\s*");
+      for (String path : parts) {
+         FilePath src = workspace.child(path);
+         if (src.exists()) {
+            if (src.isDirectory()) {
+               files.addAll(Arrays.asList(src.list("**/testng*.xml")));
+            } else {
+               files.add(src);
+            }
+         }
+      }
+      return files.toArray(new FilePath[files.size()]);
+   }
+
     @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
+    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        Parser testParser = new Parser(listener.getLogger());
+        listener.getLogger().println("Starting TCMS integration plugin");
+        listener.getLogger().println("Looking for TestNG results report in workspace using pattern: "
+                     + testPath);
+        FilePath[] paths = locateReports(build.getWorkspace(), testPath);
+
+        TestResults results = testParser.parse(paths, false);
+
+        if(results == null){
+            return true;
+        }
+
         listener.getLogger().println("Connecting to TCMS at " + serverUrl);
         listener.getLogger().println("Using login: " + username);
 
@@ -172,7 +235,7 @@ public class TcmsPublisher extends Recorder {
                 connection.setSession(session);
             }
             LinkedList<TcmsCommand> list = new LinkedList<TcmsCommand>();
-            list = gatherTestInfo(list,build);
+            list = gatherTestInfo(list,results);
 
             for(TcmsCommand c:list){
                 connection.invoke(c);
