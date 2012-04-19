@@ -9,7 +9,7 @@
             <ul>
                   <j:forEach var="command" items="${it.gatherer}">
                     <li>
-                        ${command.current.name()}
+                        ${command.current.description()}
                     </li>
                 </j:forEach>
             </ul>

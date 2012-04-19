@@ -40,17 +40,14 @@ import java.util.List;
 /**
  * Sample {@link Builder}.
  *
- * <p>
- * When the user configures the project and enables this builder,
- * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked
- * and a new {@link HelloWorldBuilder} is created. The created
- * instance is persisted to the project configuration XML by using
- * XStream, so this allows you to use instance fields (like {@link #name})
+ * <p> When the user configures the project and enables this builder,
+ * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked and a new {@link HelloWorldBuilder}
+ * is created. The created instance is persisted to the project configuration
+ * XML by using XStream, so this allows you to use instance fields (like {@link #name})
  * to remember the configuration.
  *
- * <p>
- * When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)}
- * method will be invoked. 
+ * <p> When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)}
+ * method will be invoked.
  *
  * @author Kohsuke Kawaguchi
  */
@@ -59,21 +56,26 @@ public class TcmsPublisher extends Recorder {
     public final String serverUrl;
     public final String username;
     public final String password;
-    public final String product;
-    private int product_id;
+    public final TcmsProperties properties;
     public final String testPath;
-    private int product_category;
     private TcmsConnection connection;
-
     public TcmsGatherer gatherer;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public TcmsPublisher(String serverUrl, String username, String password, String product, String testPath) {
+    public TcmsPublisher(String serverUrl, String username, String password,
+            String plan,
+            String product,
+            String product_v,
+            String category,
+            String priority,
+            String testPath
+        ) {
+        
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
-        this.product = product;
+        properties = new TcmsProperties(plan, product, product_v, category, priority);
         this.testPath = testPath;
 
         try {
@@ -124,8 +126,8 @@ public class TcmsPublisher extends Recorder {
 
             gatherer = new TcmsGatherer(listener.getLogger(), build, connection);
             gatherer.gather(testPath);
-            build.getActions().add(new TcmsReviewAction(build,gatherer));
-           // TcmsUploader.upload(gatherer, connection);
+            build.getActions().add(new TcmsReviewAction(build, gatherer));
+            // TcmsUploader.upload(gatherer, connection);
 
             connection.invoke(new Auth.logout());
         } catch (XmlRpcFault ex) {
@@ -141,22 +143,21 @@ public class TcmsPublisher extends Recorder {
     }
 
     /**
-     * Descriptor for {@link HelloWorldBuilder}. Used as a singleton.
-     * The class is marked as public so that it can be accessed from views.
+     * Descriptor for {@link HelloWorldBuilder}. Used as a singleton. The class
+     * is marked as public so that it can be accessed from views.
      *
-     * <p>
-     * See <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt>
+     * <p> See
+     * <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt>
      * for the actual HTML fragment for the configuration screen.
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<hudson.tasks.Publisher> {
 
         /**
-         * To persist global configuration information,
-         * simply store it in a field and call save().
+         * To persist global configuration information, simply store it in a
+         * field and call save().
          *
-         * <p>
-         * If you don't want fields to be persisted, use <tt>transient</tt>.
+         * <p> If you don't want fields to be persisted, use <tt>transient</tt>.
          */
         /**
          * Do not instantiate DescriptorImpl.
@@ -164,18 +165,18 @@ public class TcmsPublisher extends Recorder {
         /**
          * Performs on-the-fly validation of the form field 'name'.
          *
-         * @param value
-         *      This parameter receives the value that the user has typed.
-         * @return
-         *      Indicates the outcome of the validation. This is sent to the browser.
+         * @param value This parameter receives the value that the user has
+         * typed.
+         * @return Indicates the outcome of the validation. This is sent to the
+         * browser.
          */
-        public FormValidation doCheckServerUrl(@QueryParameter String value) {
+        public FormValidation checkServerUrl(String value) {
             if (value.length() == 0) {
                 return FormValidation.error("Please set an url");
             }
             try {
-                URL url = new URL(value);
-                boolean testTcmsConnection = TcmsConnection.testTcmsConnection(url);
+                TcmsConnection testCon = new TcmsConnection(value);
+                boolean testTcmsConnection = testCon.testTcmsConnection();
                 if (testTcmsConnection == false) {
                     return FormValidation.warning("XML-RPC Service not found");
                 }
@@ -190,7 +191,11 @@ public class TcmsPublisher extends Recorder {
         public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
-                @QueryParameter("product") final String product) {
+                @QueryParameter("product") final String plan,
+                @QueryParameter("product") final String product,
+                @QueryParameter("product") final String product_v,
+                @QueryParameter("product") final String category,
+                @QueryParameter("product") final String priority) {
             FormValidation url_val = doCheckServerUrl(serverUrl);
             if (url_val != FormValidation.ok()) {
                 return url_val;
