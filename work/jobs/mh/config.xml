@@ -12,6 +12,20 @@
   <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
   <builders/>
-  <publishers/>
+  <publishers>
+    <NitrateIntegration.TcmsPublisher>
+      <serverUrl>https://tcms.engineering.redhat.com/xmlrpc/</serverUrl>
+      <username>asaleh</username>
+      <password>#Nitrate1</password>
+      <properties>
+        <plan>5866</plan>
+        <product>TCMS</product>
+        <product__v>Devel</product__v>
+        <category>Functional</category>
+        <priority>P1</priority>
+      </properties>
+      <testPath>build/test/results/*.xml</testPath>
+    </NitrateIntegration.TcmsPublisher>
+  </publishers>
   <buildWrappers/>
 </project>

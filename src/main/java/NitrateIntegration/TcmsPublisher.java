@@ -73,34 +73,10 @@ public class TcmsPublisher extends Recorder {
         ) {
         
         this.serverUrl = serverUrl;
-        this.username = username;
+            this.username = username;
         this.password = password;
         properties = new TcmsProperties(plan, product, product_v, category, priority);
         this.testPath = testPath;
-
-        try {
-            connection = new TcmsConnection(serverUrl);
-
-            Product.check_product get_command = new Product.check_product();
-            get_command.name = product;
-
-            XmlRpcArray array = (XmlRpcArray) connection.invoke(get_command);
-            XmlRpcStruct struct = array.getStruct(0);
-            Product p = (Product) TcmsConnection.rpcStructToFields(struct, Product.class);
-
-            properties.setConnection(connection);
-            
-
-
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (XmlRpcFault ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
     }
 
