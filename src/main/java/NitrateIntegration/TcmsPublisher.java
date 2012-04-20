@@ -127,7 +127,6 @@ public class TcmsPublisher extends Recorder {
             gatherer = new TcmsGatherer(listener.getLogger(), build, connection);
             gatherer.gather(testPath);
             build.getActions().add(new TcmsReviewAction(build, gatherer));
-            // TcmsUploader.upload(gatherer, connection);
 
             connection.invoke(new Auth.logout());
         } catch (XmlRpcFault ex) {

@@ -97,8 +97,11 @@ public class TcmsProperties {
                     XmlRpcArray array = (XmlRpcArray) a;
                     for(Object o:array){
                         if(o instanceof XmlRpcStruct){
-                            Product result = (Product) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.class);
-                            
+                            Product.Version result = (Product.Version) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Version.class);
+                            if(result.value.contentEquals(product_v)){
+                                  product_v_id = result.id;
+                                  return product_v_id;
+                            }
                         }
                     }
                 }
