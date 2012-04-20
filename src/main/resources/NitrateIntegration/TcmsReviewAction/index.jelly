@@ -4,16 +4,18 @@
     <l:layout title="TCMS review report">
         <st:include it="${it.build.project}" page="sidepanel.jelly"/>
         <l:main-panel>
-          <h1>Review Report</h1>
+            <h1>Review Report</h1>
 	
             <ul>
-                  <j:forEach var="command" items="${it.gatherer}">
+                <j:forEach var="command" items="${it.gatherer}">
                     <li>
                         ${command.current.description()}
                     </li>
                 </j:forEach>
             </ul>
-	
+            <f:form method="post" action="reportSubmit" name="nitrateplugin">
+                <f:submit value="Submit Report}" />
+            </f:form>
         </l:main-panel>
     </l:layout>
 </j:jelly>

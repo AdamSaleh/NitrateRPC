@@ -12,10 +12,7 @@ import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import redstone.xmlrpc.*;
 
 /**
@@ -30,25 +27,25 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
     
     private int run_id;
     private int build_id;
-    private int product_id;
+  
+    private TcmsProperties properties;
+    
     AbstractBuild build;
     TcmsConnection connection;
 
-    public TcmsGatherer(PrintStream logger,AbstractBuild build,TcmsConnection connection) {
+    public TcmsGatherer(PrintStream logger,AbstractBuild build,TcmsConnection connection,TcmsProperties properties) {
         this.logger = logger;
-        this.build_id =build.getNumber();
-        this.run_id = build.getNumber();
         this.build=build;
         this.connection = connection;
+        this.properties = properties;
     }
 
-  
 
     private TestCase.create tcmsCreateCase(MethodResult result) {
        TestCase.create create = new TestCase.create();
-       create.product = this.product_id;
-       create.category = 4;
-       create.priority = 1;
+       create.product = this.properties.getProductID();
+       create.category = this.properties.getCategoryID();
+       create.priority = this.properties.getPriorityID();
        create.summary = result.getName();
        return create;
     }
@@ -90,6 +87,13 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
         Parser testParser = new Parser(logger);
         
         FilePath[] paths = Parser.locateReports(build.getWorkspace(), testPath);
+        if (paths.length == 0) {
+            logger.println("Did not find any matching files.");
+            return;
+        }
+        
+        paths = Parser.checkReports(build, paths, logger);
+        
         TestResults results = testParser.parse(paths, false);
 
         if (results == null) {
@@ -139,7 +143,6 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
 
     }
 
-
     /*Yay, linked list! Way to shoot yourself to the leg :D */
     public class TcmsRpcCommandScript {
 
@@ -149,7 +152,7 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
         boolean performed;
         boolean completed;
         public TcmsRpcCommandScript dependecy;
-
+        Object result;
         public TcmsRpcCommandScript(TcmsCommand current, TcmsRpcCommandScript previous, TcmsRpcCommandScript dependecy) {
             this.current = current;
 

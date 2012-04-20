@@ -33,9 +33,11 @@ import java.util.LinkedList;
 import redstone.xmlrpc.*;
 import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import hudson.matrix.MatrixRun;
+import hudson.model.Result;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.*;
 
 /**
  * Sample {@link Builder}.
@@ -57,7 +59,7 @@ public class TcmsPublisher extends Recorder {
     public final String username;
     public final String password;
     public final TcmsProperties properties;
-    public final String testPath;
+    public final String reportLocationPattern;
     private TcmsConnection connection;
     public TcmsGatherer gatherer;
 
@@ -69,29 +71,27 @@ public class TcmsPublisher extends Recorder {
             String product_v,
             String category,
             String priority,
-            String testPath
-        ) {
-        
+            String testPath) {
+
         this.serverUrl = serverUrl;
-            this.username = username;
+        this.username = username;
         this.password = password;
         properties = new TcmsProperties(plan, product, product_v, category, priority);
-        this.testPath = testPath;
+        this.reportLocationPattern = testPath;
 
     }
 
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-
-        listener.getLogger().println("Starting TCMS integration plugin");
+         listener.getLogger().println("Starting TCMS integration plugin");
         listener.getLogger().println("Looking for TestNG results report in workspace using pattern: "
-                + testPath);
+                + reportLocationPattern);
 
 
         listener.getLogger().println("Connecting to TCMS at " + serverUrl);
         listener.getLogger().println("Using login: " + username);
 
-        Auth.login auth = new Auth.login(username, password);
+       /* Auth.login auth = new Auth.login(username, password);
         String session;
         try {
             session = auth.invoke(connection);
@@ -99,10 +99,9 @@ public class TcmsPublisher extends Recorder {
             if (session.length() > 0) {
                 connection.setSession(session);
             }
-
-            gatherer = new TcmsGatherer(listener.getLogger(), build, connection);
-            gatherer.gather(testPath);
-            build.getActions().add(new TcmsReviewAction(build, gatherer));
+            gatherer = new TcmsGatherer(listener.getLogger(), build, connection,properties);
+            gatherer.gather(reportLocationPattern);
+            //build.getActions().add(new TcmsReviewAction(build, gatherer,connection));
 
             connection.invoke(new Auth.logout());
         } catch (XmlRpcFault ex) {
@@ -110,6 +109,7 @@ public class TcmsPublisher extends Recorder {
             return false;
         }
         listener.getLogger().println("Logged out");
+        return true;*/
         return true;
     }
 
@@ -145,7 +145,7 @@ public class TcmsPublisher extends Recorder {
          * @return Indicates the outcome of the validation. This is sent to the
          * browser.
          */
-        public FormValidation checkServerUrl(String value,String username,String password) {
+        public FormValidation checkServerUrl(String value, String username, String password) {
             if (value.length() == 0) {
                 return FormValidation.error("Please set an url");
             }
@@ -172,7 +172,7 @@ public class TcmsPublisher extends Recorder {
                 @QueryParameter("product_v") final String product_v,
                 @QueryParameter("category") final String category,
                 @QueryParameter("priority") final String priority) {
-            FormValidation url_val = checkServerUrl(serverUrl,username,password);
+            FormValidation url_val = checkServerUrl(serverUrl, username, password);
             if (url_val != FormValidation.ok()) {
                 return url_val;
             }
@@ -199,20 +199,20 @@ public class TcmsPublisher extends Recorder {
 
             TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority);
             properties.setConnection(c);
-            if(properties.getPlanID()==null){
-                  return FormValidation.error("Possibly wrong plan id");
+            if (properties.getPlanID() == null) {
+                return FormValidation.error("Possibly wrong plan id");
             }
-            if(properties.getProductID()==null){
-                  return FormValidation.error("Possibly wrong product name");
+            if (properties.getProductID() == null) {
+                return FormValidation.error("Possibly wrong product name");
             }
-            if(properties.getProduct_vID()==null){
-                  return FormValidation.error("Possibly wrong product version");
+            if (properties.getProduct_vID() == null) {
+                return FormValidation.error("Possibly wrong product version");
             }
-            if(properties.getCategoryID()==null){
-                  return FormValidation.error("Possibly wrong category name");
+            if (properties.getCategoryID() == null) {
+                return FormValidation.error("Possibly wrong category name");
             }
-             if(properties.getPriorityID()==null){
-                  return FormValidation.error("Possibly wrong priority name");
+            if (properties.getPriorityID() == null) {
+                return FormValidation.error("Possibly wrong priority name");
             }
             return FormValidation.ok();
 
