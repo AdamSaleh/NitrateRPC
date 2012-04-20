@@ -18,7 +18,7 @@
   <f:entry title="Password" field="password">
     <f:password value="${instance.password}"/>
   </f:entry>
-    <f:entry title="Plan Id" field="plan">
+  <f:entry title="Plan Id" field="plan">
     <f:textbox value="${instance.properties.plan}"/>
   </f:entry>
   <f:entry title="Product" field="product">
@@ -28,10 +28,10 @@
     <f:textbox value="${instance.properties.product_v}"/>
   </f:entry>
   <f:entry title="Category" field="category">
-    <f:textbox value="${instance.properties.priority}"/>
+    <f:textbox value="${instance.properties.category}"/>
   </f:entry>
   <f:entry title="Priority" field="priority">
-    <f:textbox value="${instance.properties.category}"/>
+    <f:textbox value="${instance.properties.priority}"/>
   </f:entry>
   <f:validateButton
    title="${%Test Connection}" progress="${%Testing...}"

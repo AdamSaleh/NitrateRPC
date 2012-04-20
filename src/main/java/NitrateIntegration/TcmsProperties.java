@@ -7,8 +7,10 @@ package NitrateIntegration;
 import com.redhat.nitrate.Product;
 import com.redhat.nitrate.TcmsConnection;
 import com.redhat.nitrate.TestPlan;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import redstone.xmlrpc.XmlRpcArray;
 import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
 
@@ -42,15 +44,16 @@ public class TcmsProperties {
         this.connection = connection;
     }
 
-    public Integer planID() {
+    public Integer getPlanID() {
         if (plan_id == null) {
-            TestPlan.get get = new TestPlan.get();
-            get.id = Integer.parseInt(plan);
             try {
+                TestPlan.get get = new TestPlan.get();
+                get.id = Integer.parseInt(plan);
                 Object o = connection.invoke(get);
+                
                 if (o instanceof XmlRpcStruct) {
                     TestPlan result = (TestPlan) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, TestPlan.class);
-                    plan_id = result.id;
+                    plan_id = result.plan_id;
                 }
             } catch (XmlRpcFault ex) {
                 Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
@@ -63,11 +66,11 @@ public class TcmsProperties {
         return plan_id;
     }
 
-    public Integer productID() {
+    public Integer getProductID() {
         if (product_id == null) {
-            Product.check_product get = new Product.check_product();
-            get.name = product;
             try {
+                Product.check_product get = new Product.check_product();
+                get.name = product;
                 Object o = connection.invoke(get);
                 if (o instanceof XmlRpcStruct) {
                     Product result = (Product) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.class);
@@ -84,22 +87,20 @@ public class TcmsProperties {
         return product_id;
     }
 
-    public Integer product_vID() {
+    public Integer getProduct_vID() {
         if (product_v_id == null) {
-            
-        }
-        return product_v_id;
-    }
-
-    public Integer categoryID() {
-        if (category_id == null) {
-               TestPlan.get get = new TestPlan.get();
-            get.id = Integer.parseInt(plan);
+            Product.get_versions get = new Product.get_versions();
+            get.id_str = product;
             try {
-                Object o = connection.invoke(get);
-                if (o instanceof XmlRpcStruct) {
-                    TestPlan plan = (TestPlan) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, TestPlan.class);
-                    plan_id = plan.id;
+                Object a = connection.invoke(get);
+                if (a instanceof XmlRpcArray) {
+                    XmlRpcArray array = (XmlRpcArray) a;
+                    for(Object o:array){
+                        if(o instanceof XmlRpcStruct){
+                            Product result = (Product) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.class);
+                            
+                        }
+                    }
                 }
             } catch (XmlRpcFault ex) {
                 Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
@@ -108,11 +109,32 @@ public class TcmsProperties {
             } catch (InstantiationException ex) {
                 Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
             }
+            
+        }
+        return product_v_id;
+    }
+
+    public Integer getCategoryID() {
+        if (category_id == null) {
+           /* TestPlan.get get = new TestPlan.get();
+            get.id = Integer.parseInt(plan);
+            try {
+                Object o = connection.invoke(get);
+                if (o instanceof XmlRpcStruct) {
+                    
+                }
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            }*/
         }
         return category_id;
     }
 
-    public Integer priorityID() {
+    public Integer getPriorityID() {
         if (priority_id == null) {
         }
         return priority_id;

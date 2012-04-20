@@ -88,8 +88,8 @@ public class TcmsPublisher extends Recorder {
             XmlRpcStruct struct = array.getStruct(0);
             Product p = (Product) TcmsConnection.rpcStructToFields(struct, Product.class);
 
-            this.product_id = p.id;
-            this.product_category = p.category;
+            properties.setConnection(connection);
+            
 
 
         } catch (IllegalAccessException ex) {
@@ -170,12 +170,13 @@ public class TcmsPublisher extends Recorder {
          * @return Indicates the outcome of the validation. This is sent to the
          * browser.
          */
-        public FormValidation checkServerUrl(String value) {
+        public FormValidation checkServerUrl(String value,String username,String password) {
             if (value.length() == 0) {
                 return FormValidation.error("Please set an url");
             }
             try {
                 TcmsConnection testCon = new TcmsConnection(value);
+                testCon.setUsernameAndPassword(username, password);
                 boolean testTcmsConnection = testCon.testTcmsConnection();
                 if (testTcmsConnection == false) {
                     return FormValidation.warning("XML-RPC Service not found");
@@ -191,12 +192,12 @@ public class TcmsPublisher extends Recorder {
         public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
-                @QueryParameter("product") final String plan,
+                @QueryParameter("plan") final String plan,
                 @QueryParameter("product") final String product,
-                @QueryParameter("product") final String product_v,
-                @QueryParameter("product") final String category,
-                @QueryParameter("product") final String priority) {
-            FormValidation url_val = doCheckServerUrl(serverUrl);
+                @QueryParameter("product_v") final String product_v,
+                @QueryParameter("category") final String category,
+                @QueryParameter("priority") final String priority) {
+            FormValidation url_val = checkServerUrl(serverUrl,username,password);
             if (url_val != FormValidation.ok()) {
                 return url_val;
             }
@@ -206,9 +207,11 @@ public class TcmsPublisher extends Recorder {
                 c = new TcmsConnection(serverUrl);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+                return FormValidation.error("Something weird happened");
             }
 
-            Auth.login auth = new Auth.login(username, password);
+            c.setUsernameAndPassword(username, password);
+            Auth.login_krbv auth = new Auth.login_krbv();
             String session;
             try {
                 session = auth.invoke(c);
@@ -219,16 +222,23 @@ public class TcmsPublisher extends Recorder {
                 return FormValidation.error("Possibly wrong username/password");
             }
 
-            Product.check_product get_command = new Product.check_product();
-            get_command.name = product;
-            try {
-                Object o = c.invoke(get_command);
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-                return FormValidation.error("Product possibly doesn't exist");
+            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority);
+            properties.setConnection(c);
+            if(properties.getPlanID()==null){
+                  return FormValidation.error("Possibly wrong plan id");
             }
-
-
+            if(properties.getProductID()==null){
+                  return FormValidation.error("Possibly wrong product name");
+            }
+            if(properties.getProduct_vID()==null){
+                  return FormValidation.error("Possibly wrong product version");
+            }
+            if(properties.getCategoryID()==null){
+                  return FormValidation.error("Possibly wrong category name");
+            }
+             if(properties.getPriorityID()==null){
+                  return FormValidation.error("Possibly wrong priority name");
+            }
             return FormValidation.ok();
 
         }

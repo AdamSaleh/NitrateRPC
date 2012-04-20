@@ -88,8 +88,8 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
     public void gather(String testPath) throws IOException, InterruptedException {
         clear();
         Parser testParser = new Parser(logger);
+        
         FilePath[] paths = Parser.locateReports(build.getWorkspace(), testPath);
-
         TestResults results = testParser.parse(paths, false);
 
         if (results == null) {
