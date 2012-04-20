@@ -50,7 +50,7 @@ public class TcmsProperties {
                 TestPlan.get get = new TestPlan.get();
                 get.id = Integer.parseInt(plan);
                 Object o = connection.invoke(get);
-                
+
                 if (o instanceof XmlRpcStruct) {
                     TestPlan result = (TestPlan) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, TestPlan.class);
                     plan_id = result.plan_id;
@@ -89,18 +89,18 @@ public class TcmsProperties {
 
     public Integer getProduct_vID() {
         if (product_v_id == null) {
-            Product.get_versions get = new Product.get_versions();
-            get.id_str = product;
             try {
+                Product.get_versions get = new Product.get_versions();
+                get.id_str = product;
                 Object a = connection.invoke(get);
                 if (a instanceof XmlRpcArray) {
                     XmlRpcArray array = (XmlRpcArray) a;
-                    for(Object o:array){
-                        if(o instanceof XmlRpcStruct){
+                    for (Object o : array) {
+                        if (o instanceof XmlRpcStruct) {
                             Product.Version result = (Product.Version) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Version.class);
-                            if(result.value.contentEquals(product_v)){
-                                  product_v_id = result.id;
-                                  return product_v_id;
+                            if (result.value.contentEquals(product_v)) {
+                                product_v_id = result.id;
+                                return product_v_id;
                             }
                         }
                     }
@@ -112,27 +112,30 @@ public class TcmsProperties {
             } catch (InstantiationException ex) {
                 Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
         }
         return product_v_id;
     }
 
     public Integer getCategoryID() {
         if (category_id == null) {
-           /* TestPlan.get get = new TestPlan.get();
-            get.id = Integer.parseInt(plan);
             try {
+                Product.check_category get = new Product.check_category();
+                get.name = category;
+                get.product = product_id;
                 Object o = connection.invoke(get);
                 if (o instanceof XmlRpcStruct) {
-                    
+                    Product.Category result = (Product.Category) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Category.class);
+                    category_id = result.id;     
                 }
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IllegalAccessException ex) {
                 Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InstantiationException ex) {
                 Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
-            }*/
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
         }
         return category_id;
     }
