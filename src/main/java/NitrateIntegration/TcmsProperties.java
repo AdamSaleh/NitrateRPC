@@ -6,6 +6,7 @@ package NitrateIntegration;
 
 import com.redhat.nitrate.Product;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TestCase;
 import com.redhat.nitrate.TestPlan;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -142,6 +143,21 @@ public class TcmsProperties {
 
     public Integer getPriorityID() {
         if (priority_id == null) {
+               try {
+                TestCase.check_priority get = new TestCase.check_priority();
+                get.value = priority;
+                Object o = connection.invoke(get);
+                if (o instanceof XmlRpcStruct) {
+                    TestCase.Priority result = (TestCase.Priority) TcmsConnection.rpcStructToFields((XmlRpcStruct) o,TestCase.Priority.class);
+                    priority_id = result.id;     
+                }
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return priority_id;
     }
