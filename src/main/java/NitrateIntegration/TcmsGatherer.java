@@ -4,108 +4,110 @@
  */
 package NitrateIntegration;
 
-import NitrateIntegration.TcmsGatherer.TcmsRpcCommandScript;
+import NitrateIntegration.TcmsGatherer.RpcCommandScript;
 import com.redhat.engineering.jenkins.testparser.Parser;
-import com.redhat.engineering.jenkins.testparser.results.*;
+import com.redhat.engineering.jenkins.testparser.results.MethodResult;
+import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.*;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Iterator;
-import redstone.xmlrpc.*;
+import java.util.LinkedList;
 
 /**
  *
  * @author asaleh
  */
-public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
+public class TcmsGatherer implements Iterable<RpcCommandScript> {
 
     PrintStream logger;
-    TcmsRpcCommandScript head = null;
-    TcmsRpcCommandScript tail = null;
-    
+    RpcCommandScript head = null;
+    RpcCommandScript tail = null;
     private int run_id;
     private int build_id;
-  
     private TcmsProperties properties;
-    
-    public TcmsGatherer(PrintStream logger,TcmsProperties properties) {
+
+    public TcmsGatherer(PrintStream logger, TcmsProperties properties) {
         this.logger = logger;
         this.properties = properties;
     }
 
-
     private TestCase.create tcmsCreateCase(MethodResult result) {
-       TestCase.create create = new TestCase.create();
-       create.product = this.properties.getProductID();
-       create.category = this.properties.getCategoryID();
-       create.priority = this.properties.getPriorityID();
-       create.summary = result.getName();
-       return create;
+        TestCase.create create = new TestCase.create();
+        create.product = this.properties.getProductID();
+        create.category = this.properties.getCategoryID();
+        create.priority = this.properties.getPriorityID();
+        create.summary = result.getName();
+        return create;
     }
 
     private Build.create tcmsCreateBuild(AbstractBuild build) {
-       Build.create create = new Build.create();
-       create.product = this.properties.getProductID();
-       create.name = build.getId();
-       create.description = build.getDescription();
-       return create;
+        Build.create create = new Build.create();
+        create.product = this.properties.getProductID();
+        create.name = build.getId();
+        create.description = build.getDescription();
+        return create;
     }
+
     private TestRun.create tcmsCreateRun(AbstractBuild build) {
-       TestRun.create create = new TestRun.create();
-       create.product = this.properties.getProductID();
-       create.plan = this.properties.getPlanID();
-       create.build = -1;
-       create.manager = -1;
-       return create;
+        TestRun.create create = new TestRun.create();
+        create.product = this.properties.getProductID();
+        create.plan = this.properties.getPlanID();
+        create.build = -1;
+        create.manager = this.properties.getManagerId();
+        return create;
     }
-    
-    private void CreateTestCaseRun(MethodResult result, int status) {
+
+    private void CreateTestCaseRun(MethodResult result, int status, RpcCommandScript run, RpcCommandScript build) {
         TestCaseRun.create c = new TestCaseRun.create();
         c.run = -1;
         c.caseVar = -1;
-        TcmsRpcCommandScript dependency = null;
-        dependency = add(tcmsCreateCase(result),null);
+        RpcCommandScript dependency = null;
+        dependency = add(tcmsCreateCase(result), null);
         c.build = -1;
         c.case_run_status = status;
-        add(c,dependency);
+        RpcCommandScript case_run = add(c, dependency);
+        case_run.addDependecy(run);
+        case_run.addDependecy(build);
     }
 
-    private void gatherTestInfo(TestResults results) {
+    private void gatherTestInfo(TestResults results, RpcCommandScript run, RpcCommandScript build) {
 
         for (MethodResult result : results.getFailedTests()) {
-            CreateTestCaseRun(result, TestCaseRun.FAILED);
+            CreateTestCaseRun(result, TestCaseRun.FAILED, run,build);
         }
         for (MethodResult result : results.getPassedTests()) {
-            CreateTestCaseRun(result, TestCaseRun.PASSED);
+            CreateTestCaseRun(result, TestCaseRun.PASSED, run,build);
         }
         for (MethodResult result : results.getSkippedTests()) {
-            CreateTestCaseRun(result, TestCaseRun.WAIVED);
+            CreateTestCaseRun(result, TestCaseRun.WAIVED, run,build);
         }
 
     }
 
-    public void gather(String testPath,AbstractBuild build,AbstractBuild run) throws IOException, InterruptedException {
-        clear();
+    public void gather(String testPath, AbstractBuild build, AbstractBuild run) throws IOException, InterruptedException {
+        
         Parser testParser = new Parser(logger);
-        
-        
-        
+
         FilePath[] paths = Parser.locateReports(build.getWorkspace(), testPath);
         if (paths.length == 0) {
             logger.println("Did not find any matching files.");
             return;
         }
-        
+
         paths = Parser.checkReports(build, paths, logger);
-        
+
         TestResults results = testParser.parse(paths, false);
 
         if (results == null) {
             return;
         }
-        gatherTestInfo(results);
+        
+        RpcCommandScript build_s = add(tcmsCreateBuild(build),null);
+        RpcCommandScript run_s =  add(tcmsCreateBuild(build),build_s);
+        gatherTestInfo(results, run_s,build_s);
 
     }
 
@@ -113,8 +115,8 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
         head = null;
     }
 
-    private TcmsRpcCommandScript add(TcmsCommand current, TcmsRpcCommandScript dependecy) {
-        TcmsRpcCommandScript script = new TcmsRpcCommandScript(current, tail, dependecy);
+    private RpcCommandScript add(TcmsCommand current, RpcCommandScript dependecy) {
+        RpcCommandScript script = new RpcCommandScript(current, tail, dependecy);
         if (head == null) {
             head = script;
         }
@@ -122,58 +124,112 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
         return tail;
     }
 
-    public Iterator<TcmsRpcCommandScript> iterator() {
+    public Iterator<RpcCommandScript> iterator() {
         return new CommadScriptIterator();
     }
 
-    public class CommadScriptIterator implements Iterator<TcmsRpcCommandScript>{
-        TcmsRpcCommandScript current;
+    public class CommadScriptIterator implements Iterator<RpcCommandScript> {
+
+        RpcCommandScript current;
+
         public CommadScriptIterator() {
             current = head;
         }
 
         public boolean hasNext() {
             //if(current==null) return false;
-            return current!=null;
+            return current != null;
         }
 
-        public TcmsRpcCommandScript next() {
-            TcmsRpcCommandScript temp=current;
-            if(current!=null) current = current.next;
+        public RpcCommandScript next() {
+            RpcCommandScript temp = current;
+            if (current != null) {
+                current = current.next;
+            }
             return temp;
         }
 
         public void remove() {
             return;
         }
-
     }
 
-    /*Yay, linked list! Way to shoot yourself to the leg :D */
-    public class TcmsRpcCommandScript {
+    /*
+     * Yay, linked list! Way to shoot yourself to the leg :D
+     */
+    public class RpcCommandScript {
 
-        public TcmsCommand current;
-        TcmsRpcCommandScript previous;
-        TcmsRpcCommandScript next;
-        boolean performed;
-        boolean completed;
-        public TcmsRpcCommandScript dependecy;
-        Object result;
-        public TcmsRpcCommandScript(TcmsCommand current, TcmsRpcCommandScript previous, TcmsRpcCommandScript dependecy) {
+        private TcmsCommand current;
+        private RpcCommandScript previous;
+        private RpcCommandScript next;
+        private boolean performed;
+        private boolean completed;
+        private LinkedList<RpcCommandScript> dependecy;
+        private Object result;
+
+        public RpcCommandScript(TcmsCommand current, RpcCommandScript previous, RpcCommandScript dependecy) {
             this.current = current;
 
             this.previous = previous;
             this.next = null;
-            if(previous!=null) this.previous.next = this;
+            if (previous != null) {
+                this.previous.next = this;
+            }
 
             this.performed = false;
             this.completed = false;
-
-            this.dependecy = dependecy;
+            this.dependecy = new LinkedList<RpcCommandScript>();
+            if (dependecy != null) {
+                this.dependecy.push(dependecy);
+            }
+            result = null;
         }
 
-        public TcmsRpcCommandScript(TcmsCommand current, TcmsRpcCommandScript previous) {
+        public LinkedList<RpcCommandScript> getDependecies() {
+            return dependecy;
+        }
+        public void addDependecy(RpcCommandScript dep) {
+            dependecy.push(dep);
+        }
+        
+        public boolean resolved() {
+            if (dependecy.size() == 0) {
+                return true;
+            }
+            for (RpcCommandScript s : dependecy) {
+                if(s.completed()==false) return false;
+            }
+            return true;
+        }
+
+        public boolean completed() {
+            return completed;
+        }
+
+        public RpcCommandScript(TcmsCommand current, RpcCommandScript previous) {
             this(current, previous, null);
         }
+
+        TcmsCommand current() {
+             return current;
+        }
+
+        public void setResult(Object result) {
+            if(result == null)this.result = result;
+        }
+        public Object getResult() {
+            return result;
+        }
+
+        public void setPerforming() {
+            this.performed = true;
+        }
+
+        public void setCompleted() {
+            this.completed = true;
+        }
+        
+        
+        
     }
 }
