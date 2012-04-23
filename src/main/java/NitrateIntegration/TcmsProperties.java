@@ -4,10 +4,7 @@
  */
 package NitrateIntegration;
 
-import com.redhat.nitrate.Product;
-import com.redhat.nitrate.TcmsConnection;
-import com.redhat.nitrate.TestCase;
-import com.redhat.nitrate.TestPlan;
+import com.redhat.nitrate.*;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,18 +23,21 @@ public class TcmsProperties {
     public final String product_v;
     public final String category;
     public final String priority;
+    public final String manager;
     private Integer plan_id = null;
     private Integer product_id = null;
     private Integer product_v_id = null;
     private Integer category_id = null;
     private Integer priority_id = null;
+    private Integer manager_id = null;
 
-    public TcmsProperties(String plan, String product, String product_v, String category, String priority) {
+    public TcmsProperties(String plan, String product, String product_v, String category, String priority, String manager) {
         this.plan = plan;
         this.product = product;
         this.product_v = product_v;
         this.category = category;
         this.priority = priority;
+        this.manager = manager;
     }
     TcmsConnection connection;
 
@@ -53,7 +53,7 @@ public class TcmsProperties {
                 Object o = connection.invoke(get);
 
                 if (o instanceof XmlRpcStruct) {
-                    TestPlan result = (TestPlan) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, TestPlan.class);
+                    TestPlan result =  TcmsConnection.rpcStructToFields((XmlRpcStruct) o, TestPlan.class);
                     plan_id = result.plan_id;
                 }
             } catch (XmlRpcFault ex) {
@@ -74,7 +74,7 @@ public class TcmsProperties {
                 get.name = product;
                 Object o = connection.invoke(get);
                 if (o instanceof XmlRpcStruct) {
-                    Product result = (Product) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.class);
+                    Product result =TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.class);
                     product_id = result.id;
                 }
             } catch (XmlRpcFault ex) {
@@ -98,7 +98,7 @@ public class TcmsProperties {
                     XmlRpcArray array = (XmlRpcArray) a;
                     for (Object o : array) {
                         if (o instanceof XmlRpcStruct) {
-                            Product.Version result = (Product.Version) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Version.class);
+                            Product.Version result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Version.class);
                             if (result.value.contentEquals(product_v)) {
                                 product_v_id = result.id;
                                 return product_v_id;
@@ -126,7 +126,7 @@ public class TcmsProperties {
                 get.product = product_id;
                 Object o = connection.invoke(get);
                 if (o instanceof XmlRpcStruct) {
-                    Product.Category result = (Product.Category) TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Category.class);
+                    Product.Category result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Category.class);
                     category_id = result.id;     
                 }
             } catch (IllegalAccessException ex) {
@@ -148,7 +148,7 @@ public class TcmsProperties {
                 get.value = priority;
                 Object o = connection.invoke(get);
                 if (o instanceof XmlRpcStruct) {
-                    TestCase.Priority result = (TestCase.Priority) TcmsConnection.rpcStructToFields((XmlRpcStruct) o,TestCase.Priority.class);
+                    TestCase.Priority result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o,TestCase.Priority.class);
                     priority_id = result.id;     
                 }
             } catch (IllegalAccessException ex) {
@@ -160,5 +160,30 @@ public class TcmsProperties {
             }
         }
         return priority_id;
+    }
+    
+        public Integer getManagerId() {
+        if (manager_id == null) {
+            try {
+                User.filter get = new User.filter();
+                get.username__startswith = manager;
+                Object o = connection.invoke(get);
+                if (o instanceof XmlRpcArray) {
+                    if(((XmlRpcArray)o).size()==0) return null;
+                    o = ((XmlRpcArray)o).get(0); 
+                }
+                if (o instanceof XmlRpcStruct) {
+                    User result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o,User.class);
+                    manager_id = result.id;
+                }
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return manager_id;
     }
 }

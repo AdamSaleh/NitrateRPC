@@ -44,6 +44,10 @@ public class TcmsReviewAction implements Action {
 	return Definitions.__PREFIX;
     }
 
+    public TcmsGatherer getGatherer() {
+        return gatherer;
+    }
+    
     public TcmsReviewAction(AbstractBuild<?, ?>  build,TcmsGatherer gatherer,TcmsConnection connection) {
         this.build = build;
         this.gatherer = gatherer;

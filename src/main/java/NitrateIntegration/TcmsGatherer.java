@@ -30,13 +30,8 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
   
     private TcmsProperties properties;
     
-    AbstractBuild build;
-    TcmsConnection connection;
-
-    public TcmsGatherer(PrintStream logger,AbstractBuild build,TcmsConnection connection,TcmsProperties properties) {
+    public TcmsGatherer(PrintStream logger,TcmsProperties properties) {
         this.logger = logger;
-        this.build=build;
-        this.connection = connection;
         this.properties = properties;
     }
 
@@ -50,20 +45,29 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
        return create;
     }
 
+    private Build.create tcmsCreateBuild(AbstractBuild build) {
+       Build.create create = new Build.create();
+       create.product = this.properties.getProductID();
+       create.name = build.getId();
+       create.description = build.getDescription();
+       return create;
+    }
+    private TestRun.create tcmsCreateRun(AbstractBuild build) {
+       TestRun.create create = new TestRun.create();
+       create.product = this.properties.getProductID();
+       create.plan = this.properties.getPlanID();
+       create.build = -1;
+       create.manager = -1;
+       return create;
+    }
+    
     private void CreateTestCaseRun(MethodResult result, int status) {
         TestCaseRun.create c = new TestCaseRun.create();
-        c.run = this.run_id;
-        try {
-            c.caseVar = TcmsUploader.getTcmsTestCaseId(result.getName(), connection);
-        } catch (XmlRpcFault ex) {
-            c.caseVar = -1;
-            //Logger.getLogger(TcmsGatherer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        c.run = -1;
+        c.caseVar = -1;
         TcmsRpcCommandScript dependency = null;
-        if (c.caseVar < 0) {
-             dependency = add(tcmsCreateCase(result),null);
-        }
-        c.build = this.build_id;
+        dependency = add(tcmsCreateCase(result),null);
+        c.build = -1;
         c.case_run_status = status;
         add(c,dependency);
     }
@@ -82,9 +86,11 @@ public class TcmsGatherer implements Iterable<TcmsRpcCommandScript>{
 
     }
 
-    public void gather(String testPath) throws IOException, InterruptedException {
+    public void gather(String testPath,AbstractBuild build,AbstractBuild run) throws IOException, InterruptedException {
         clear();
         Parser testParser = new Parser(logger);
+        
+        
         
         FilePath[] paths = Parser.locateReports(build.getWorkspace(), testPath);
         if (paths.length == 0) {

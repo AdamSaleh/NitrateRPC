@@ -71,45 +71,42 @@ public class TcmsPublisher extends Recorder {
             String product_v,
             String category,
             String priority,
+            String manager,
             String testPath) {
 
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
-        properties = new TcmsProperties(plan, product, product_v, category, priority);
+        properties = new TcmsProperties(plan, product, product_v, category, priority,manager);
         this.reportLocationPattern = testPath;
 
     }
 
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-         listener.getLogger().println("Starting TCMS integration plugin");
+        listener.getLogger().println("Starting TCMS integration plugin");
         listener.getLogger().println("Looking for TestNG results report in workspace using pattern: "
                 + reportLocationPattern);
 
-
+        AbstractBuild agregateBuild = build;
+        if(build instanceof MatrixRun){
+           MatrixRun mrun = (MatrixRun) build;
+           agregateBuild = mrun.getParentBuild();
+        }
+        
+        if(agregateBuild.getAction(TcmsReviewAction.class)==null){
+             gatherer = new TcmsGatherer(listener.getLogger(),properties);
+             agregateBuild.getActions().add(new TcmsReviewAction(build, gatherer,connection));
+        }
+        
         listener.getLogger().println("Connecting to TCMS at " + serverUrl);
         listener.getLogger().println("Using login: " + username);
 
-       /* Auth.login auth = new Auth.login(username, password);
-        String session;
-        try {
-            session = auth.invoke(connection);
-            listener.getLogger().println("TCMS session started: " + session);
-            if (session.length() > 0) {
-                connection.setSession(session);
-            }
-            gatherer = new TcmsGatherer(listener.getLogger(), build, connection,properties);
-            gatherer.gather(reportLocationPattern);
-            //build.getActions().add(new TcmsReviewAction(build, gatherer,connection));
+       
+        TcmsReviewAction action  = agregateBuild.getAction(TcmsReviewAction.class);
+        action.getGatherer().gather(reportLocationPattern, agregateBuild, build);
 
-            connection.invoke(new Auth.logout());
-        } catch (XmlRpcFault ex) {
-            listener.getLogger().println(ex.getMessage());
-            return false;
-        }
         listener.getLogger().println("Logged out");
-        return true;*/
         return true;
     }
 
@@ -171,7 +168,8 @@ public class TcmsPublisher extends Recorder {
                 @QueryParameter("product") final String product,
                 @QueryParameter("product_v") final String product_v,
                 @QueryParameter("category") final String category,
-                @QueryParameter("priority") final String priority) {
+                @QueryParameter("priority") final String priority,
+                @QueryParameter("manager") final String manager) {
             FormValidation url_val = checkServerUrl(serverUrl, username, password);
             if (url_val != FormValidation.ok()) {
                 return url_val;
@@ -197,7 +195,7 @@ public class TcmsPublisher extends Recorder {
                 return FormValidation.error("Possibly wrong username/password");
             }
 
-            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority);
+            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority,manager);
             properties.setConnection(c);
             if (properties.getPlanID() == null) {
                 return FormValidation.error("Possibly wrong plan id");
@@ -213,6 +211,9 @@ public class TcmsPublisher extends Recorder {
             }
             if (properties.getPriorityID() == null) {
                 return FormValidation.error("Possibly wrong priority name");
+            }
+             if (properties.getManagerId() == null) {
+                return FormValidation.error("Possibly wrong manager's username");
             }
             return FormValidation.ok();
 

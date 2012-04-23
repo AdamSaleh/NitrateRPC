@@ -33,9 +33,12 @@
   <f:entry title="Priority" field="priority">
     <f:textbox value="${instance.properties.priority}"/>
   </f:entry>
+   <f:entry title="Manager" field="manager">
+    <f:textbox value="${instance.properties.manager}"/>
+  </f:entry>
   <f:validateButton
    title="${%Test Connection}" progress="${%Testing...}"
-   method="testConnection" with="serverUrl,username,password,plan,product,product_v,priority,category" />
+   method="testConnection" with="serverUrl,username,password,plan,product,product_v,priority,category,manager" />
   <f:entry title="Path to test files" field="testPath">
     <f:textbox value="${instance.testPath}"/>
   </f:entry>
