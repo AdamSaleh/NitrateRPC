@@ -77,8 +77,28 @@ public class TcmsPublisher extends Recorder {
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
-        properties = new TcmsProperties(plan, product, product_v, category, priority,manager);
+        properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
         this.reportLocationPattern = testPath;
+
+
+        TcmsConnection c = null;
+        try {
+            c = new TcmsConnection(serverUrl);
+            c.setUsernameAndPassword(username, password);
+            Auth.login_krbv auth = new Auth.login_krbv();
+            String session;
+            session = auth.invoke(c);
+            if (session.length() > 0) {
+                c.setSession(session);
+            }
+            properties.setConnection(c);
+            properties.reload();
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
 
     }
 
@@ -89,21 +109,21 @@ public class TcmsPublisher extends Recorder {
                 + reportLocationPattern);
 
         AbstractBuild agregateBuild = build;
-        if(build instanceof MatrixRun){
-           MatrixRun mrun = (MatrixRun) build;
-           agregateBuild = mrun.getParentBuild();
+        if (build instanceof MatrixRun) {
+            MatrixRun mrun = (MatrixRun) build;
+            agregateBuild = mrun.getParentBuild();
         }
-        
-        if(agregateBuild.getAction(TcmsReviewAction.class)==null){
-             gatherer = new TcmsGatherer(listener.getLogger(),properties);
-             agregateBuild.getActions().add(new TcmsReviewAction(build, gatherer,connection));
+
+        if (agregateBuild.getAction(TcmsReviewAction.class) == null) {
+            gatherer = new TcmsGatherer(listener.getLogger(), properties);
+            agregateBuild.getActions().add(new TcmsReviewAction(build, gatherer, connection));
         }
-        
+
         listener.getLogger().println("Connecting to TCMS at " + serverUrl);
         listener.getLogger().println("Using login: " + username);
 
-       
-        TcmsReviewAction action  = agregateBuild.getAction(TcmsReviewAction.class);
+
+        TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
         action.getGatherer().gather(reportLocationPattern, agregateBuild, build);
 
         listener.getLogger().println("Logged out");
@@ -195,7 +215,7 @@ public class TcmsPublisher extends Recorder {
                 return FormValidation.error("Possibly wrong username/password");
             }
 
-            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority,manager);
+            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
             properties.setConnection(c);
             if (properties.getPlanID() == null) {
                 return FormValidation.error("Possibly wrong plan id");
@@ -212,7 +232,7 @@ public class TcmsPublisher extends Recorder {
             if (properties.getPriorityID() == null) {
                 return FormValidation.error("Possibly wrong priority name");
             }
-             if (properties.getManagerId() == null) {
+            if (properties.getManagerId() == null) {
                 return FormValidation.error("Possibly wrong manager's username");
             }
             return FormValidation.ok();
