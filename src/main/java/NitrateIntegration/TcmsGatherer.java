@@ -57,9 +57,11 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
     private TestRun.create tcmsCreateRun(AbstractBuild build) {
         TestRun.create create = new TestRun.create();
         create.product = this.properties.getProductID();
+        create.product_version = this.properties.getProduct_vID();
         create.plan = this.properties.getPlanID();
         create.build = -1;
         create.manager = this.properties.getManagerId();
+        create.summary = build.getDisplayName();
         return create;
     }
 
