@@ -55,7 +55,7 @@ public class TcmsReviewAction implements Action {
     }
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException, InstantiationException, IllegalAccessException {
+            IOException, InterruptedException {
         try {
             TcmsUploader.upload(gatherer,connection);
         } catch (XmlRpcFault ex) {

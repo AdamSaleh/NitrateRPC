@@ -4,7 +4,7 @@
  */
 package NitrateIntegration;
 
-import NitrateIntegration.TcmsGatherer.RpcCommandScript;
+import NitrateIntegration.RpcCommandScript;
 import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.MethodResult;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.LinkedList;
+import redstone.xmlrpc.XmlRpcStruct;
 
 /**
  *
@@ -23,8 +24,7 @@ import java.util.LinkedList;
 public class TcmsGatherer implements Iterable<RpcCommandScript> {
 
     PrintStream logger;
-    RpcCommandScript head = null;
-    RpcCommandScript tail = null;
+    LinkedList<RpcCommandScript> list = new LinkedList<RpcCommandScript>();
     private int run_id;
     private int build_id;
     private TcmsProperties properties;
@@ -68,10 +68,10 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
         c.run = -1;
         c.caseVar = -1;
         RpcCommandScript dependency = null;
-        dependency = add(tcmsCreateCase(result), null);
+        dependency = add(tcmsCreateCase(result), null,TestCase.class);
         c.build = -1;
         c.case_run_status = status;
-        RpcCommandScript case_run = add(c, dependency);
+        RpcCommandScript case_run = add(c, dependency,TestCaseRun.class);
         case_run.addDependecy(run);
         case_run.addDependecy(build);
     }
@@ -100,135 +100,26 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
             return;
         }
         
-        if(build_s==null) build_s = add(tcmsCreateBuild(build),null);
-        RpcCommandScript run_s =  add(tcmsCreateRun(run),build_s);
+        if(build_s==null) build_s = add(tcmsCreateBuild(build),null,Build.class);
+        RpcCommandScript run_s =  add(tcmsCreateRun(run),build_s,TestRun.class);
         gatherTestInfo(results, run_s,build_s);
 
     }
 
     public void clear() {
-        head = null;
+        list.clear();
     }
 
-    private RpcCommandScript add(TcmsCommand current, RpcCommandScript dependecy) {
-        RpcCommandScript script = new RpcCommandScript(current, tail, dependecy);
-        if (head == null) {
-            head = script;
-        }
-        tail = script;
-        return tail;
+    private RpcCommandScript add(TcmsCommand current, RpcCommandScript dependecy,Class result_class) {
+        RpcCommandScript script = new RpcCommandScript(current, dependecy,result_class);
+        list.add(script);
+        return script;
     }
 
     public Iterator<RpcCommandScript> iterator() {
-        return new CommadScriptIterator();
+        return list.listIterator();
     }
 
-    public class CommadScriptIterator implements Iterator<RpcCommandScript> {
 
-        RpcCommandScript current;
 
-        public CommadScriptIterator() {
-            current = head;
-        }
-
-        public boolean hasNext() {
-            //if(current==null) return false;
-            return current != null;
-        }
-
-        public RpcCommandScript next() {
-            RpcCommandScript temp = current;
-            if (current != null) {
-                current = current.next;
-            }
-            return temp;
-        }
-
-        public void remove() {
-            return;
-        }
-    }
-
-    /*
-     * Yay, linked list! Way to shoot yourself to the leg :D
-     */
-    public class RpcCommandScript {
-
-        public TcmsCommand current;
-        private RpcCommandScript previous;
-        private RpcCommandScript next;
-        private boolean performed;
-        private boolean completed;
-        private LinkedList<RpcCommandScript> dependecy;
-        private Object result;
-
-        public RpcCommandScript(TcmsCommand current, RpcCommandScript previous, RpcCommandScript dependecy) {
-            this.current = current;
-
-            this.previous = previous;
-            this.next = null;
-            if (previous != null) {
-                this.previous.next = this;
-            }
-
-            this.performed = false;
-            this.completed = false;
-            this.dependecy = new LinkedList<RpcCommandScript>();
-            if (dependecy != null) {
-                this.dependecy.push(dependecy);
-            }
-            result = null;
-        }
-
-        public LinkedList<RpcCommandScript> getDependecies() {
-            return dependecy;
-        }
-        public void addDependecy(RpcCommandScript dep) {
-            dependecy.push(dep);
-        }
-        
-        public boolean resolved() {
-            if (dependecy.size() == 0) {
-                return true;
-            }
-            for (RpcCommandScript s : dependecy) {
-                if(s.completed()==false) return false;
-            }
-            return true;
-        }
-
-        public boolean completed() {
-            return completed;
-        }
-
-        public RpcCommandScript(TcmsCommand current, RpcCommandScript previous) {
-            this(current, previous, null);
-        }
-
-        TcmsCommand current() {
-             return current;
-        }
-
-        public void setResult(Object result) {
-            if(this.result == null)this.result = result;
-        }
-        public Object getResult() {
-            return result;
-        }
-
-        public void setPerforming() {
-            this.performed = true;
-        }
-
-        public boolean performed() {
-            return performed;
-        }
-
-        public void setCompleted() {
-            this.completed = true;
-        }
-        
-        
-        
-    }
 }

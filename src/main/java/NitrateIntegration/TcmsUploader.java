@@ -4,7 +4,7 @@
  */
 package NitrateIntegration;
 
-import NitrateIntegration.TcmsGatherer.RpcCommandScript;
+import NitrateIntegration.RpcCommandScript;
 import com.redhat.nitrate.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,33 +16,34 @@ import redstone.xmlrpc.*;
  */
 public class TcmsUploader {
 
-    public static TestCase getTestCase(TestCase.create command, TcmsConnection connection) throws IllegalAccessException, InstantiationException  {
+    public static TestCase getTestCase(TestCase.create command, TcmsConnection connection) {
         try {
             TestCase.filter f = new TestCase.filter();
             f.summary__icontain = command.summary;
-            XmlRpcStruct struct = (XmlRpcStruct) connection.invoke(f);
-            TestCase testcase =  TcmsConnection.rpcStructToFields(struct, TestCase.class);
-            return testcase;
+            
+            RpcCommandScript script = new RpcCommandScript(f,TestCase.class);
+            script.perform(connection);
+            return  script.getResult(TestCase.class);
          } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
         } 
         return null;
     }
-    public static Build getBuild(Build.create command, TcmsConnection connection) throws IllegalAccessException, InstantiationException  {
+    public static Build getBuild(Build.create command, TcmsConnection connection) {
         try {
             Build.check_build f = new Build.check_build();
             f.name = command.name;
             f.productid = command.product;
-            XmlRpcStruct struct = (XmlRpcStruct) connection.invoke(f);
-            if(struct.containsKey("args")) return null;//means it couldn't find anything
-            return TcmsConnection.rpcStructToFields(struct, Build.class);
             
+            RpcCommandScript script = new RpcCommandScript(f,Build.class);
+            script.perform(connection);
+            return  script.getResult(Build.class);
          } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
         } 
         return null;
     }
-        public static TestRun getRun(TestRun.create command, TcmsConnection connection) throws IllegalAccessException, InstantiationException {
+        public static TestRun getRun(TestRun.create command, TcmsConnection connection) {
         try {
             TestRun.filter f = new TestRun.filter();
             f.build = command.build;
@@ -50,59 +51,49 @@ public class TcmsUploader {
             f.product = command.product;
             f.manager = command.manager;
 
-            XmlRpcStruct struct = (XmlRpcStruct) connection.invoke(f);
-            TestRun run = TcmsConnection.rpcStructToFields(struct, TestRun.class);
-            return run;
+            RpcCommandScript script = new RpcCommandScript(f,TestRun.class);
+            script.perform(connection);
+            return  script.getResult(TestRun.class);
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
         } 
         return null;
     }
-    private Object maybeRpcstructToFields(Object o,Class c) throws IllegalAccessException, InstantiationException{
-        if(o instanceof XmlRpcStruct){
-             return TcmsConnection.rpcStructToFields((XmlRpcStruct)o, c);
-        }
-        return null;
-    }
-    private static void invoke(RpcCommandScript command, TcmsConnection connection) throws XmlRpcFault, IllegalAccessException, InstantiationException{
+ 
+        
+    private static void invoke(RpcCommandScript command, TcmsConnection connection) throws XmlRpcFault{
         command.setPerforming();
         Object o = null;
         if(command.current() instanceof Build.create){
             Build.create cmd =(Build.create) command.current();
             o=getBuild(cmd, connection);
             if(o==null){
-                o = connection.invoke(command.current());
-                o= TcmsConnection.rpcStructToFields((XmlRpcStruct)o, Build.class);
+                command.perform(connection);
             }
             
         }else if(command.current() instanceof TestRun.create){
             TestRun.create cmd =(TestRun.create) command.current();
             o=getRun(cmd, connection);
             if(o==null){
-                o = connection.invoke(command.current());
-                o= TcmsConnection.rpcStructToFields((XmlRpcStruct)o, TestRun.class);
+                command.perform(connection);
             }
             
         }else if(command.current() instanceof TestCase.create){
             TestCase.create cmd =(TestCase.create) command.current();
             o=getTestCase(cmd, connection);
             if(o==null){
-                 o = connection.invoke(command.current());
-                 o = TcmsConnection.rpcStructToFields((XmlRpcStruct)o, TestCase.class);
+                command.perform(connection);
             }
             
         }else if(command.current() instanceof TestCaseRun.create){
-                o = connection.invoke(command.current());
-                o= TcmsConnection.rpcStructToFields((XmlRpcStruct)o, TestCaseRun.class);
-           
+                command.perform(connection);
         }else{
             o = connection.invoke(command.current());
         }
-        command.setResult(o);
         command.setCompleted();
     }
 
-    public static void upload(TcmsGatherer gathered, TcmsConnection connection) throws XmlRpcFault, InstantiationException, IllegalAccessException {
+    public static void upload(TcmsGatherer gathered, TcmsConnection connection) throws XmlRpcFault {
         boolean at_least_one = true;
 
         while (at_least_one) {
@@ -116,7 +107,7 @@ public class TcmsUploader {
                         int build = -1;
                         for(RpcCommandScript deps:command.getDependecies()){
                             if(deps.current() instanceof Build.create){
-                                Build b = (Build)deps.getResult();
+                                Build b = deps.getResult(Build.class);
                                 build = b.build_id;
                             }
                         }
@@ -132,13 +123,13 @@ public class TcmsUploader {
                         int caseVar = -1;
                         for(RpcCommandScript deps:command.getDependecies()){
                             if(deps.current() instanceof Build.create){
-                                Build r = TcmsConnection.rpcStructToFields((XmlRpcStruct)deps.getResult(), Build.class);
+                                Build r = deps.getResult(Build.class);
                                 build = r.build_id;
                             }else if(deps.current() instanceof TestRun.create){
-                                TestRun r = TcmsConnection.rpcStructToFields((XmlRpcStruct)deps.getResult(), TestRun.class);
+                                TestRun r = deps.getResult(TestRun.class);
                                 run = r.build_id;
                             }else if(deps.current() instanceof TestCase.create){
-                                TestCase r = TcmsConnection.rpcStructToFields((XmlRpcStruct)deps.getResult(), TestCase.class);
+                                TestCase r = deps.getResult(TestCase.class);
                                 caseVar = r.case_id;
                             }
                         }
