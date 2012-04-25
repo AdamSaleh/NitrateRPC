@@ -81,24 +81,24 @@ public class TcmsPublisher extends Recorder {
         this.reportLocationPattern = testPath;
 
 
-        TcmsConnection c = null;
+        connection = null;
         try {
-            c = new TcmsConnection(serverUrl);
-            c.setUsernameAndPassword(username, password);
+            connection = new TcmsConnection(serverUrl);
+            connection.setUsernameAndPassword(username, password);
             Auth.login_krbv auth = new Auth.login_krbv();
             String session;
-            session = auth.invoke(c);
+            session = auth.invoke(connection);
             if (session.length() > 0) {
-                c.setSession(session);
+                connection.setSession(session);
             }
-            properties.setConnection(c);
+            properties.setConnection(connection);
             properties.reload();
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
 
     }
 
@@ -116,17 +116,46 @@ public class TcmsPublisher extends Recorder {
 
         if (agregateBuild.getAction(TcmsReviewAction.class) == null) {
             gatherer = new TcmsGatherer(listener.getLogger(), properties);
+            
+             connection = null;
+            try {
+                connection = new TcmsConnection(serverUrl);
+                connection.setUsernameAndPassword(username, password);
+                Auth.login_krbv auth = new Auth.login_krbv();
+                String session;
+                session = auth.invoke(connection);
+                if (session.length() > 0) {
+                    connection.setSession(session);
+                }
+                properties.setConnection(connection);
+                properties.reload();
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
             agregateBuild.getActions().add(new TcmsReviewAction(build, gatherer, connection));
         }
 
-        listener.getLogger().println("Connecting to TCMS at " + serverUrl);
-        listener.getLogger().println("Using login: " + username);
 
+        FilePath[] paths = Parser.locateReports(build.getWorkspace(), reportLocationPattern);
+        if (paths.length == 0) {
+            listener.getLogger().println("Did not find any matching files.");
+            return true;
+        }
+
+        paths = Parser.checkReports(build, paths, listener.getLogger());
+
+        boolean filesSaved = Parser.saveReports(Parser.getReportDir(build), paths,  listener.getLogger(), "test-results");
+        if (!filesSaved) {
+            listener.getLogger().println("Failed to save TestNG XML reports");
+            return true;
+        }
 
         TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
-        action.getGatherer().gather(reportLocationPattern, agregateBuild, build);
+        action.getGatherer().gather(paths, agregateBuild, build);
 
-        listener.getLogger().println("Logged out");
         return true;
     }
 

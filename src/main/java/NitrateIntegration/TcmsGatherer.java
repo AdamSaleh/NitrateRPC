@@ -28,10 +28,13 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
     private int run_id;
     private int build_id;
     private TcmsProperties properties;
-
+    RpcCommandScript build_s;
+    
+    
     public TcmsGatherer(PrintStream logger, TcmsProperties properties) {
         this.logger = logger;
         this.properties = properties;
+        this.build_s=null;
     }
 
     private TestCase.create tcmsCreateCase(MethodResult result) {
@@ -87,17 +90,9 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
 
     }
 
-    public void gather(String testPath, AbstractBuild build, AbstractBuild run) throws IOException, InterruptedException {
+    public void gather(FilePath[] paths, AbstractBuild build, AbstractBuild run) throws IOException, InterruptedException {
         
         Parser testParser = new Parser(logger);
-
-        FilePath[] paths = Parser.locateReports(build.getWorkspace(), testPath);
-        if (paths.length == 0) {
-            logger.println("Did not find any matching files.");
-            return;
-        }
-
-        paths = Parser.checkReports(build, paths, logger);
 
         TestResults results = testParser.parse(paths, false);
 
@@ -105,8 +100,8 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
             return;
         }
         
-        RpcCommandScript build_s = add(tcmsCreateBuild(build),null);
-        RpcCommandScript run_s =  add(tcmsCreateBuild(build),build_s);
+        if(build_s==null) build_s = add(tcmsCreateBuild(build),null);
+        RpcCommandScript run_s =  add(tcmsCreateRun(run),build_s);
         gatherTestInfo(results, run_s,build_s);
 
     }
@@ -159,7 +154,7 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
      */
     public class RpcCommandScript {
 
-        private TcmsCommand current;
+        public TcmsCommand current;
         private RpcCommandScript previous;
         private RpcCommandScript next;
         private boolean performed;
@@ -215,7 +210,7 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
         }
 
         public void setResult(Object result) {
-            if(result == null)this.result = result;
+            if(this.result == null)this.result = result;
         }
         public Object getResult() {
             return result;
@@ -223,6 +218,10 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
 
         public void setPerforming() {
             this.performed = true;
+        }
+
+        public boolean performed() {
+            return performed;
         }
 
         public void setCompleted() {
