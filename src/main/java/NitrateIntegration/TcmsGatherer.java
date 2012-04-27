@@ -128,7 +128,4 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
     public Iterator<RpcCommandScript> iterator() {
         return list.listIterator();
     }
-
-
-
 }
