@@ -135,7 +135,7 @@ public class TcmsPublisher extends Recorder {
                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            agregateBuild.getActions().add(new TcmsReviewAction(build, gatherer, connection));
+            agregateBuild.getActions().add(new TcmsReviewAction(build, gatherer, connection,properties));
         }
 
 

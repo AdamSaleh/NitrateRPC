@@ -80,30 +80,27 @@ public class RpcCommandScript {
         if (this.result == null) {
             Object r = null;
             if (result_type.isInstance(o)) {
-                 result = o;
-                 unexpected = null;
-                 return;
+                result = o;
+                unexpected = null;
+                return;
             } else if (o instanceof XmlRpcStruct) {
                 XmlRpcStruct struct = (XmlRpcStruct) o;
                 if (struct.containsKey("args")) { // usualy when query shows no results
                     result = null;
                     unexpected = o;
-                 return;
+                    return;
                 } else {
-                  
-                         result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, result_type);
-                         unexpected = null;
-                         return;
-                  
-                         
+                    result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, result_type);
+                    unexpected = null;
+                    return;
                 }
-               
+
             } else {
                 result = null;
                 unexpected = o;
                 return;
             }
-           
+
         }
     }
 

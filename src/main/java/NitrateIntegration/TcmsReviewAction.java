@@ -26,6 +26,7 @@ public class TcmsReviewAction implements Action {
   public final AbstractBuild<?, ?>  build;
   public final TcmsGatherer gatherer;
   public final TcmsConnection connection;
+  public final TcmsProperties properties;
 
   
   public String getIconFileName() {
@@ -48,10 +49,11 @@ public class TcmsReviewAction implements Action {
         return gatherer;
     }
     
-    public TcmsReviewAction(AbstractBuild<?, ?>  build,TcmsGatherer gatherer,TcmsConnection connection) {
+    public TcmsReviewAction(AbstractBuild<?, ?>  build,TcmsGatherer gatherer,TcmsConnection connection,TcmsProperties properties) {
         this.build = build;
         this.gatherer = gatherer;
         this.connection = connection;
+        this.properties = properties;
     }
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
