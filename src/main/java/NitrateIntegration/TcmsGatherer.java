@@ -145,7 +145,8 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         commands.put(current,script);
         
         if(commands_sorted.containsKey(current.getClass())==false){
-            commands_sorted.put(result_class, new LinkedList<CommandWrapper>());
+            Class c = current.getClass();
+            commands_sorted.put(c, new LinkedList<CommandWrapper>());
         }
         commands_sorted.get(current.getClass()).add(script);
         
