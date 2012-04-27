@@ -3,10 +3,10 @@ Group-Id: NitrateIntegration
 Short-Name: NitrateIntegration
 Long-Name: NitrateIntegration
 Url: http://jenkins-ci.org/plugin/NitrateIntegration/
-Plugin-Version: 1.0-SNAPSHOT (private-04/25/2012 07:52-asaleh)
+Plugin-Version: 1.0-SNAPSHOT (private-04/27/2012 06:26-asaleh)
 Hudson-Version: 1.403
 Jenkins-Version: 1.403
-Plugin-Dependencies: ui-samples-plugin:1.403,subversion:1.11,maven-plu
+Plugin-Dependencies: subversion:1.11,maven-plugin:1.403,ui-samples-plu
  gin:1.403
 Plugin-Developers: 
 Libraries: /home/asaleh/Projects/NitrateRPC/target/classes,/home/asale

@@ -26,6 +26,12 @@
             <groupId>org.kohsuke.stapler</groupId>
             <artifactId>maven-stapler-plugin</artifactId>
             <version>1.16</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>nekohtml</artifactId>
+                    <groupId>nekohtml</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.redhat</groupId>
@@ -36,6 +42,24 @@
             <groupId>com.redhat.engineering.jenkins</groupId>
             <artifactId>TestParser</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <artifactId>jenkins-test-harness</artifactId>
+            <groupId>org.jenkins-ci.main</groupId>
+            <type>jar</type>
+            <version>1.403</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>nekohtml</artifactId>
+                    <groupId>net.sourceforge.nekohtml</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.nekohtml</groupId>
+            <artifactId>nekohtml</artifactId>
+            <version>1.9.9</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

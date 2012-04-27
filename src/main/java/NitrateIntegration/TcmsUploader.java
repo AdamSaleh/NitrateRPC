@@ -26,7 +26,7 @@ public class TcmsUploader {
             return  script.getResult(TestCase.class);
          } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+         } 
         return null;
     }
     public static Build getBuild(Build.create command, TcmsConnection connection) {
@@ -43,7 +43,7 @@ public class TcmsUploader {
         } 
         return null;
     }
-        public static TestRun getRun(TestRun.create command, TcmsConnection connection) {
+    public static TestRun getRun(TestRun.create command, TcmsConnection connection) {
         try {
             TestRun.filter f = new TestRun.filter();
             f.build = command.build;
@@ -60,7 +60,6 @@ public class TcmsUploader {
         return null;
     }
  
-        
     private static void invoke(RpcCommandScript command, TcmsConnection connection) throws XmlRpcFault{
         command.setPerforming();
         Object o = null;
@@ -70,14 +69,12 @@ public class TcmsUploader {
             if(o==null){
                 command.perform(connection);
             }
-            
         }else if(command.current() instanceof TestRun.create){
             TestRun.create cmd =(TestRun.create) command.current();
             o=getRun(cmd, connection);
             if(o==null){
                 command.perform(connection);
             }
-            
         }else if(command.current() instanceof TestCase.create){
             TestCase.create cmd =(TestCase.create) command.current();
             o=getTestCase(cmd, connection);

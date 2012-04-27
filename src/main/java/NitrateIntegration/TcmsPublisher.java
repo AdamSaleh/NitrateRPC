@@ -111,7 +111,7 @@ public class TcmsPublisher extends Recorder {
         AbstractBuild agregateBuild = build;
         if (build instanceof MatrixRun) {
             MatrixRun mrun = (MatrixRun) build;
-            agregateBuild = mrun.getParentBuild();
+            agregateBuild = mrun.getParentBuild();            
         }
 
         if (agregateBuild.getAction(TcmsReviewAction.class) == null) {

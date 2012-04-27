@@ -10,6 +10,8 @@ import com.redhat.engineering.jenkins.testparser.results.MethodResult;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.*;
 import hudson.FilePath;
+import hudson.matrix.Combination;
+import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -54,14 +56,19 @@ public class TcmsGatherer implements Iterable<RpcCommandScript> {
         return create;
     }
 
-    private TestRun.create tcmsCreateRun(AbstractBuild build) {
+    private TestRun.create tcmsCreateRun(AbstractBuild run) {
         TestRun.create create = new TestRun.create();
         create.product = this.properties.getProductID();
         create.product_version = this.properties.getProduct_vID();
         create.plan = this.properties.getPlanID();
         create.build = -1;
         create.manager = this.properties.getManagerId();
-        create.summary = build.getDisplayName();
+        create.summary = run.getDisplayName();
+        if(run instanceof MatrixRun){
+            MatrixRun mrun = (MatrixRun) run;
+            Combination c= mrun.getProject().getCombination();
+            create.summary += c.toString(); 
+        }
         return create;
     }
 
