@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package NitrateIntegration;
 
 import com.redhat.nitrate.TcmsConnection;
@@ -23,33 +22,37 @@ import redstone.xmlrpc.XmlRpcFault;
  * @author asaleh
  */
 public class TcmsReviewAction implements Action {
-  public final AbstractBuild<?, ?>  build;
-  public final TcmsGatherer gatherer;
-  public final TcmsConnection connection;
-  public final TcmsProperties properties;
 
-  
-  public String getIconFileName() {
-	return Definitions.__ICON_FILE_NAME;
+    public final AbstractBuild<?, ?> build;
+    public final TcmsGatherer gatherer;
+    public final TcmsConnection connection;
+    public final TcmsProperties properties;
+
+    public String getIconFileName() {
+        return Definitions.__ICON_FILE_NAME;
     }
 
     public String getDisplayName() {
-	return Definitions.__DISPLAY_NAME;
+        return Definitions.__DISPLAY_NAME;
     }
 
     public String getUrlName() {
-	return Definitions.__URL_NAME;
+        return Definitions.__URL_NAME;
     }
 
     public String getPrefix() {
-	return Definitions.__PREFIX;
+        return Definitions.__PREFIX;
     }
 
     public TcmsGatherer getGatherer() {
         return gatherer;
     }
     
-    public TcmsReviewAction(AbstractBuild<?, ?>  build,TcmsGatherer gatherer,TcmsConnection connection,TcmsProperties properties) {
+    public AbstractBuild getBuild(){
+        return build;
+    }
+
+    public TcmsReviewAction(AbstractBuild<?, ?> build, TcmsGatherer gatherer, TcmsConnection connection, TcmsProperties properties) {
         this.build = build;
         this.gatherer = gatherer;
         this.connection = connection;
@@ -59,10 +62,9 @@ public class TcmsReviewAction implements Action {
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
         try {
-            TcmsUploader.upload(gatherer,connection);
+            TcmsUploader.upload(gatherer, connection);
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-  
 }
