@@ -60,7 +60,7 @@ public class TcmsPublisher extends Recorder {
     public final String password;
     public final TcmsProperties properties;
     public final String reportLocationPattern;
-    private TcmsConnection connection;
+    //private TcmsConnection connection;
     public TcmsGatherer gatherer;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
@@ -81,7 +81,7 @@ public class TcmsPublisher extends Recorder {
         this.reportLocationPattern = testPath;
 
 
-        connection = null;
+        TcmsConnection connection = null;
         try {
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(username, password);
@@ -117,25 +117,8 @@ public class TcmsPublisher extends Recorder {
         if (agregateBuild.getAction(TcmsReviewAction.class) == null) {
             gatherer = new TcmsGatherer(listener.getLogger(), properties);
             
-             connection = null;
-            try {
-                connection = new TcmsConnection(serverUrl);
-                connection.setUsernameAndPassword(username, password);
-                Auth.login_krbv auth = new Auth.login_krbv();
-                String session;
-                session = auth.invoke(connection);
-                if (session.length() > 0) {
-                    connection.setSession(session);
-                }
-                properties.setConnection(connection);
-                properties.reload();
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild, gatherer, connection,properties));
+            agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild, gatherer,
+                                                serverUrl,username,password,properties));
         }
 
 

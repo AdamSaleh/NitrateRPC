@@ -47,7 +47,8 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         create.product = this.properties.getProductID();
         create.category = this.properties.getCategoryID();
         create.priority = this.properties.getPriorityID();
-        create.summary = result.getName();
+        create.summary = result.getDisplayName();
+        create.plan = this.properties.getPlanID();
         return create;
     }
 
@@ -116,7 +117,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
 
     }
 
-    public void gather(FilePath[] paths, AbstractBuild build, AbstractBuild run) throws IOException, InterruptedException {
+    public synchronized void gather(FilePath[] paths, AbstractBuild build, AbstractBuild run) throws IOException, InterruptedException {
         
         Parser testParser = new Parser(logger);
 
@@ -125,7 +126,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         if (results == null) {
             return;
         }
-        
+     
         if(build_s==null) build_s = add(tcmsCreateBuild(build),Build.class);
         CommandWrapper run_s =  add(tcmsCreateRun(run),TestRun.class);
         run_s.addDependecy(build_s);

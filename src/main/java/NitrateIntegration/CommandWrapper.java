@@ -8,6 +8,7 @@ import com.redhat.nitrate.*;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import redstone.xmlrpc.XmlRpcArray;
 import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
 
@@ -91,6 +92,17 @@ public abstract class CommandWrapper {
                 } else {
                     result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, result_type);
                     unexpected = null;
+                    return;
+                }
+
+            }else if (o instanceof XmlRpcArray) {
+                XmlRpcArray array = (XmlRpcArray) o;
+                if (array.size()>0) { // usualy when query shows no results
+                    setResult(array.get(0));
+                    return;
+                } else {
+                    result = null;
+                    unexpected = o;
                     return;
                 }
 
@@ -210,7 +222,10 @@ public abstract class CommandWrapper {
             try {
                 TestCase.filter f = new TestCase.filter();
                 TestCase.create comand = (TestCase.create) current;
-                f.summary__icontain = comand.summary;
+                f.summary = comand.summary;
+                f.category = comand.category;
+                f.priority = comand.priority;
+                f.plan = comand.plan;
 
                 CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class);
                 script.perform(connection);
@@ -240,7 +255,7 @@ public abstract class CommandWrapper {
                 TestRun.create command = (TestRun.create) current;
                 f.build = command.build;
                 f.plan = command.plan;
-                f.product = command.product;
+                f.summary = command.summary;
                 f.manager = command.manager;
 
                 CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class);
@@ -294,7 +309,7 @@ public abstract class CommandWrapper {
                     build = r.build_id;
                 } else if (deps.current() instanceof TestRun.create) {
                     TestRun r = deps.getResult(TestRun.class);
-                    run = r.build_id;
+                    run = r.run_id;
                 } else if (deps.current() instanceof TestCase.create) {
                     TestCase r = deps.getResult(TestCase.class);
                     caseVar = r.case_id;
