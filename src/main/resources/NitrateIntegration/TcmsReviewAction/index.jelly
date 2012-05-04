@@ -6,13 +6,59 @@
         <l:main-panel>
             <h1>Review Report</h1>
 	
-            <ul>
+            <table>
                 <j:forEach var="command" items="${it.gatherer}">
-                    <li>
-                        ${command.current.description()}
-                    </li>
+                    <tr>
+                        <td>
+                        ${command.name()}
+                        </td>
+                        <td>
+                            
+                            <table>
+                                <j:forEach var="field" items="${command.description().entrySet()}">
+                                    <tr>
+                                    <td>    
+                                            ${field.getKey()}
+                                     </td>
+                                      <td>    
+                                            ${field.getValue()}
+                                     </td>
+                                    </tr>
+                                </j:forEach>
+                            </table>
+           
+                        </td>
+                        <td>
+                            
+                            <table>
+                                
+                                <j:if test="${command.performed()}">
+                                    <tr>
+                                    <td>    
+                                            PERFORMED
+                                     </td>
+                                    </tr>
+                                </j:if>
+                                <j:if test="${command.completed()}">
+                                    <tr>
+                                    <td>    
+                                            COMPLETED
+                                     </td>
+                                    </tr>
+                                </j:if>
+                                 <j:if test="${command.duplicate()}">
+                                    <tr>
+                                    <td>    
+                                            already present in TCMS
+                                     </td>
+                                    </tr>
+                                </j:if>    
+                             </table>
+           
+                        </td>
+                    </tr>
                 </j:forEach>
-            </ul>
+            </table>
             <f:form method="post" action="reportSubmit" name="nitrateplugin">
                 <f:submit value="Submit Report" />
             </f:form>

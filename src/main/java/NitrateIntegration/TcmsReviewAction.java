@@ -61,14 +61,12 @@ public class TcmsReviewAction implements Action {
 
     public TcmsReviewAction(AbstractBuild<?, ?> build, TcmsGatherer gatherer, 
             String serverUrl,String username,String password, TcmsProperties properties) {
-        this.build = build;
-        this.gatherer = gatherer;
-        this.properties = properties;
-        
-        this.username = username;
-        this.password = password;
-        this.serverUrl = serverUrl;
-                
+            this.build = build;
+            this.gatherer = gatherer;
+            this.properties = properties;
+            this.username = username;
+            this.password = password;
+            this.serverUrl = serverUrl;
     }
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
@@ -91,6 +89,8 @@ public class TcmsReviewAction implements Action {
         } catch (MalformedURLException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         }
+       rsp.sendRedirect("../" + Definitions.__URL_NAME);
        
+        
     }
 }

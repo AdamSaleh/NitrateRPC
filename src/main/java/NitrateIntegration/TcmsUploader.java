@@ -20,12 +20,12 @@ public class TcmsUploader {
  
     public static void upload(TcmsGatherer gathered, TcmsConnection connection) throws XmlRpcFault {
         boolean at_least_one = true;
-
         while (at_least_one) {
             at_least_one = false;
             for (CommandWrapper command : gathered) {
                 if (command.resolved() && command.performed() ==false) {
-                        at_least_one = command.perform(connection);
+                        boolean tmp = command.perform(connection);
+                        if(tmp) at_least_one = true;
                 }
             }
         }
