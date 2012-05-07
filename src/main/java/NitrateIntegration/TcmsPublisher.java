@@ -218,16 +218,19 @@ public class TcmsPublisher extends Recorder {
             c.setUsernameAndPassword(username, password);
             Auth.login_krbv auth = new Auth.login_krbv();
             String session;
+            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+
             try {
                 session = auth.invoke(c);
                 if (session.length() > 0) {
                     c.setSession(session);
                 }
+                properties.setConnection(c);
+                properties.reload();
             } catch (XmlRpcFault ex) {
                 return FormValidation.error("Possibly wrong username/password");
             }
 
-            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
             properties.setConnection(c);
             if (properties.getPlanID() == null) {
                 return FormValidation.error("Possibly wrong plan id");
