@@ -27,6 +27,7 @@ public abstract class CommandWrapper {
     private boolean performed;
     private boolean completed;
     private boolean duplicate;
+    private boolean executable;
     
     private LinkedList<CommandWrapper> dependecy;
     private Object result;
@@ -40,6 +41,7 @@ public abstract class CommandWrapper {
         this.performed = false;
         this.completed = false;
         this.duplicate = false;
+        this.executable = true;
         this.dependecy = new LinkedList<CommandWrapper>();
         this.result_type = result_type;
         if (dependecy != null) {
@@ -84,6 +86,14 @@ public abstract class CommandWrapper {
 
     TcmsCommand current() {
         return current;
+    }
+
+    public void setExecutable(boolean executable) {
+        this.executable = executable;
+    }
+
+    public boolean isExecutable() {
+        return executable;
     }
 
     public void setResult(Object o) {
@@ -345,7 +355,20 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
+             try {
+                TestCaseRun.filter f = new TestCaseRun.filter();
+                TestCaseRun.create command = (TestCaseRun.create) current;
+                f.build = command.build;
+                f.run = command.run;
+                f.caseVar = command.caseVar;
+                f.case_run_status = command.case_run_status;
 
+                CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class,null);
+                script.perform(connection);
+                return script.getResult(TestCaseRun.class);
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
+            }
             return null;
         }
 

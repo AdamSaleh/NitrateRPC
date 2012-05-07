@@ -40,6 +40,6 @@
    title="${%Test Connection}" progress="${%Testing...}"
    method="testConnection" with="serverUrl,username,password,plan,product,product_v,priority,category,manager" />
   <f:entry title="Path to test files" field="testPath">
-    <f:textbox value="${instance.testPath}"/>
+    <f:textbox value="${instance.reportLocationPattern}"/>
   </f:entry>
 </j:jelly>

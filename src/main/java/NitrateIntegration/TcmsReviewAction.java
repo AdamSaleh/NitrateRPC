@@ -83,7 +83,7 @@ public class TcmsReviewAction implements Action {
             properties.setConnection(connection);
             properties.reload();
             
-            TcmsUploader.upload(gatherer, connection);
+            upload(gatherer, connection);
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
@@ -92,5 +92,26 @@ public class TcmsReviewAction implements Action {
        rsp.sendRedirect("../" + Definitions.__URL_NAME);
        
         
+    }
+      public  void upload(TcmsGatherer gathered, TcmsConnection connection) throws XmlRpcFault {
+        boolean at_least_one;
+        boolean at_least_one_not_duplicate;
+        do {
+            at_least_one = false;
+            at_least_one_not_duplicate = false;
+            for (CommandWrapper command : gathered) {
+                if (command.isExecutable()) {
+                    if (command.resolved() && command.performed() == false) {
+                        boolean tmp = command.perform(connection);
+                        if (tmp) {
+                            at_least_one = true;
+                        }
+                        if(command.duplicate() == false){
+                            at_least_one_not_duplicate = true;
+                        }
+                    }
+                }
+            }
+        }while (at_least_one && at_least_one_not_duplicate);
     }
 }
