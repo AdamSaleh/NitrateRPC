@@ -226,7 +226,7 @@ public abstract class CommandWrapper {
                 script.perform(connection);
                 return script.getResult(Build.class);
             } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             }
             return null;
         }
@@ -267,7 +267,7 @@ public abstract class CommandWrapper {
                 script.perform(connection);
                 return script.getResult(TestCase.class);
             } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             }
             return null;
         }
@@ -308,7 +308,7 @@ public abstract class CommandWrapper {
                 script.perform(connection);
                 return script.getResult(TestRun.class);
             } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             }
             return null;
         }
@@ -367,7 +367,7 @@ public abstract class CommandWrapper {
                 script.perform(connection);
                 return script.getResult(TestCaseRun.class);
             } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsUploader.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             }
             return null;
         }
