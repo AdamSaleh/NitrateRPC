@@ -79,8 +79,10 @@ public class TcmsReviewAction implements Action {
             int b =2;
             if(input != null){
                 c.setExecutable(true);
+                c.setChecked(true);
             } else {
                 c.setExecutable(false);
+                c.setChecked(false);
             }
         }
         

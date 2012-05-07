@@ -12,7 +12,16 @@
                     <j:forEach var="command" items="${it.gatherer}">
                         <tr>
                             <td>
-                                <f:checkbox name="${command.hashCode()}" checked="true" />
+                                <j:choose>
+                                    <j:when test="${command.isChecked()}">
+                                        <f:checkbox name="${command.hashCode()}" checked="true" />
+                                    </j:when>
+                                    <j:otherwise>
+                                        <f:checkbox name="${command.hashCode()}" checked="false" />
+                                    </j:otherwise>
+                                </j:choose>
+                                                               
+                                
                             </td>
                             <td>
                             <h3>${command.name()}</h3>
