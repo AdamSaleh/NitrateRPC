@@ -28,6 +28,7 @@ public abstract class CommandWrapper {
     private boolean completed;
     private boolean duplicate;
     private boolean executable;
+    private boolean checked;
     
     private LinkedList<CommandWrapper> dependecy;
     private Object result;
@@ -37,7 +38,8 @@ public abstract class CommandWrapper {
 
     public CommandWrapper(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
         this.current = current;
-
+        
+        this.checked = false;
         this.performed = false;
         this.completed = false;
         this.duplicate = false;
@@ -95,6 +97,15 @@ public abstract class CommandWrapper {
     public boolean isExecutable() {
         return executable;
     }
+   
+    public boolean isChecked(){
+        return checked;
+    }
+    
+    public void setChecked(boolean checked){
+        this.checked = checked;
+    }
+    
 
     public void setResult(Object o) {
         if (this.result == null) {

@@ -71,6 +71,21 @@ public class TcmsReviewAction implements Action {
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
+        // parse submitted configuration matrix
+	String input = null;
+        for(CommandWrapper c: gatherer){
+            String a = new Integer(c.hashCode()).toString();
+            input = req.getParameter(a);
+            int b =2;
+            if(input != null){
+                c.setExecutable(true);
+                c.setChecked(true);
+            } else {
+                c.setExecutable(false);
+                c.setChecked(false);
+            }
+        }
+        
         try {
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(username, password);
