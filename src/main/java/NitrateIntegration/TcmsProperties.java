@@ -30,7 +30,7 @@ public class TcmsProperties {
     private Integer category_id = null;
     private Integer priority_id = null;
     private Integer manager_id = null;
-
+    
     public TcmsProperties(String plan, String product, String product_v, String category, String priority, String manager) {
         this.plan = plan;
         this.product = product;
@@ -39,8 +39,12 @@ public class TcmsProperties {
         this.priority = priority;
         this.manager = manager;
     }
+   
     TcmsConnection connection;
-
+    public void setConnection(TcmsConnection connection) {
+        this.connection = connection;
+    }
+    
     public void reload() throws XmlRpcFault {
         reloadPlanId();
         reloadProductId();
@@ -48,10 +52,6 @@ public class TcmsProperties {
         reloadPriorityId();
         reloadCategoryId();
         reloadManagerId();
-    }
-
-    public void setConnection(TcmsConnection connection) {
-        this.connection = connection;
     }
 
     public Integer getPlanID() {
