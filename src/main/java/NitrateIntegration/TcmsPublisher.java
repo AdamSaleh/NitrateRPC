@@ -88,7 +88,7 @@ public class TcmsPublisher extends Recorder {
             Auth.login_krbv auth = new Auth.login_krbv();
             String session;
             session = auth.invoke(connection);
-            if (session.length() > 0) {
+            if (session != null && session.length() > 0) {
                 connection.setSession(session);
             }
             properties.setConnection(connection);
