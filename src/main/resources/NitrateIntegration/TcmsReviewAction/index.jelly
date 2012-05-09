@@ -6,30 +6,55 @@
         <l:main-panel>
             
             
-  <script src="http://code.jquery.com/jquery-latest.js"></script>
-
+  <script src="http://code.jquery.com/jquery-latest.js"></script>.
+  
 <script><![CDATA[
 
 $(document).ready(function() {
-    alert("ready");
-    var elems = $('.details');
-    alert(elems.length);
-    elems.each(function() {
-        alert("a");
-    });
+    var elems = window.document.getElementsByTagName('table');
+    for (var cmdIndex in elems) {
+        cmd = elems[cmdIndex];
+        if(cmd.id && cmd.id.indexOf('details') != -1){
+            div =  "#" + cmd.id;
+            $(div).slideUp(0);
+        }
+    }
 });
-]]></script>
 
-<script><![CDATA[
+function updateIcons(elemName, param)
+{
+    var cmds = window.document.getElementsByTagName('img');
+    var collapse;
+    var expand;
+    for (var cmdIndex in cmds) {
+        cmd = cmds[cmdIndex];
+        if (cmd.id && cmd.id == ('imgExp-'+elemName)) {
+            expand = cmd;
+        } else if (cmd.id && cmd.id == ('imgCol-'+elemName)) {
+            collapse = cmd;
+        }
+    }
+    expand.style.visibility = (param == 'e') ? 'hidden' : 'visible';
+    expand.style.display = (param == 'e') ? 'none' : '';
+    collapse.style.visibility = (param == 'c') ? 'hidden' : 'visible';
+    collapse.style.display = (param == 'c') ? 'none' : '';
+}
+
 function toggle_hide(elem){
-    div = "#details" + elem;
+    div = "#details-" + elem;
+    imgCol = "ImgCol" + elem;
+    imgExp = "ImgExp" + elem;
     if($(div).is(":hidden")){
-        $(div).show("fast");
+        $(div).show("slow");
+        updateIcons(elem,'e')
     } else {
-        $(div).slideUp(200);
+        $(div).slideUp("slow");
+        updateIcons(elem,'c')
     }
 }
+
 ]]></script>
+
             
              <f:form method="post" action="checkSubmit" name="nitrateplugin">
                   <table>
@@ -54,42 +79,44 @@ function toggle_hide(elem){
 	
             <f:form method="post" action="reportSubmit" name="nitrateplugin">
                 <f:entry>
-                <table>
                     <j:forEach var="command" items="${it.gatherer}">
-                        <tr>
-                            <td>
-                                <j:choose>
-                                    <j:when test="${command.isChecked()}">
-                                        <f:checkbox name="${command.hashCode()}" checked="true" />
-                                    </j:when>
-                                    <j:otherwise>
-                                        <f:checkbox name="${command.hashCode()}" checked="false" />
-                                    </j:otherwise>
-                                </j:choose>
-                                                               
-                                
-                            </td>
-                            <td>
-                                <h3 onclick="toggle_hide(${command.hashCode()})">${command.toString()}</h3>
-                            </td>
-                            <td>
-                                <div id="details${command.hashCode()}" class="details">
-                                    <table>
-                                        <j:forEach var="field" items="${command.description().entrySet()}">
-                                            <tr>
-                                            <td>    
-                                                    ${field.getKey()}
-                                            </td>
-                                            <td>    
-                                                    ${field.getValue()}
-                                            </td>
-                                            </tr>
-                                        </j:forEach>
-                                    </table>
-                                </div>
+                        <div>
+                                <div align="left" style="border: 1px solid #999999; background-color: #F0F0F0; padding: 4px; font-weight: bold;">
+                                    <j:choose>
+                                        <j:when test="${command.isChecked()}">
+                                            <f:checkbox name="${command.hashCode()}" checked="true" />
+                                        </j:when>
+                                        <j:otherwise>
+                                            <f:checkbox name="${command.hashCode()}" checked="false" />
+                                        </j:otherwise>
+                                    </j:choose>
 
-                            </td>
-                            <td>
+
+                                    ${command.toString()}   
+                                    <img id="imgCol-${command.hashCode()}"
+                                        src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
+                                        alt="${%Todo}" tooltip="${%Todo}"
+                                        style="visibility: hidden; display: none;" width="16" height="16" 
+                                        onclick="toggle_hide(${command.hashCode()})" />
+                                    <img id="imgExp-${command.hashCode()}"
+                                        src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
+                                        alt="${%Todo}" tooltip="${%Todo}"
+                                        style="visibility: visible;" width="16" height="16" 
+                                        onclick="toggle_hide(${command.hashCode()})" />
+                                </div>
+                                
+                                <table id="details-${command.hashCode()}" style="margin-top: 0px; border-top: none;">
+                                    <j:forEach var="field" items="${command.description().entrySet()}">
+                                        <tr>
+                                        <td>    
+                                                ${field.getKey()}
+                                        </td>
+                                        <td>    
+                                                ${field.getValue()}
+                                        </td>
+                                        </tr>
+                                    </j:forEach>
+                                </table>
 
                                 <table>
 
@@ -116,10 +143,8 @@ function toggle_hide(elem){
                                     </j:if>    
                                 </table>
 
-                            </td>
-                        </tr>
-                    </j:forEach>
-                </table>
+                            </div>
+                        </j:forEach>
                 
                 <f:submit value="Submit Report" />
                 </f:entry>
