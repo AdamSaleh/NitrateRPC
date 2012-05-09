@@ -5,6 +5,7 @@
 package NitrateIntegration;
 
 import com.redhat.nitrate.Auth;
+import com.redhat.nitrate.TcmsCommand;
 import com.redhat.nitrate.TcmsConnection;
 import hudson.Extension;
 import hudson.matrix.Axis;
@@ -19,6 +20,7 @@ import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -132,6 +134,7 @@ public class TcmsReviewAction implements Action {
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
+        
         // parse 
         String input = null;
         for (CommandWrapper c : gatherer) {

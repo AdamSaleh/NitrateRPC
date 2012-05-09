@@ -33,7 +33,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
     LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
     HashMap<TcmsCommand,CommandWrapper> commands = new  HashMap<TcmsCommand,CommandWrapper>();
     
-    HashMap<Class<TcmsCommand>,LinkedList<CommandWrapper>> commands_sorted = new HashMap<Class<TcmsCommand>,LinkedList<CommandWrapper>>();
+    HashMap<String,LinkedList<CommandWrapper>> commands_sorted = new HashMap<String,LinkedList<CommandWrapper>>();
     
     
     public TcmsGatherer(PrintStream logger, TcmsProperties properties) {
@@ -158,10 +158,10 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         return list.listIterator();
     }
 
-    LinkedList<CommandWrapper> getCommandList(Class<TcmsCommand> c){
+    LinkedList<CommandWrapper> getCommandList(String c){
         return commands_sorted.get(c);
     }
-    Set<Class<TcmsCommand>> getComandClasses(){
+    String getComandClasses(){
         return commands_sorted.keySet();
     }
 

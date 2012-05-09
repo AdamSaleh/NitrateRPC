@@ -24,11 +24,12 @@ import redstone.xmlrpc.XmlRpcStruct;
 public abstract class CommandWrapper {
 
     public TcmsCommand current;
-    private boolean performed;
-    private boolean completed;
-    private boolean duplicate;
     private boolean executable;
     private boolean checked;
+    enum Status{
+        UNKNOWN, PERFORMED, COMPLETED, DUPLICATE
+    }
+    private Status status;
     
     private LinkedList<CommandWrapper> dependecy;
     private Object result;
@@ -38,11 +39,8 @@ public abstract class CommandWrapper {
 
     public CommandWrapper(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
         this.current = current;
-        
+        this.status = Status.UNKNOWN;
         this.checked = true;
-        this.performed = false;
-        this.completed = false;
-        this.duplicate = false;
         this.executable = true;
         this.dependecy = new LinkedList<CommandWrapper>();
         this.result_type = result_type;
@@ -74,11 +72,11 @@ public abstract class CommandWrapper {
     }
 
     public boolean completed() {
-        return completed;
+        return status == Status.COMPLETED;
     }
 
     public boolean duplicate() {
-        return duplicate;
+        return status == Status.DUPLICATE;
     }
     
 
@@ -153,7 +151,7 @@ public abstract class CommandWrapper {
             if (o == null) {
                 o = connection.invoke(current());
             }else{
-                duplicate=true;
+                status = Status.DUPLICATE;
             }
             setResult(o);
             setCompleted();
@@ -171,15 +169,15 @@ public abstract class CommandWrapper {
     }
 
     public void setPerforming() {
-        this.performed = true;
+        status = Status.PERFORMED;
     }
 
     public boolean performed() {
-        return performed;
+        return status == Status.PERFORMED;
     }
 
     public void setCompleted() {
-        this.completed = true;
+        status = Status.COMPLETED;
     }
 
     public abstract Object getResultIfDuplicate(TcmsConnection connection);
@@ -256,6 +254,8 @@ public abstract class CommandWrapper {
         public String toString(){
             return "Create Build";
         }
+        
+        
 
     }
 

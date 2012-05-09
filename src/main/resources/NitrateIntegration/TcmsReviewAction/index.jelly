@@ -62,6 +62,8 @@ function toggleAll(){
 ]]></script>
 
         <h1>Review Report</h1>
+        
+        
                 <f:form method="post" action="checkSubmit" name="envCheck" >
                     <f:entry>
                     <table>
@@ -113,7 +115,7 @@ function toggleAll(){
                 
                 <f:form method="post" action="reportSubmit" name="dataUpload">
                     <f:entry>
-                        <table>
+                        <table cellspacing="0px" cellpadding="2px">
                             <tr>
                                 <th align="left"><f:checkbox id="allCheck" onclick="toggleAll()" checked="true"/></th>
                                 <th>Action</th>
@@ -153,21 +155,22 @@ function toggleAll(){
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td width="18px"> </td>
+                                    <td width="17px"> </td>
                                     <td>
                                         Status
                                     </td>
                                     <td>
-                                        <j:if test="${command.performed()}">
-                                                    PERFORMED
-                                        </j:if>
-                                        <j:if test="${command.completed()}">
-
-                                                    COMPLETED
-                                        </j:if>
-                                        <j:if test="${command.duplicate()}">
-                                                    already present in TCMS
-                                        </j:if>  
+                                        <j:choose>
+                                            <j:when test="${command.performed()}">
+                                                Performed
+                                            </j:when>
+                                            <j:when test="${command.completed()}">
+                                                Completed
+                                            </j:when>
+                                            <j:when test="${command.duplicate()}">
+                                                Already present in TCMS
+                                            </j:when>
+                                        </j:choose>
                                     </td>
                                 </tr>
                                 <tr>
