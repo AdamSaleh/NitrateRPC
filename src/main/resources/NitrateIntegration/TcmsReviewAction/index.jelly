@@ -4,6 +4,33 @@
     <l:layout title="TCMS review report">
         <st:include it="${it.build}" page="sidepanel.jelly"/>
         <l:main-panel>
+            
+            
+  <script src="http://code.jquery.com/jquery-latest.js"></script>
+
+<script><![CDATA[
+
+$(document).ready(function() {
+    alert("ready");
+    var elems = $('.details');
+    alert(elems.length);
+    elems.each(function() {
+        alert("a");
+    });
+});
+]]></script>
+
+<script><![CDATA[
+function toggle_hide(elem){
+    div = "#details" + elem;
+    if($(div).is(":hidden")){
+        $(div).show("fast");
+    } else {
+        $(div).slideUp(200);
+    }
+}
+]]></script>
+            
             <h1>Review Report</h1>
 	
             <f:form method="post" action="reportSubmit" name="nitrateplugin">
@@ -24,22 +51,23 @@
                                 
                             </td>
                             <td>
-                            <h3>${command.name()}</h3>
+                                <h3 onclick="toggle_hide(${command.hashCode()})">${command.toString()}</h3>
                             </td>
                             <td>
-
-                                <table>
-                                    <j:forEach var="field" items="${command.description().entrySet()}">
-                                        <tr>
-                                        <td>    
-                                                ${field.getKey()}
-                                        </td>
-                                        <td>    
-                                                ${field.getValue()}
-                                        </td>
-                                        </tr>
-                                    </j:forEach>
-                                </table>
+                                <div id="details${command.hashCode()}" class="details">
+                                    <table>
+                                        <j:forEach var="field" items="${command.description().entrySet()}">
+                                            <tr>
+                                            <td>    
+                                                    ${field.getKey()}
+                                            </td>
+                                            <td>    
+                                                    ${field.getValue()}
+                                            </td>
+                                            </tr>
+                                        </j:forEach>
+                                    </table>
+                                </div>
 
                             </td>
                             <td>
