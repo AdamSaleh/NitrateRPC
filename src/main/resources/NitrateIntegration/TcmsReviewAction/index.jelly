@@ -4,6 +4,9 @@
     <l:layout title="TCMS review report">
         <st:include it="${it.build}" page="sidepanel.jelly"/>
         <l:main-panel>
+            <f:form method="post" action="checkSubmit" name="nitrateplugin">
+                <f:submit value="Check enviromental vars" />
+            </f:form>
             <h1>Review Report</h1>
 	
             <f:form method="post" action="reportSubmit" name="nitrateplugin">
