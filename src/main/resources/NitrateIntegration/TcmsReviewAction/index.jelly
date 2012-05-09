@@ -44,10 +44,25 @@ function myHide(e){
     updateIcons(e, 'c');
 }
 
+function toggleAll(){
+    var i;
+    for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
+        var element = document.dataUpload.elements[i];
+        if( element.type == 'checkbox' )
+            {
+        	if(document.getElementById("allCheck").checked == true){
+                    element.checked = true;
+                } else {
+                    element.checked = false;
+                }
+            }
+    }
+}
+
 ]]></script>
 
         <h1>Review Report</h1>
-                <f:form method="post" action="checkSubmit" >
+                <f:form method="post" action="checkSubmit" name="envCheck" >
                     <f:entry>
                     <table>
                         <j:forEach var="env" items="${it.env_status}">
@@ -96,9 +111,14 @@ function myHide(e){
                     </f:entry>
                 </f:form>
                 
-                <f:form method="post" action="reportSubmit" name="nitrateplugin">
+                <f:form method="post" action="reportSubmit" name="dataUpload">
                     <f:entry>
                         <table>
+                            <tr>
+                                <th align="left"><f:checkbox id="allCheck" onclick="toggleAll()" checked="true"/></th>
+                                <th>Action</th>
+                                <th>Description</th>
+                            </tr>
                             <j:forEach var="command" items="${it.gatherer}">
                                 <tr style="background-color: #F0F0F0">
                                     <td>
@@ -133,12 +153,12 @@ function myHide(e){
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="4" align="left">
                                     <table id="details-${command.hashCode()}" style="visibility:hidden; display: none">
                                         <j:forEach var="field" items="${command.description().entrySet()}">
                                             <tr>
                                                 <td></td>
-                                                <td style="width:180px">    
+                                                <td style="width:170px">    
                                                         ${field.getKey()}
                                                 </td>
                                                 <td>    
@@ -149,6 +169,8 @@ function myHide(e){
                                         </j:forEach>
 
                                         <tr>
+                                            <td></td>
+                                            <td>Status</td>
                                             <td>
                                             <j:if test="${command.performed()}">
                                                         PERFORMED
