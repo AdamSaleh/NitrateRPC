@@ -67,6 +67,10 @@ public class TcmsReviewAction implements Action {
         return env_status;
     }
 
+    public TcmsEnvironment getEnvironment() {
+        return environment;
+    }
+
     
     public AbstractBuild getBuild() {
         return build;

@@ -31,6 +31,10 @@ public class TcmsEnvironment {
         this.env = env;
     }
 
+    public String getEnv() {
+        return env;
+    }
+
     public Integer getEnvId() {
         return envId;
     }
