@@ -11,7 +11,7 @@
 <script><![CDATA[
 
 $(document).ready(function() {
-    var elems = window.document.getElementsByTagName('div');
+    var elems = window.document.getElementsByTagName('table');
     for (var cmdIndex in elems) {
         cmd = elems[cmdIndex];
         if(cmd.id && cmd.id.indexOf('details') != -1){
@@ -45,10 +45,10 @@ function toggle_hide(elem){
     imgCol = "ImgCol" + elem;
     imgExp = "ImgExp" + elem;
     if($(div).is(":hidden")){
-        $(div).show("fast");
+        $(div).show("slow");
         updateIcons(elem,'e')
     } else {
-        $(div).slideUp(200);
+        $(div).slideUp("slow");
         updateIcons(elem,'c')
     }
 }
@@ -64,10 +64,9 @@ function toggle_hide(elem){
 	
             <f:form method="post" action="reportSubmit" name="nitrateplugin">
                 <f:entry>
-                <table>
                     <j:forEach var="command" items="${it.gatherer}">
-                        <tr>
-                            <td>
+                        <div>
+                                <div align="left" style="border: 1px solid #999999; background-color: #F0F0F0; padding: 4px; font-weight: bold;">
                                     <j:choose>
                                         <j:when test="${command.isChecked()}">
                                             <f:checkbox name="${command.hashCode()}" checked="true" />
@@ -76,7 +75,7 @@ function toggle_hide(elem){
                                             <f:checkbox name="${command.hashCode()}" checked="false" />
                                         </j:otherwise>
                                     </j:choose>
-                            
+
 
                                     ${command.toString()}   
                                     <img id="imgCol-${command.hashCode()}"
@@ -89,54 +88,48 @@ function toggle_hide(elem){
                                         alt="${%Todo}" tooltip="${%Todo}"
                                         style="visibility: visible;" width="16" height="16" 
                                         onclick="toggle_hide(${command.hashCode()})" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div id="details-${command.hashCode()}" class="details">
-                                    <table>
-                                        <j:forEach var="field" items="${command.description().entrySet()}">
-                                            <tr>
-                                            <td>    
-                                                    ${field.getKey()}
-                                            </td>
-                                            <td>    
-                                                    ${field.getValue()}
-                                            </td>
-                                            </tr>
-                                        </j:forEach>
-                                    </table>
-
-                                    <table>
-
-                                        <j:if test="${command.performed()}">
-                                            <tr>
-                                            <td>    
-                                                    PERFORMED
-                                            </td>
-                                            </tr>
-                                        </j:if>
-                                        <j:if test="${command.completed()}">
-                                            <tr>
-                                            <td>    
-                                                    COMPLETED
-                                            </td>
-                                            </tr>
-                                        </j:if>
-                                        <j:if test="${command.duplicate()}">
-                                            <tr>
-                                            <td>    
-                                                    already present in TCMS
-                                            </td>
-                                            </tr>
-                                        </j:if>    
-                                    </table>
-
                                 </div>
-                            </td>
-                        </tr>
-                    </j:forEach>
-                </table>
+                                
+                                <table id="details-${command.hashCode()}" style="margin-top: 0px; border-top: none;">
+                                    <j:forEach var="field" items="${command.description().entrySet()}">
+                                        <tr>
+                                        <td>    
+                                                ${field.getKey()}
+                                        </td>
+                                        <td>    
+                                                ${field.getValue()}
+                                        </td>
+                                        </tr>
+                                    </j:forEach>
+                                </table>
+
+                                <table>
+
+                                    <j:if test="${command.performed()}">
+                                        <tr>
+                                        <td>    
+                                                PERFORMED
+                                        </td>
+                                        </tr>
+                                    </j:if>
+                                    <j:if test="${command.completed()}">
+                                        <tr>
+                                        <td>    
+                                                COMPLETED
+                                        </td>
+                                        </tr>
+                                    </j:if>
+                                    <j:if test="${command.duplicate()}">
+                                        <tr>
+                                        <td>    
+                                                already present in TCMS
+                                        </td>
+                                        </tr>
+                                    </j:if>    
+                                </table>
+
+                            </div>
+                        </j:forEach>
                 
                 <f:submit value="Submit Report" />
                 </f:entry>
