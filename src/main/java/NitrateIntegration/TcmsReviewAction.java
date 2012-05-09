@@ -198,7 +198,7 @@ public class TcmsReviewAction implements Action {
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
-        // parse submitted configuration matrix
+        // parse 
         String input = null;
         for (CommandWrapper c : gatherer) {
             String a = new Integer(c.hashCode()).toString();
