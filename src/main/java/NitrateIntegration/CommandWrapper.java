@@ -39,7 +39,7 @@ public abstract class CommandWrapper {
     public CommandWrapper(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
         this.current = current;
         
-        this.checked = false;
+        this.checked = true;
         this.performed = false;
         this.completed = false;
         this.duplicate = false;
@@ -246,10 +246,15 @@ public abstract class CommandWrapper {
         public boolean processDependecies() {
             return true;
         }
+        
         public Hashtable<String, String> description() {
             Hashtable<String, String> map = current.descriptionMap();
             map.put("product",properties.product + " (" +map.get("product")+")");
             return map;
+        }
+        
+        public String toString(){
+            return "Create Build";
         }
 
     }
@@ -295,6 +300,10 @@ public abstract class CommandWrapper {
             map.put("plan",properties.plan + " (" +map.get("plan")+")");
             
             return map;
+        }
+        
+        public String toString(){
+            return "Create Test Case";
         }
 
     }
@@ -355,6 +364,10 @@ public abstract class CommandWrapper {
             }
             
             return map;
+        }
+        
+        public String toString(){
+            return "Create Test Run";
         }
     }
 
@@ -425,6 +438,10 @@ public abstract class CommandWrapper {
             }
             
             return map;
+        }
+        
+        public String toString(){
+            return "Create Test Case Run";
         }
     }
 
