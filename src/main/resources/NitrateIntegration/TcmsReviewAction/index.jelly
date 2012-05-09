@@ -46,130 +46,131 @@ function myHide(e){
 
 ]]></script>
 
-            <h1>Review Report</h1>
-	
-        <f:form method="post" action="checkSubmit" name="nitrateplugin">
-                  <table>
-                    <j:forEach var="env" items="${it.env_status}">
-                        <tr>
-                            <td>
-                                ${env.property}
-                            </td>
-                             <td>
-                                ${env.value}
-                            </td>
-                             <td>
-                                 <j:choose>
-                                        <j:when test="${env.status=='CHECKED'}">
-                                            Checked
-                                        </j:when>
-                                         <j:when test="${env.status=='VALUE'}">
-                                            Value <strong>${env.value}</strong> is not linked with <strong> ${env.property}</strong> in TCMS. 
-                                            Aviable values 
-                                            
-                                            <ul id="details-${env.property}}">
-                                            <j:forEach var="posible_val" items="${it.environment.values.get(env.property).keySet()}">
-                                            <li>  ${posible_val}</li>
-                                            </j:forEach>
-                                            </ul>
-                                        </j:when>
-                                        <j:when test="${env.status=='PROPERTY'}">
-                                            Property <strong>${env.property}</strong> is not linked with group <strong>${it.environment.env}</strong> in TCMS. 
-                                            Aviable properties 
-                                            
-                                            <ul id="details-${env.property}}">
-                                            <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
-                                            <li>  ${posible_val}</li>
-                                            </j:forEach>
-                                            </ul>
-                                        </j:when>
-                                        <j:otherwise>
-                                            ${env.status}
-                                        </j:otherwise>
-                                    </j:choose>
-                                
-                            </td>
-                        </tr>
-                    </j:forEach>
-                </table>
-                <f:submit value="Check enviromental vars" />
-            </f:form>
-        
-            <f:form method="post" action="reportSubmit" name="nitrateplugin">
-                <f:entry>
+        <h1>Review Report</h1>
+                <f:form method="post" action="checkSubmit" >
+                    <f:entry>
                     <table>
-                        <j:forEach var="command" items="${it.gatherer}">
-                            <tr style="background-color: #F0F0F0">
+                        <j:forEach var="env" items="${it.env_status}">
+                            <tr>
+                                <td>
+                                    ${env.property}
+                                </td>
+                                <td>
+                                    ${env.value}
+                                </td>
                                 <td>
                                     <j:choose>
-                                        <j:when test="${command.isChecked()}">
-                                            <f:checkbox name="${command.hashCode()}" checked="true" />
-                                        </j:when>
-                                        <j:otherwise>
-                                            <f:checkbox name="${command.hashCode()}" checked="false" />
-                                        </j:otherwise>
-                                    </j:choose>
-                                    
-                                </td>
-                                <td style="width:150px; vertical-align: middle">
-                                    <span style="font-weight:bold; ">${command.toString()}</span>
-                                </td>
-                                <td style="vertical-align:middle"> 
-                                    ${command.description().get('summary')}
-                                </td>
-                                <td>
+                                            <j:when test="${env.status=='CHECKED'}">
+                                                Checked
+                                            </j:when>
+                                            <j:when test="${env.status=='VALUE'}">
+                                                Value <strong>${env.value}</strong> is not linked with <strong> ${env.property}</strong> in TCMS. 
+                                                Aviable values 
 
-                                    <img id="imgCol-${command.hashCode()}"
-                                        src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
-                                        alt="${%Todo}" tooltip="${%Todo}"
-                                        style="visibility: hidden; display: none;" width="16" height="16" 
-                                        onclick="myHide(${command.hashCode()})" />
-                                    <img id="imgExp-${command.hashCode()}"
-                                        src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
-                                        alt="${%Todo}" tooltip="${%Todo}"
-                                        style="visibility: visible;" width="16" height="16" 
-                                        onclick="myShow(${command.hashCode()})" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="4">
-                                <table id="details-${command.hashCode()}" style="visibility:hidden; display: none">
-                                    <j:forEach var="field" items="${command.description().entrySet()}">
-                                        <tr>
-                                            <td></td>
-                                            <td style="width:180px">    
-                                                    ${field.getKey()}
-                                            </td>
-                                            <td>    
-                                                    ${field.getValue()}
-                                            </td>
+                                                <ul id="details-${env.property}}">
+                                                <j:forEach var="posible_val" items="${it.environment.values.get(env.property).keySet()}">
+                                                <li>  ${posible_val}</li>
+                                                </j:forEach>
+                                                </ul>
+                                            </j:when>
+                                            <j:when test="${env.status=='PROPERTY'}">
+                                                Property <strong>${env.property}</strong> is not linked with group <strong>${it.environment.env}</strong> in TCMS. 
+                                                Aviable properties 
 
-                                        </tr>
-                                    </j:forEach>
+                                                <ul id="details-${env.property}}">
+                                                <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
+                                                <li>  ${posible_val}</li>
+                                                </j:forEach>
+                                                </ul>
+                                            </j:when>
+                                            <j:otherwise>
+                                                ${env.status}
+                                            </j:otherwise>
+                                        </j:choose>
 
-                                    <tr>
-                                        <td>
-                                        <j:if test="${command.performed()}">
-                                                    PERFORMED
-                                        </j:if>
-                                        <j:if test="${command.completed()}">
-
-                                                    COMPLETED
-                                        </j:if>
-                                        <j:if test="${command.duplicate()}">
-                                                    already present in TCMS
-                                        </j:if>  
-                                        </td>
-                                    </tr>
-                                </table>
                                 </td>
                             </tr>
                         </j:forEach>
                     </table>
+                    <f:submit value="Check enviromental vars" />
+                    </f:entry>
+                </f:form>
                 
-                <f:submit value="Submit Report" />
-                </f:entry>
-            </f:form>
+                <f:form method="post" action="reportSubmit" name="nitrateplugin">
+                    <f:entry>
+                        <table>
+                            <j:forEach var="command" items="${it.gatherer}">
+                                <tr style="background-color: #F0F0F0">
+                                    <td>
+                                        <j:choose>
+                                            <j:when test="${command.isChecked()}">
+                                                <f:checkbox name="${command.hashCode()}" checked="true" />
+                                            </j:when>
+                                            <j:otherwise>
+                                                <f:checkbox name="${command.hashCode()}" checked="false" />
+                                            </j:otherwise>
+                                        </j:choose>
+
+                                    </td>
+                                    <td style="width:150px; vertical-align: middle">
+                                        <span style="font-weight:bold; ">${command.toString()}</span>
+                                    </td>
+                                    <td style="vertical-align:middle"> 
+                                        ${command.description().get('summary')}
+                                    </td>
+                                    <td>
+
+                                        <img id="imgCol-${command.hashCode()}"
+                                            src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
+                                            alt="${%Todo}" tooltip="${%Todo}"
+                                            style="visibility: hidden; display: none;" width="16" height="16" 
+                                            onclick="myHide(${command.hashCode()})" />
+                                        <img id="imgExp-${command.hashCode()}"
+                                            src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
+                                            alt="${%Todo}" tooltip="${%Todo}"
+                                            style="visibility: visible;" width="16" height="16" 
+                                            onclick="myShow(${command.hashCode()})" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4">
+                                    <table id="details-${command.hashCode()}" style="visibility:hidden; display: none">
+                                        <j:forEach var="field" items="${command.description().entrySet()}">
+                                            <tr>
+                                                <td></td>
+                                                <td style="width:180px">    
+                                                        ${field.getKey()}
+                                                </td>
+                                                <td>    
+                                                        ${field.getValue()}
+                                                </td>
+
+                                            </tr>
+                                        </j:forEach>
+
+                                        <tr>
+                                            <td>
+                                            <j:if test="${command.performed()}">
+                                                        PERFORMED
+                                            </j:if>
+                                            <j:if test="${command.completed()}">
+
+                                                        COMPLETED
+                                            </j:if>
+                                            <j:if test="${command.duplicate()}">
+                                                        already present in TCMS
+                                            </j:if>  
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    </td>
+                                </tr>
+                            </j:forEach>
+                        </table>
+
+                    <f:submit value="Submit Report" />
+                    </f:entry>
+                </f:form>
         </l:main-panel>
     </l:layout>
 </j:jelly>
