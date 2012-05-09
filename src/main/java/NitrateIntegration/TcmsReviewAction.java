@@ -18,6 +18,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -31,7 +32,7 @@ import redstone.xmlrpc.XmlRpcFault;
  * @author asaleh
  */
 public class TcmsReviewAction implements Action {
-
+    
     public final AbstractBuild<?, ?> build;
     public final TcmsGatherer gatherer;
     private TcmsConnection connection;
@@ -39,7 +40,9 @@ public class TcmsReviewAction implements Action {
     String username;
     String password;
     public final TcmsProperties properties;
-
+    public final TcmsEnvironment environment;
+    private LinkedList<EnvStatus> env_status;
+    
     public String getIconFileName() {
         return Definitions.__ICON_FILE_NAME;
     }
@@ -60,11 +63,20 @@ public class TcmsReviewAction implements Action {
         return gatherer;
     }
 
+    public LinkedList<EnvStatus> getEnv_status() {
+        return env_status;
+    }
+
+    public TcmsEnvironment getEnvironment() {
+        return environment;
+    }
+
+    
     public AbstractBuild getBuild() {
         return build;
     }
 
-    public TcmsReviewAction(AbstractBuild<?, ?> build, TcmsGatherer gatherer,
+    public TcmsReviewAction(AbstractBuild<?, ?> build, TcmsGatherer gatherer,TcmsEnvironment environment,
             String serverUrl, String username, String password, TcmsProperties properties) {
         this.build = build;
         this.gatherer = gatherer;
@@ -72,23 +84,50 @@ public class TcmsReviewAction implements Action {
         this.username = username;
         this.password = password;
         this.serverUrl = serverUrl;
+        this.environment =environment;
+        env_status = new LinkedList<EnvStatus>();
     }
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
         if(build instanceof MatrixBuild){
             MatrixBuild mb = (MatrixBuild) build;
             AxisList al = mb.getParent().getAxes();
+            
+             try {
+            connection = new TcmsConnection(serverUrl);
+            connection.setUsernameAndPassword(username, password);
+            Auth.login_krbv auth = new Auth.login_krbv();
+            String session;
+            session = auth.invoke(connection);
+            if (session.length() > 0) {
+                connection.setSession(session);
+            }
+            environment.setConnection(connection);
+            environment.reloadEnvId();
+
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            env_status.clear();
             for(Axis ax:al ){
                 String name =ax.getName();
-                /*test name*/
-                
-                /*test variables*/
                 for(String val:ax.getValues()){
                     /*check value*/
+                    if(environment.containsProperty(name)){
+                        if(environment.containsValue(name, val)){
+                            env_status.add(new EnvStatus(name, val, "CHECKED"));
+                        }else{
+                            env_status.add(new EnvStatus(name, val, "VALUE"));
+                        }
+                    }else{
+                        env_status.add(new EnvStatus(name, val, "PROPERTY"));
+                    }
                 }
-                
             }
         }
+         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
@@ -152,4 +191,28 @@ public class TcmsReviewAction implements Action {
         } while (at_least_one && at_least_one_not_duplicate);
     }   
 
+    public static class EnvStatus{
+        private final String property;
+        private final String value;
+        private final String status;
+
+        public EnvStatus(String property, String value, String status) {
+            this.property = property;
+            this.value = value;
+            this.status = status;
+        }
+
+        public String getProperty() {
+            return property;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getValue() {
+            return value;
+        }
+        
+    }
 }

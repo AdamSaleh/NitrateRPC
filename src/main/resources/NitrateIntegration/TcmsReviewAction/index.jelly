@@ -46,13 +46,55 @@ function myHide(e){
 
 ]]></script>
 
-            
-             <f:form method="post" action="checkSubmit" name="nitrateplugin">
-                <f:submit value="Check enviromental vars" />
-            </f:form>
-            
             <h1>Review Report</h1>
 	
+        <f:form method="post" action="checkSubmit" name="nitrateplugin">
+                  <table>
+                    <j:forEach var="env" items="${it.env_status}">
+                        <tr>
+                            <td>
+                                ${env.property}
+                            </td>
+                             <td>
+                                ${env.value}
+                            </td>
+                             <td>
+                                 <j:choose>
+                                        <j:when test="${env.status=='CHECKED'}">
+                                            Checked
+                                        </j:when>
+                                         <j:when test="${env.status=='VALUE'}">
+                                            Value <strong>${env.value}</strong> is not linked with <strong> ${env.property}</strong> in TCMS. 
+                                            Aviable values 
+                                            
+                                            <ul id="details-${env.property}}">
+                                            <j:forEach var="posible_val" items="${it.environment.values.get(env.property).keySet()}">
+                                            <li>  ${posible_val}</li>
+                                            </j:forEach>
+                                            </ul>
+                                        </j:when>
+                                        <j:when test="${env.status=='PROPERTY'}">
+                                            Property <strong>${env.property}</strong> is not linked with group <strong>${it.environment.env}</strong> in TCMS. 
+                                            Aviable properties 
+                                            
+                                            <ul id="details-${env.property}}">
+                                            <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
+                                            <li>  ${posible_val}</li>
+                                            </j:forEach>
+                                            </ul>
+                                        </j:when>
+                                        <j:otherwise>
+                                            ${env.status}
+                                        </j:otherwise>
+                                    </j:choose>
+                                
+                            </td>
+                        </tr>
+                    </j:forEach>
+                </table>
+                <f:submit value="Check enviromental vars" />
+            </f:form>
+        
             <f:form method="post" action="reportSubmit" name="nitrateplugin">
                 <f:entry>
                     <table>
