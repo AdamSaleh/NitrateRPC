@@ -120,8 +120,8 @@ function toggleAll(){
                                 <th>Description</th>
                             </tr>
                             <j:forEach var="command" items="${it.gatherer}">
-                                <tr style="background-color: #F0F0F0">
-                                    <td>
+                                <tr style="background-color: #DEDEDE">
+                                    <td width="20px">
                                         <j:choose>
                                             <j:when test="${command.isChecked()}">
                                                 <f:checkbox name="${command.hashCode()}" checked="true" />
@@ -136,7 +136,7 @@ function toggleAll(){
                                         <span style="font-weight:bold; ">${command.toString()}</span>
                                     </td>
                                     <td style="vertical-align:middle"> 
-                                        ${command.description().get('summary')}
+                                        <span style="font-weight:bold; ">${command.description().get('summary')}</span>
                                     </td>
                                     <td>
 
@@ -153,12 +153,30 @@ function toggleAll(){
                                     </td>
                                 </tr>
                                 <tr>
+                                    <td width="18px"> </td>
+                                    <td>
+                                        Status
+                                    </td>
+                                    <td>
+                                        <j:if test="${command.performed()}">
+                                                    PERFORMED
+                                        </j:if>
+                                        <j:if test="${command.completed()}">
+
+                                                    COMPLETED
+                                        </j:if>
+                                        <j:if test="${command.duplicate()}">
+                                                    already present in TCMS
+                                        </j:if>  
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td colspan="4" align="left">
                                     <table id="details-${command.hashCode()}" style="visibility:hidden; display: none">
                                         <j:forEach var="field" items="${command.description().entrySet()}">
                                             <tr>
-                                                <td></td>
-                                                <td style="width:170px">    
+                                                <td width="20px"></td>
+                                                <td style="width:150px">    
                                                         ${field.getKey()}
                                                 </td>
                                                 <td>    
@@ -167,23 +185,7 @@ function toggleAll(){
 
                                             </tr>
                                         </j:forEach>
-
-                                        <tr>
-                                            <td></td>
-                                            <td>Status</td>
-                                            <td>
-                                            <j:if test="${command.performed()}">
-                                                        PERFORMED
-                                            </j:if>
-                                            <j:if test="${command.completed()}">
-
-                                                        COMPLETED
-                                            </j:if>
-                                            <j:if test="${command.duplicate()}">
-                                                        already present in TCMS
-                                            </j:if>  
-                                            </td>
-                                        </tr>
+                                       
                                     </table>
                                     </td>
                                 </tr>
