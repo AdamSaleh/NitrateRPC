@@ -19,28 +19,28 @@
     <f:password value="${instance.password}"/>
   </f:entry>
   <f:entry title="Plan Id" field="plan">
-    <f:textbox value="${instance.properties.plan}"/>
+    <f:textbox value="${instance.plan}"/>
   </f:entry>
   <f:entry title="Product" field="product">
-    <f:textbox value="${instance.properties.product}"/>
+    <f:textbox value="${instance.product}"/>
   </f:entry>
   <f:entry title="Product version" field="product_v">
-    <f:textbox value="${instance.properties.product_v}"/>
+    <f:textbox value="${instance.product_v}"/>
   </f:entry>
   <f:entry title="Category" field="category">
-    <f:textbox value="${instance.properties.category}"/>
+    <f:textbox value="${instance.category}"/>
   </f:entry>
   <f:entry title="Priority" field="priority">
-    <f:textbox value="${instance.properties.priority}"/>
+    <f:textbox value="${instance.priority}"/>
   </f:entry>
    <f:entry title="Manager" field="manager">
-    <f:textbox value="${instance.properties.manager}"/>
+    <f:textbox value="${instance.manager}"/>
   </f:entry>
   <f:validateButton
    title="${%Test Connection}" progress="${%Testing...}"
    method="testConnection" with="serverUrl,username,password,plan,product,product_v,priority,category,manager" />
      <f:entry title="Environment Group" field="env">
-    <f:textbox value="${instance.environment.env}"/>
+    <f:textbox value="${instance.env}"/>
   <f:validateButton
    title="${%Test EnvGroup}" progress="${%Testing...}"
    method="testEnv" with="serverUrl,username,password,env" />

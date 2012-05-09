@@ -2,7 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <l:layout title="TCMS review report">
-        <st:include it="${it.build}" page="sidepanel.jelly"/>
+        <!-- <st:include it="${it.build}" page="sidepanel.jelly"/> -->
         <l:main-panel>
             
   
@@ -60,7 +60,11 @@ function toggleAll(){
 }
 
 ]]></script>
-
+ <h1>Gather Report</h1>
+        <f:form method="post" action="gather" name="nitrateplugin-gather">
+                  
+                <f:submit value="Gather report from test-files" />
+            </f:form>
         <h1>Review Report</h1>
         
         

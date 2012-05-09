@@ -4,10 +4,12 @@
  */
 package NitrateIntegration;
 
+import NitrateIntegration.TcmsReviewAction.GatherFiles;
 import com.redhat.nitrate.Auth;
 import com.redhat.nitrate.TcmsCommand;
 import com.redhat.nitrate.TcmsConnection;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
@@ -19,11 +21,13 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -34,9 +38,9 @@ import redstone.xmlrpc.XmlRpcFault;
  * @author asaleh
  */
 public class TcmsReviewAction implements Action {
-    
-    public final AbstractBuild<?, ?> build;
-    public final TcmsGatherer gatherer;
+
+    public AbstractBuild<?, ?> build;
+    public TcmsGatherer gatherer;
     private TcmsConnection connection;
     String serverUrl;
     String username;
@@ -44,7 +48,7 @@ public class TcmsReviewAction implements Action {
     public final TcmsProperties properties;
     public final TcmsEnvironment environment;
     private LinkedList<EnvStatus> env_status;
-    
+
     public String getIconFileName() {
         return Definitions.__ICON_FILE_NAME;
     }
@@ -73,63 +77,125 @@ public class TcmsReviewAction implements Action {
         return environment;
     }
 
-    
     public AbstractBuild getBuild() {
         return build;
     }
 
-    public TcmsReviewAction(AbstractBuild<?, ?> build, TcmsGatherer gatherer,TcmsEnvironment environment,
-            String serverUrl, String username, String password, TcmsProperties properties) {
-        this.build = build;
+    @DataBoundConstructor
+    public TcmsReviewAction(AbstractBuild build, String serverUrl, String username, String password,
+            String plan,
+            String product,
+            String product_v,
+            String category,
+            String priority,
+            String manager,
+            String env,
+            String testPath) {
+        //this.build = this.;
         this.gatherer = gatherer;
-        this.properties = properties;
+        this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
         this.username = username;
         this.password = password;
         this.serverUrl = serverUrl;
-        this.environment =environment;
+        this.environment = new TcmsEnvironment(env);
+        this.build = build;
         env_status = new LinkedList<EnvStatus>();
     }
+
+    public void doGather(StaplerRequest req, StaplerResponse rsp) throws ServletException,
+            IOException, InterruptedException {
+        rsp.sendRedirect("../" + Definitions.__URL_NAME);
+        gatherer = new TcmsGatherer(properties);
+
+        try {
+                connection = new TcmsConnection(serverUrl);
+                connection.setUsernameAndPassword(username, password);
+                Auth.login_krbv auth = new Auth.login_krbv();
+                String session;
+                session = auth.invoke(connection);
+                if (session.length() > 0) {
+                    connection.setSession(session);
+                }
+                environment.setConnection(connection);
+                environment.reloadEnvId();
+                
+                properties.setConnection(connection);
+                properties.reload();
+
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            }
+       
+        for (GatherFiles gatherfile : gatherFiles) {
+            gatherer.gather(gatherfile.paths, build, gatherfile.build);
+        }
+    }
+
+    public static class GatherFiles {
+
+        public FilePath[] paths;
+        public AbstractBuild build;
+
+        public GatherFiles(FilePath[] paths, AbstractBuild build) {
+            this.paths = paths;
+            this.build = build;
+        }
+    }
+    LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
+
+    public void clearGatherPaths() {
+        gatherFiles.clear();
+    }
+
+    public void addGatherPath(FilePath[] paths, AbstractBuild build) {
+        gatherFiles.add(new GatherFiles(paths, build));
+    }
+
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
-        if(build instanceof MatrixBuild){
+        if (build instanceof MatrixBuild) {
             MatrixBuild mb = (MatrixBuild) build;
             AxisList al = mb.getParent().getAxes();
-            
-             try {
-            connection = new TcmsConnection(serverUrl);
-            connection.setUsernameAndPassword(username, password);
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            session = auth.invoke(connection);
-            if (session.length() > 0) {
-                connection.setSession(session);
-            }
-            environment.setConnection(connection);
-            environment.reloadEnvId();
 
-        } catch (XmlRpcFault ex) {
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        }
+            try {
+                connection = new TcmsConnection(serverUrl);
+                connection.setUsernameAndPassword(username, password);
+                Auth.login_krbv auth = new Auth.login_krbv();
+                String session;
+                session = auth.invoke(connection);
+                if (session.length() > 0) {
+                    connection.setSession(session);
+                }
+                environment.setConnection(connection);
+                environment.reloadEnvId();
+
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            }
             env_status.clear();
-            for(Axis ax:al ){
-                String name =ax.getName();
-                for(String val:ax.getValues()){
-                    /*check value*/
-                    if(environment.containsProperty(name)){
-                        if(environment.containsValue(name, val)){
+            for (Axis ax : al) {
+                String name = ax.getName();
+                for (String val : ax.getValues()) {
+                    /*
+                     * check value
+                     */
+                    if (environment.containsProperty(name)) {
+                        if (environment.containsValue(name, val)) {
                             env_status.add(new EnvStatus(name, val, "CHECKED"));
-                        }else{
+                        } else {
                             env_status.add(new EnvStatus(name, val, "VALUE"));
                         }
-                    }else{
+                    } else {
                         env_status.add(new EnvStatus(name, val, "PROPERTY"));
                     }
                 }
             }
         }
-         rsp.sendRedirect("../" + Definitions.__URL_NAME);
+        rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
@@ -171,7 +237,7 @@ public class TcmsReviewAction implements Action {
 
 
     }
-    
+
     public void upload(TcmsGatherer gathered, TcmsConnection connection) throws XmlRpcFault {
         boolean at_least_one;
         boolean at_least_one_not_duplicate;
@@ -192,9 +258,10 @@ public class TcmsReviewAction implements Action {
                 }
             }
         } while (at_least_one && at_least_one_not_duplicate);
-    }   
+    }
 
-    public static class EnvStatus{
+    public static class EnvStatus {
+
         private final String property;
         private final String value;
         private final String status;
@@ -216,6 +283,5 @@ public class TcmsReviewAction implements Action {
         public String getValue() {
             return value;
         }
-        
     }
 }

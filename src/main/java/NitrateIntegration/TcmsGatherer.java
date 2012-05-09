@@ -24,20 +24,18 @@ import redstone.xmlrpc.XmlRpcStruct;
  */
 public class TcmsGatherer implements Iterable<CommandWrapper> {
 
-    PrintStream logger;
     private int run_id;
     private int build_id;
     private TcmsProperties properties;
     CommandWrapper build_s;
     
     LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
-    HashMap<TcmsCommand,CommandWrapper> commands = new  HashMap<TcmsCommand,CommandWrapper>();
+    HashMap<TcmsCommand,CommandWrapper> commands = new HashMap<TcmsCommand,CommandWrapper>();
     
     HashMap<String,LinkedList<CommandWrapper>> commands_sorted = new HashMap<String,LinkedList<CommandWrapper>>();
     
     
-    public TcmsGatherer(PrintStream logger, TcmsProperties properties) {
-        this.logger = logger;
+    public TcmsGatherer( TcmsProperties properties) {
         this.properties = properties;
         this.build_s=null;
     }
@@ -119,7 +117,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
 
     public synchronized void gather(FilePath[] paths, AbstractBuild build, AbstractBuild run) throws IOException, InterruptedException {
         
-        Parser testParser = new Parser(logger);
+        Parser testParser = new Parser();
 
         TestResults results = testParser.parse(paths, false);
 
