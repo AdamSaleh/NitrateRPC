@@ -39,6 +39,13 @@
   <f:validateButton
    title="${%Test Connection}" progress="${%Testing...}"
    method="testConnection" with="serverUrl,username,password,plan,product,product_v,priority,category,manager" />
+     <f:entry title="Environment Group" field="env">
+    <f:textbox value="${instance.properties.env}"/>
+  <f:validateButton
+   title="${%Test EnvGroup}" progress="${%Testing...}"
+   method="testEnv" with="serverUrl,username,password,env" />
+    
+  </f:entry>
   <f:entry title="Path to test files" field="testPath">
     <f:textbox value="${instance.reportLocationPattern}"/>
   </f:entry>

@@ -231,7 +231,6 @@ public class TcmsPublisher extends Recorder {
                 return FormValidation.error("Possibly wrong username/password");
             }
 
-            properties.setConnection(c);
             if (properties.getPlanID() == null) {
                 return FormValidation.error("Possibly wrong plan id");
             }
@@ -249,6 +248,49 @@ public class TcmsPublisher extends Recorder {
             }
             if (properties.getManagerId() == null) {
                 return FormValidation.error("Possibly wrong manager's username");
+            }
+            return FormValidation.ok();
+
+        }
+
+        public FormValidation doTestEnv(@QueryParameter("serverUrl") final String serverUrl,
+                @QueryParameter("username") final String username,
+                @QueryParameter("password") final String password,
+                @QueryParameter("env") final String env) {
+            FormValidation url_val = checkServerUrl(serverUrl, username, password);
+            if (url_val != FormValidation.ok()) {
+                return url_val;
+            }
+
+            TcmsConnection c = null;
+            try {
+                c = new TcmsConnection(serverUrl);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+                return FormValidation.error("Something weird happened");
+            }
+
+            
+            c.setUsernameAndPassword(username, password);
+            Auth.login_krbv auth = new Auth.login_krbv();
+            String session;
+            TcmsEnvironment environment = new TcmsEnvironment(env);
+
+            
+            
+            try {
+                session = auth.invoke(c);
+                if (session.length() > 0) {
+                    c.setSession(session);
+                }
+                environment.setConnection(c);
+                environment.reloadEnvId();
+            } catch (XmlRpcFault ex) {
+                return FormValidation.error("Possibly wrong username/password");
+            }
+            
+            if (environment.getEnvId() == null) {
+                return FormValidation.error("Possibly wrong environment group");
             }
             return FormValidation.ok();
 
