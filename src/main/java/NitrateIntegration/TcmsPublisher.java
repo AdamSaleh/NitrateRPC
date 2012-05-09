@@ -62,7 +62,7 @@ public class TcmsPublisher extends Recorder {
     public final String reportLocationPattern;
     //private TcmsConnection connection;
     public TcmsGatherer gatherer;
-
+    public final TcmsEnvironment environment;
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
     public TcmsPublisher(String serverUrl, String username, String password,
@@ -72,12 +72,14 @@ public class TcmsPublisher extends Recorder {
             String category,
             String priority,
             String manager,
+            String env,
             String testPath) {
 
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
         properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+        environment = new TcmsEnvironment(env);
         this.reportLocationPattern = testPath;
 
 
@@ -93,6 +95,8 @@ public class TcmsPublisher extends Recorder {
             }
             properties.setConnection(connection);
             properties.reload();
+            environment.setConnection(connection);
+            environment.reloadEnvId();
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
@@ -117,7 +121,7 @@ public class TcmsPublisher extends Recorder {
         if (agregateBuild.getAction(TcmsReviewAction.class) == null) {
             gatherer = new TcmsGatherer(listener.getLogger(), properties);
             
-            agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild, gatherer,
+            agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild, gatherer,environment,
                                                 serverUrl,username,password,properties));
         }
 

@@ -32,6 +32,21 @@ function toggle_hide(elem){
 ]]></script>
             
              <f:form method="post" action="checkSubmit" name="nitrateplugin">
+                  <table>
+                    <j:forEach var="env" items="${it.env_status}">
+                        <tr>
+                            <td>
+                                ${env.property}
+                            </td>
+                             <td>
+                                ${env.value}
+                            </td>
+                             <td>
+                                ${env.status}
+                            </td>
+                        </tr>
+                    </j:forEach>
+                </table>
                 <f:submit value="Check enviromental vars" />
             </f:form>
             
