@@ -58,11 +58,16 @@ public class TcmsPublisher extends Recorder {
     public final String serverUrl;
     public final String username;
     public final String password;
-    public final TcmsProperties properties;
     public final String reportLocationPattern;
-    //private TcmsConnection connection;
-    public TcmsGatherer gatherer;
-    public final TcmsEnvironment environment;
+
+    public final String plan;
+    public final String product;
+    public final String product_v;
+    public final String category;
+    public final String priority;
+    public final String manager;
+    public final String env;
+    
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
     public TcmsPublisher(String serverUrl, String username, String password,
@@ -78,31 +83,17 @@ public class TcmsPublisher extends Recorder {
         this.serverUrl = serverUrl;
         this.username = username;
         this.password = password;
-        properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-        environment = new TcmsEnvironment(env);
-        this.reportLocationPattern = testPath;
-
-
-        TcmsConnection connection = null;
-        try {
-            connection = new TcmsConnection(serverUrl);
-            connection.setUsernameAndPassword(username, password);
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            session = auth.invoke(connection);
-            if (session != null && session.length() > 0) {
-                connection.setSession(session);
-            }
-            properties.setConnection(connection);
-            properties.reload();
-            environment.setConnection(connection);
-            environment.reloadEnvId();
-        } catch (XmlRpcFault ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        
+        this.reportLocationPattern = testPath;     
+        
+        this.category = category;
+        this.manager = manager;
+        this.plan = plan;
+        this.priority = priority;
+        this.product = product;
+        this.product_v= product_v;
+        
+        this.env =env;
 
     }
 
@@ -118,11 +109,17 @@ public class TcmsPublisher extends Recorder {
             agregateBuild = mrun.getParentBuild();            
         }
 
-        if (agregateBuild.getAction(TcmsReviewAction.class) == null) {
-            gatherer = new TcmsGatherer(listener.getLogger(), properties);
-            
-            agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild, gatherer,environment,
-                                                serverUrl,username,password,properties));
+        if (agregateBuild.getAction(TcmsReviewAction.class) == null) { 
+            agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild,
+                     serverUrl,  username,  password,
+                         plan,
+                         product,
+                         product_v,
+                         category,
+                         priority,
+                         manager,
+                         env,
+                         reportLocationPattern));
         }
 
 
@@ -141,7 +138,7 @@ public class TcmsPublisher extends Recorder {
         }
 
         TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
-        action.getGatherer().gather(paths, agregateBuild, build);
+        action.addGatherPath(paths, build);
 
         return true;
     }
