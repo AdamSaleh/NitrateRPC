@@ -13,18 +13,17 @@ import hudson.FilePath;
 import hudson.matrix.Combination;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.*;
 import redstone.xmlrpc.XmlRpcStruct;
 
-import java.io.Serializable;
 
 /**
  *
  * @author asaleh
  */
 public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
+    private static final long serialVersionUID = 7501429501311908358L;
 
     private int run_id;
     private int build_id;
@@ -33,7 +32,6 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
     
     LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
     HashMap<TcmsCommand,CommandWrapper> commands = new HashMap<TcmsCommand,CommandWrapper>();
-    
     HashMap<String,LinkedList<CommandWrapper>> commands_sorted = new HashMap<String,LinkedList<CommandWrapper>>();
     
     
@@ -165,7 +163,28 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         return commands_sorted.keySet();
     }
 
-    public String  toString(){
-        return "sdf";
+    
+       /**
+   * Always treat de-serialization as a full-blown constructor, by
+   * validating the final state of the de-serialized object.
+   */
+   private void readObject(
+     ObjectInputStream aInputStream
+   ) throws ClassNotFoundException, IOException {
+     //always perform the default de-serialization first
+     aInputStream.defaultReadObject();
+
+     
+  }
+
+    /**
+    * This is the default implementation of writeObject.
+    * Customise if necessary.
+    */
+    private void writeObject(
+      ObjectOutputStream aOutputStream
+    ) throws IOException {
+      //perform the default serialization for all non-transient, non-static fields
+      aOutputStream.defaultWriteObject();
     }
 }

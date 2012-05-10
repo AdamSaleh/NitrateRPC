@@ -167,12 +167,13 @@ public class TcmsReviewAction implements Action {
                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
             }
             env_status.clear();
-            for (Axis ax : al) {
-                String name = ax.getName();
-                for (String val : ax.getValues()) {
+            for (GatherFiles env : gatherFiles) {
+                for (Map.Entry<String,String> prop : env.variables.entrySet()) {
                     /*
                      * check value
                      */
+                    String name =prop.getKey();
+                    String val=prop.getValue();
                     if (environment.containsProperty(name)) {
                         if (environment.containsValue(name, val)) {
                             env_status.add(new EnvStatus(name, val, "CHECKED"));
