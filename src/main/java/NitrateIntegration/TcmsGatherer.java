@@ -142,7 +142,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         list.add(script);
         commands.put(current,script);
         
-        if(commands_sorted.containsKey(current.getClass())==false){
+        if(commands_sorted.containsKey(current.name())==false){
            
             //FIXME: c.getName is wrong
             commands_sorted.put(current.name(), new LinkedList<CommandWrapper>());
@@ -165,7 +165,4 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         return commands_sorted.keySet();
     }
 
-    public String  toString(){
-        return "sdf";
-    }
 }
