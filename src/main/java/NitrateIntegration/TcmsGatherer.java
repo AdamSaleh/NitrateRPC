@@ -155,12 +155,31 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
     }
 
     public LinkedList<CommandWrapper> getCommandList(String c){
-        LinkedList a = commands_sorted.get(c);
         return commands_sorted.get(c);
+    }
+    
+    /**
+     * Returns list of all CommandWrappers with name <code>name</code> and 
+     * have dependency with hashCode <code>hashCode</code>.
+     * 
+     * @param name
+     * @param hashCode
+     * @return 
+     */
+    public LinkedList<CommandWrapper> getCommandList(String name, Integer hashCode){
+        LinkedList<CommandWrapper> commandList = new LinkedList<CommandWrapper>();
+        for(CommandWrapper cw : commands_sorted.get(name)){
+            if(cw.hasDependency(hashCode)) commandList.add(cw);
+        }
+        return commandList;
     }
     
     public Set<String> getComandClasses(){
         return commands_sorted.keySet();
+    }
+    
+    public boolean isEmpty(){
+        return commands_sorted.isEmpty();
     }
 
     
