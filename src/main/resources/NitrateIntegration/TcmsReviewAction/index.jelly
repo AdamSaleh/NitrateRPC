@@ -125,7 +125,7 @@ function toggleAll(){
                 
                 <f:form method="post" action="reportSubmit" name="dataUpload">
                     <f:entry>
-                        <table cellspacing="0px" cellpadding="2px" border="1" >
+                        <table cellspacing="0px" cellpadding="2px"  >
                             <tr>
                                 <th align="left"><f:checkbox id="allCheck" onclick="toggleAll()" checked="true"/></th>
                                 <th colspan="6" width="200px">Action</th>
@@ -133,7 +133,8 @@ function toggleAll(){
                             </tr>
                             
                             <j:forEach var="buildCreate" items="${it.gatherer.getCommandList('Build.create')}">
-                                <!-- Iterate over all build to be created (always should be exactly one) -->
+                                
+                                <!-- Iterate over all builds to be created (always should be exactly one) -->
                                 <tr>
                                     <td width="20px" class="commandHeader"> 
                                         <j:choose>
@@ -306,7 +307,7 @@ function toggleAll(){
                                                 alt="${%Todo}" tooltip="${%Todo}"
                                                 style="visibility: hidden; display: none;" width="16" height="16" 
                                                 onclick="myHide(${testRunCreate.hashCode()})" />
-                                            <img id="imgExp-${testCaseCreate.hashCode()}"
+                                            <img id="imgExp-${testRunCreate.hashCode()}"
                                                 src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
                                                 alt="${%Todo}" tooltip="${%Todo}"
                                                 style="visibility: visible;" width="16" height="16" 
@@ -405,6 +406,26 @@ function toggleAll(){
                                                     </j:when>
                                                     test
                                                 </j:choose>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td></td><td></td><td></td><td></td>
+                                            <td colspan="5" align="left">
+                                            <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display: none">
+                                                <j:forEach var="field" items="${testCaseRunCreate.description().entrySet()}">
+                                                    <tr>
+                                                        <td width="20px"></td>
+                                                        <td style="width:150px">    
+                                                                ${field.getKey()}
+                                                        </td>
+                                                        <td>    
+                                                                ${field.getValue()}
+                                                        </td>
+
+                                                    </tr>
+                                                </j:forEach>
+
+                                            </table>
                                             </td>
                                         </tr>
                                     </j:forEach>
