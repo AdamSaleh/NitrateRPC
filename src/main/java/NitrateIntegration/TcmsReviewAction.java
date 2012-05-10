@@ -89,7 +89,7 @@ public class TcmsReviewAction implements Action {
         this.serverUrl = serverUrl;
         this.environment = new TcmsEnvironment(env);
         this.build = build;
-        gatherer = new TcmsGatherer(properties);
+        gatherer = new TcmsGatherer(properties,environment);
         env_status = new LinkedList<EnvStatus>();
     }
 
@@ -140,7 +140,10 @@ public class TcmsReviewAction implements Action {
     }
 
     public void addGatherPath(TestResults results, AbstractBuild build,Map<String,String> variables) {
-        gatherFiles.add(new GatherFiles(results, build,variables));
+        GatherFiles f = new GatherFiles(results, build,variables);
+        if(f!=null){
+            gatherFiles.add(f);
+        }
     }
 
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
@@ -237,7 +240,7 @@ public class TcmsReviewAction implements Action {
             at_least_one_not_duplicate = false;
             for (CommandWrapper command : gathered) {
                 if (command.isExecutable()) {
-                    if (command.resolved() && command.performed() == false) {
+                    if (command.resolved() && (command.performed()||command.completed())==false) {
                         boolean tmp = command.perform(connection);
                         if (tmp) {
                             at_least_one = true;
