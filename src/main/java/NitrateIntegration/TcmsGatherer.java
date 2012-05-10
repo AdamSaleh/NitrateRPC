@@ -156,12 +156,16 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         return list.listIterator();
     }
 
-    LinkedList<CommandWrapper> getCommandList(String c){
+    public LinkedList<CommandWrapper> getCommandList(String c){
+        LinkedList a = commands_sorted.get(c);
         return commands_sorted.get(c);
     }
     
-    Set<String> getComandClasses(){
+    public Set<String> getComandClasses(){
         return commands_sorted.keySet();
     }
 
+    public String  toString(){
+        return "sdf";
+    }
 }
