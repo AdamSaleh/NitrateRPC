@@ -66,10 +66,12 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         create.build = -1;
         create.manager = this.properties.getManagerId();
         create.summary = "Build " + run.getDisplayName();
-            if(run instanceof MatrixRun){
-            MatrixRun mrun = (MatrixRun) run;
-            Combination c= mrun.getProject().getCombination();
-            create.summary += ", "+ c.toString(); 
+        if(run.getBuildVariables().isEmpty() == false){
+            
+            for (Iterator it = run.getBuildVariables().entrySet().iterator(); it.hasNext();) {
+                Map.Entry<String,String> e = (Map.Entry<String,String>) it.next();
+                create.summary += ", "+ e.getKey()+"="+e.getValue();
+            }
         }
         return create;
     }
