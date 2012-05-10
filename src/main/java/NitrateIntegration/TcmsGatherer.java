@@ -159,12 +159,15 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         return list.listIterator();
     }
 
-    LinkedList<CommandWrapper> getCommandList(String c){
+    public LinkedList<CommandWrapper> getCommandList(String c){
         return commands_sorted.get(c);
     }
     
-    Set<String> getComandClasses(){
+    public Set<String> getComandClasses(){
         return commands_sorted.keySet();
     }
 
+    public String  toString(){
+        return "sdf";
+    }
 }

@@ -72,7 +72,8 @@ function toggleAll(){
         
                 <f:form method="post" action="checkSubmit" name="envCheck" >
                     <f:entry>
-                    <table>
+                    <table>                       
+                        
                         <j:forEach var="env" items="${it.env_status}">
                             <tr>
                                 <td>
@@ -121,12 +122,109 @@ function toggleAll(){
                 
                 <f:form method="post" action="reportSubmit" name="dataUpload">
                     <f:entry>
-                        <table cellspacing="0px" cellpadding="2px">
+                        <table cellspacing="0px" cellpadding="2px" border="1">
                             <tr>
                                 <th align="left"><f:checkbox id="allCheck" onclick="toggleAll()" checked="true"/></th>
-                                <th>Action</th>
+                                <th colspan="3">Action</th>
                                 <th>Description</th>
                             </tr>
+                            
+                            <j:forEach var="buildCreate" items="${it.gatherer.getCommandList('Build.create')}">
+                                <!-- Iterate over all build to be created (always should be exactly one) -->
+                                <tr>
+                                    <td width="20px"> 
+                                        <j:choose>
+                                            <j:when test="${buildCreate.isChecked()}">
+                                                <f:checkbox name="${buildCreate.hashCode()}" checked="true" />
+                                            </j:when>
+                                            <j:otherwise>
+                                                <f:checkbox name="${buildCreate.hashCode()}" checked="false" />
+                                            </j:otherwise>
+                                        </j:choose>
+                                    </td>
+                                    <td colspan="4">
+                                        ${buildCreate.toString()}                                    
+                                    </td>
+                                    <td>
+                                        ${buildCreate.description().get('summary')}
+                                    </td>
+                                    <td>
+                                        <img id="imgCol-${buildCreate.hashCode()}"
+                                            src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
+                                            alt="${%Todo}" tooltip="${%Todo}"
+                                            style="visibility: hidden; display: none;" width="16" height="16" 
+                                            onclick="myHide(${buildCreate.hashCode()})" />
+                                        <img id="imgExp-${buildCreate.hashCode()}"
+                                            src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
+                                            alt="${%Todo}" tooltip="${%Todo}"
+                                            style="visibility: visible;" width="16" height="16" 
+                                            onclick="myShow(${buildCreate.hashCode()})" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td> </td><td></td>
+                                    <td colspan="2">
+                                        Status
+                                    </td>
+                                    <td>
+                                        <j:choose>
+                                            <j:when test="${command.performed()}">
+                                                Performed
+                                            </j:when>
+                                            <j:when test="${command.completed()}">
+                                                Completed
+                                            </j:when>
+                                            <j:when test="${command.duplicate()}">
+                                                Already present in TCMS
+                                            </j:when>
+                                        </j:choose>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Iterate over all testCases to be created -->
+                                <j:forEach var="testCaseCreate" items="${it.gatherer.getCommandList('TestCase.create')}">
+                                    <tr>
+                                        <td></td><td width="20px"></td>
+                                        <td>
+                                            <j:choose>
+                                                <j:when test="${testCaseCreate.isChecked()}">
+                                                    <f:checkbox name="${testCaseCreate.hashCode()}" checked="true" />
+                                                </j:when>
+                                                <j:otherwise>
+                                                    <f:checkbox name="${testCaseCreate.hashCode()}" checked="false" />
+                                                </j:otherwise>
+                                            </j:choose>
+                                        </td>
+                                        <td>
+                                            ${testCaseCreate.toString()}
+                                        </td>
+                                        <td>
+                                            ${testCaseCreate.description().get('summary')}
+                                        </td>
+                                        <td>
+                                            <img id="imgCol-${testCaseCreate.hashCode()}"
+                                                src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
+                                                alt="${%Todo}" tooltip="${%Todo}"
+                                                style="visibility: hidden; display: none;" width="16" height="16" 
+                                                onclick="myHide(${testCaseCreate.hashCode()})" />
+                                            <img id="imgExp-${testCaseCreate.hashCode()}"
+                                                src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
+                                                alt="${%Todo}" tooltip="${%Todo}"
+                                                style="visibility: visible;" width="16" height="16" 
+                                                onclick="myShow(${testCaseCreate.hashCode()})" />
+                                        </td>
+                                    </tr>                                    
+                                </j:forEach>
+                                
+                                <!-- Iterate over all testRuns to be created -->
+                                
+                                
+                            </j:forEach>
+                            
+                        </table>
+                            
+                        <table>
+                            
                             <j:forEach var="command" items="${it.gatherer}">
                                 <tr style="background-color: #DEDEDE">
                                     <td width="20px">
