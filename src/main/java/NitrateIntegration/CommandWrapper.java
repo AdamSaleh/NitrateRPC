@@ -255,7 +255,6 @@ public abstract class CommandWrapper {
             return "Create Build";
         }
         
-        
 
     }
 
@@ -305,7 +304,7 @@ public abstract class CommandWrapper {
         public String toString(){
             return "Create Test Case";
         }
-
+        
     }
 
     public static class TestRunCreate extends CommandWrapper {
@@ -369,6 +368,7 @@ public abstract class CommandWrapper {
         public String toString(){
             return "Create Test Run";
         }
+        
     }
 
     public static class TestCaseRunCreate extends CommandWrapper {
@@ -443,6 +443,7 @@ public abstract class CommandWrapper {
         public String toString(){
             return "Create Test Case Run";
         }
+        
     }
 
     public static CommandWrapper wrap(TcmsCommand current, Class result_type,TcmsProperties properties) {

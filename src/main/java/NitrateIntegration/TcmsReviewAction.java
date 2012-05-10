@@ -103,11 +103,12 @@ public class TcmsReviewAction implements Action {
     }
 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException {
-        rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            IOException, InterruptedException, XmlRpcFault {
+        
+        
         gatherer = new TcmsGatherer(properties);
 
-        try {
+      
                 connection = new TcmsConnection(serverUrl);
                 connection.setUsernameAndPassword(username, password);
                 Auth.login_krbv auth = new Auth.login_krbv();
@@ -122,15 +123,12 @@ public class TcmsReviewAction implements Action {
                 properties.setConnection(connection);
                 properties.reload();
 
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            }
-       
+        
         for (GatherFiles gatherfile : gatherFiles) {
             gatherer.gather(gatherfile.paths, build, gatherfile.build);
         }
+        
+        rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
     public static class GatherFiles {

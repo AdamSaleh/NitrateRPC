@@ -66,7 +66,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         create.build = -1;
         create.manager = this.properties.getManagerId();
         create.summary = "Build " + run.getDisplayName();
-        if(run instanceof MatrixRun){
+            if(run instanceof MatrixRun){
             MatrixRun mrun = (MatrixRun) run;
             Combination c= mrun.getProject().getCombination();
             create.summary += ", "+ c.toString(); 
@@ -144,10 +144,11 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         commands.put(current,script);
         
         if(commands_sorted.containsKey(current.getClass())==false){
-            Class c = current.getClass();
-            commands_sorted.put(c, new LinkedList<CommandWrapper>());
+           
+            // FIXME: c.getName is wrong
+            commands_sorted.put(current.name(), new LinkedList<CommandWrapper>());
         }
-        commands_sorted.get(current.getClass()).add(script);
+        commands_sorted.get(current.name()).add(script);
         
         return script;
     }
@@ -159,7 +160,8 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
     LinkedList<CommandWrapper> getCommandList(String c){
         return commands_sorted.get(c);
     }
-    String getComandClasses(){
+    
+    Set<String> getComandClasses(){
         return commands_sorted.keySet();
     }
 
