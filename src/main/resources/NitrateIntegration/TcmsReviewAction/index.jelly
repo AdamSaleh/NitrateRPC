@@ -63,383 +63,48 @@ function toggleAll(){
 }
 
 ]]></script>
-        <h1>Gather Report</h1>
+
+    <j:choose>
+        <j:when test="${it.gatherer.isEmpty()}">
+            
+            <h1>Gather Report</h1>
+            
             <f:form method="post" action="gather" name="nitrateplugin-gather">
                   <f:entry>
                       <f:submit value="Gather report from test-files" />
                   </f:entry>
             </f:form>
             
-        <h1>Review Report</h1>
+        </j:when>
         
+        <j:otherwise>
+            
+            <h1>Review Report</h1>       
         
-                <f:form method="post" action="checkSubmit" name="envCheck" >
-                    <f:entry>
-                    <table>                       
-                        
-                        <j:forEach var="env" items="${it.env_status}">
-                            <tr>
-                                <td>
-                                    ${env.property}
-                                </td>
-                                <td>
-                                    ${env.value}
-                                </td>
-                                <td>
-                                    <j:choose>
-                                            <j:when test="${env.status=='CHECKED'}">
-                                                Checked
-                                            </j:when>
-                                            <j:when test="${env.status=='VALUE'}">
-                                                Value <strong>${env.value}</strong> is not linked with <strong> ${env.property}</strong> in TCMS. 
-                                                Aviable values 
+            <f:form method="post" action="checkSubmit" name="envCheck" >
+                <f:entry>
 
-                                                <ul id="details-${env.property}}">
-                                                <j:forEach var="posible_val" items="${it.environment.values.get(env.property).keySet()}">
-                                                <li>  ${posible_val}</li>
-                                                </j:forEach>
-                                                </ul>
-                                            </j:when>
-                                            <j:when test="${env.status=='PROPERTY'}">
-                                                Property <strong>${env.property}</strong> is not linked with group <strong>${it.environment.env}</strong> in TCMS. 
-                                                Aviable properties 
+                    <st:include page="envCheck.jelly"/>
 
-                                                <ul id="details-${env.property}}">
-                                                <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
-                                                <li>  ${posible_val}</li>
-                                                </j:forEach>
-                                                </ul>
-                                            </j:when>
-                                            <j:otherwise>
-                                                ${env.status}
-                                            </j:otherwise>
-                                        </j:choose>
+                <f:submit value="Check enviromental vars" />
+                </f:entry>
+            </f:form>
 
-                                </td>
-                            </tr>
-                        </j:forEach>
-                    </table>
-                    <f:submit value="Check enviromental vars" />
-                    </f:entry>
-                </f:form>
-                
-                <f:form method="post" action="reportSubmit" name="dataUpload">
-                    <f:entry>
-                        <table cellspacing="0px" cellpadding="2px"  >
-                            <tr>
-                                <th align="left"><f:checkbox id="allCheck" onclick="toggleAll()" checked="true"/></th>
-                                <th colspan="6" width="200px">Action</th>
-                                <th>Description</th>
-                            </tr>
-                            
-                            <j:forEach var="buildCreate" items="${it.gatherer.getCommandList('Build.create')}">
-                                
-                                <!-- Iterate over all builds to be created (always should be exactly one) -->
-                                <tr>
-                                    <td width="20px" class="commandHeader"> 
-                                        <j:choose>
-                                            <j:when test="${buildCreate.isChecked()}">
-                                                <f:checkbox name="${buildCreate.hashCode()}" checked="true" />
-                                            </j:when>
-                                            <j:otherwise>
-                                                <f:checkbox name="${buildCreate.hashCode()}" checked="false" />
-                                            </j:otherwise>
-                                        </j:choose>
-                                    </td>
-                                    <td colspan="6" class="commandHeader">
-                                        ${buildCreate.toString()}                                    
-                                    </td>
-                                    <td class="commandHeader">
-                                        ${buildCreate.description().get('summary')}
-                                    </td>
-                                    <td class="commandHeader">
-                                        <img id="imgCol-${buildCreate.hashCode()}"
-                                            src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
-                                            alt="${%Todo}" tooltip="${%Todo}"
-                                            style="visibility: hidden; display: none;" width="16" height="16" 
-                                            onclick="myHide(${buildCreate.hashCode()})" />
-                                        <img id="imgExp-${buildCreate.hashCode()}"
-                                            src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
-                                            alt="${%Todo}" tooltip="${%Todo}"
-                                            style="visibility: visible;" width="16" height="16" 
-                                            onclick="myShow(${buildCreate.hashCode()})" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td> </td><td></td>
-                                    <td colspan="5">
-                                        Status
-                                    </td>
-                                    <td>
-                                        <j:choose>
-                                            <j:when test="${buildCreate.performed()}">
-                                                Performed
-                                            </j:when>
-                                            <j:when test="${buildCreate.completed()}">
-                                                Completed
-                                            </j:when>
-                                            <j:when test="${buildCreate.duplicate()}">
-                                                Already present in TCMS
-                                            </j:when>
-                                            test
-                                        </j:choose>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td></td><td></td>
-                                    <td colspan="7" align="left">
-                                    <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display: none">
-                                        <j:forEach var="field" items="${buildCreate.description().entrySet()}">
-                                            <tr>
-                                                <td width="20px"></td>
-                                                <td style="width:150px">    
-                                                        ${field.getKey()}
-                                                </td>
-                                                <td>    
-                                                        ${field.getValue()}
-                                                </td>
+            <f:form method="post" action="reportSubmit" name="dataUpload">
+                <f:entry>
 
-                                            </tr>
-                                        </j:forEach>
-                                       
-                                    </table>
-                                    </td>
-                                </tr>
-                                
-                                <!-- Iterate over all testCases to be created -->
-                                <j:forEach var="testCaseCreate" items="${it.gatherer.getCommandList('TestCase.create')}">
-                                    <tr >
-                                        <td></td><td width="20px"></td>
-                                        <td class="commandHeader">
-                                            <j:choose>
-                                                <j:when test="${testCaseCreate.isChecked()}">
-                                                    <f:checkbox name="${testCaseCreate.hashCode()}" checked="true" />
-                                                </j:when>
-                                                <j:otherwise>
-                                                    <f:checkbox name="${testCaseCreate.hashCode()}" checked="false" />
-                                                </j:otherwise>
-                                            </j:choose>
-                                        </td>
-                                        <td colspan="4" class="commandHeader">
-                                            ${testCaseCreate.toString()}
-                                        </td>
-                                        <td class="commandHeader">
-                                            ${testCaseCreate.description().get('summary')}
-                                        </td>
-                                        <td class="commandHeader">
-                                            <img id="imgCol-${testCaseCreate.hashCode()}"
-                                                src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
-                                                alt="${%Todo}" tooltip="${%Todo}"
-                                                style="visibility: hidden; display: none;" width="16" height="16" 
-                                                onclick="myHide(${testCaseCreate.hashCode()})" />
-                                            <img id="imgExp-${testCaseCreate.hashCode()}"
-                                                src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
-                                                alt="${%Todo}" tooltip="${%Todo}"
-                                                style="visibility: visible;" width="16" height="16" 
-                                                onclick="myShow(${testCaseCreate.hashCode()})" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td><td></td><td width="20px"></td><td width="20px"></td>
-                                        <td colspan="3">
-                                            Status
-                                        </td>
-                                        <td>
-                                            <j:choose>
-                                                <j:when test="${testCaseCreate.performed()}">
-                                                    Performed
-                                                </j:when>
-                                                <j:when test="${testCaseCreate.completed()}">
-                                                    Completed
-                                                </j:when>
-                                                <j:when test="${testCaseCreate.duplicate()}">
-                                                    Already present in TCMS
-                                                </j:when>
-                                                test
-                                            </j:choose>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td><td></td><td></td><td></td>
-                                        <td colspan="5" align="left">
-                                        <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display: none">
-                                            <j:forEach var="field" items="${testCaseCreate.description().entrySet()}">
-                                                <tr>
-                                                    <td width="20px"></td>
-                                                    <td style="width:150px">    
-                                                            ${field.getKey()}
-                                                    </td>
-                                                    <td>    
-                                                            ${field.getValue()}
-                                                    </td>
+                    <st:include page="report.jelly"/>
 
-                                                </tr>
-                                            </j:forEach>
-
-                                        </table>
-                                        </td>
-                                    </tr>
-                                </j:forEach>
-                                
-                                <!-- Iterate over all testRuns to be created -->
-                                <j:forEach var="testRunCreate" items="${it.gatherer.getCommandList('TestRun.create')}"> 
-                                    <tr>
-                                        <td></td><td></td>
-                                        <td class="commandHeader">
-                                            <j:choose>
-                                                <j:when test="${testRunCreate.isChecked()}">
-                                                    <f:checkbox name="${testRunCreate.hashCode()}" checked="true" />
-                                                </j:when>
-                                                <j:otherwise>
-                                                    <f:checkbox name="${testRunCreate.hashCode()}" checked="false" />
-                                                </j:otherwise>
-                                            </j:choose>
-                                        </td>
-                                        <td colspan="4" class="commandHeader">
-                                            ${testRunCreate.toString()}
-                                        </td>
-                                        <td class="commandHeader">
-                                            ${testRunCreate.description().get('summary')}
-                                        </td>
-                                        <td class="commandHeader">
-                                            <img id="imgCol-${testRunCreate.hashCode()}"
-                                                src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
-                                                alt="${%Todo}" tooltip="${%Todo}"
-                                                style="visibility: hidden; display: none;" width="16" height="16" 
-                                                onclick="myHide(${testRunCreate.hashCode()})" />
-                                            <img id="imgExp-${testRunCreate.hashCode()}"
-                                                src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
-                                                alt="${%Todo}" tooltip="${%Todo}"
-                                                style="visibility: visible;" width="16" height="16" 
-                                                onclick="myShow(${testRunCreate.hashCode()})" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td><td></td><td width="20px"></td><td width="20px"></td>
-                                        <td colspan="3">
-                                            Status
-                                        </td>
-                                        <td>
-                                            <j:choose>
-                                                <j:when test="${testRunCreate.performed()}">
-                                                    Performed
-                                                </j:when>
-                                                <j:when test="${testRunCreate.completed()}">
-                                                    Completed
-                                                </j:when>
-                                                <j:when test="${testRunCreate.duplicate()}">
-                                                    Already present in TCMS
-                                                </j:when>
-                                                test
-                                            </j:choose>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td><td></td><td></td><td></td>
-                                        <td colspan="5" align="left">
-                                        <table id="details-${testRunCreate.hashCode()}" style="visibility:hidden; display: none">
-                                            <j:forEach var="field" items="${testRunCreate.description().entrySet()}">
-                                                <tr>
-                                                    <td width="20px"></td>
-                                                    <td style="width:150px">    
-                                                            ${field.getKey()}
-                                                    </td>
-                                                    <td>    
-                                                            ${field.getValue()}
-                                                    </td>
-
-                                                </tr>
-                                            </j:forEach>
-
-                                        </table>
-                                        </td>
-                                    </tr>
-                                    
-                                    <!-- Iterate over all testCaseRuns to be created -->
-                                    <j:forEach var="testCaseRunCreate" items="${it.gatherer.getCommandList('TestCaseRun.create', testRunCreate.hashCode())}"> 
-                                        <tr>
-                                            <td></td><td></td><td></td><td></td>
-                                            <td class="commandHeader">
-                                                <j:choose>
-                                                    <j:when test="${testCaseRunCreate.isChecked()}">
-                                                        <f:checkbox name="${testCaseRunCreate.hashCode()}" checked="true" />
-                                                    </j:when>
-                                                    <j:otherwise>
-                                                        <f:checkbox name="${testCaseRunCreate.hashCode()}" checked="false" />
-                                                    </j:otherwise>
-                                                </j:choose>
-                                            </td>
-                                            <td colspan="2" class="commandHeader">
-                                                ${testCaseRunCreate.toString()}
-                                            </td>
-                                            <td class="commandHeader">
-                                                ${testCaseRunCreate.description().get('summary')}
-                                            </td>
-                                            <td class="commandHeader">
-                                                <img id="imgCol-${testCaseRunCreate.hashCode()}"
-                                                    src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
-                                                    alt="${%Todo}" tooltip="${%Todo}"
-                                                    style="visibility: hidden; display: none;" width="16" height="16" 
-                                                    onclick="myHide(${testCaseRunCreate.hashCode()})" />
-                                                <img id="imgExp-${testCaseRunCreate.hashCode()}"
-                                                    src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
-                                                    alt="${%Todo}" tooltip="${%Todo}"
-                                                    style="visibility: visible;" width="16" height="16" 
-                                                    onclick="myShow(${testCaseRunCreate.hashCode()})" />
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td></td><td></td><td></td><td></td><td class="tdSmall"></td><td class="tdSmall"></td>
-                                            <td>
-                                                Status
-                                            </td>
-                                            <td>
-                                                <j:choose>
-                                                    <j:when test="${testCaseRunCreate.performed()}">
-                                                        Performed
-                                                    </j:when>
-                                                    <j:when test="${testCaseRunCreate.completed()}">
-                                                        Completed
-                                                    </j:when>
-                                                    <j:when test="${testCaseRunCreate.duplicate()}">
-                                                        Already present in TCMS
-                                                    </j:when>
-                                                    test
-                                                </j:choose>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td></td><td></td><td></td><td></td>
-                                            <td colspan="5" align="left">
-                                            <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display: none">
-                                                <j:forEach var="field" items="${testCaseRunCreate.description().entrySet()}">
-                                                    <tr>
-                                                        <td width="20px"></td>
-                                                        <td style="width:150px">    
-                                                                ${field.getKey()}
-                                                        </td>
-                                                        <td>    
-                                                                ${field.getValue()}
-                                                        </td>
-
-                                                    </tr>
-                                                </j:forEach>
-
-                                            </table>
-                                            </td>
-                                        </tr>
-                                    </j:forEach>
-                                    
-                                </j:forEach>
-                                
-                            </j:forEach>
-                            
-                        </table>
-                            
-
-                    <f:submit value="Submit Report" />
-                    </f:entry>
-                </f:form>
+                <f:submit value="Submit Report" />
+                </f:entry>
+            </f:form>
+            
+        </j:otherwise>
+        
+    </j:choose>
+        
+            
+        
         </l:main-panel>
     </l:layout>
 </j:jelly>

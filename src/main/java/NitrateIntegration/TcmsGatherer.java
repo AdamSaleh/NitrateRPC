@@ -179,5 +179,9 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
     public Set<String> getComandClasses(){
         return commands_sorted.keySet();
     }
+    
+    public boolean isEmpty(){
+        return commands_sorted.isEmpty();
+    }
 
 }
