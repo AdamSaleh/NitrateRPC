@@ -4,31 +4,22 @@
  */
 package NitrateIntegration;
 
-import NitrateIntegration.TcmsReviewAction.GatherFiles;
+import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.Auth;
-import com.redhat.nitrate.TcmsCommand;
 import com.redhat.nitrate.TcmsConnection;
-import hudson.Extension;
-import hudson.FilePath;
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
-import hudson.model.Run;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.Set;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import redstone.xmlrpc.XmlRpcFault;
@@ -40,7 +31,7 @@ import redstone.xmlrpc.XmlRpcFault;
 public class TcmsReviewAction implements Action {
 
     public AbstractBuild<?, ?> build;
-    public TcmsGatherer gatherer;
+    private TcmsGatherer gatherer;
     private TcmsConnection connection;
     String serverUrl;
     String username;
@@ -92,21 +83,20 @@ public class TcmsReviewAction implements Action {
             String env,
             String testPath) {
         //this.build = this.;
-        this.gatherer = gatherer;
         this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
         this.username = username;
         this.password = password;
         this.serverUrl = serverUrl;
         this.environment = new TcmsEnvironment(env);
         this.build = build;
+        gatherer = new TcmsGatherer(properties);
         env_status = new LinkedList<EnvStatus>();
     }
 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException, XmlRpcFault {
         
-        
-        gatherer = new TcmsGatherer(properties);
+                gatherer.clear();
 
       
                 connection = new TcmsConnection(serverUrl);
@@ -125,21 +115,23 @@ public class TcmsReviewAction implements Action {
 
         
         for (GatherFiles gatherfile : gatherFiles) {
-            gatherer.gather(gatherfile.paths, build, gatherfile.build);
+            gatherer.gather(gatherfile.results, build, gatherfile.build,gatherfile.variables);
         }
         
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
     public static class GatherFiles {
-
-        public FilePath[] paths;
+        public TestResults results;
         public AbstractBuild build;
+        public Map<String,String> variables;
 
-        public GatherFiles(FilePath[] paths, AbstractBuild build) {
-            this.paths = paths;
+        public GatherFiles(TestResults results, AbstractBuild build, Map<String, String> variables) {
+            this.results = results;
             this.build = build;
+            this.variables = variables;
         }
+   
     }
     LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
 
@@ -147,8 +139,8 @@ public class TcmsReviewAction implements Action {
         gatherFiles.clear();
     }
 
-    public void addGatherPath(FilePath[] paths, AbstractBuild build) {
-        gatherFiles.add(new GatherFiles(paths, build));
+    public void addGatherPath(TestResults results, AbstractBuild build,Map<String,String> variables) {
+        gatherFiles.add(new GatherFiles(results, build,variables));
     }
 
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,

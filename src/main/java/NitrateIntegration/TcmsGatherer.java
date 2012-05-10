@@ -18,11 +18,13 @@ import java.io.PrintStream;
 import java.util.*;
 import redstone.xmlrpc.XmlRpcStruct;
 
+import java.io.Serializable;
+
 /**
  *
  * @author asaleh
  */
-public class TcmsGatherer implements Iterable<CommandWrapper> {
+public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
 
     private int run_id;
     private int build_id;
@@ -40,35 +42,34 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         this.build_s=null;
     }
 
-    private TestCase.create tcmsCreateCase(MethodResult result) {
+    private static TestCase.create tcmsCreateCase(MethodResult result,TcmsProperties properties) {
         TestCase.create create = new TestCase.create();
-        create.product = this.properties.getProductID();
-        create.category = this.properties.getCategoryID();
-        create.priority = this.properties.getPriorityID();
+        create.product = properties.getProductID();
+        create.category = properties.getCategoryID();
+        create.priority = properties.getPriorityID();
         create.summary = result.getDisplayName();
-        create.plan = this.properties.getPlanID();
+        create.plan = properties.getPlanID();
         return create;
     }
 
-    private Build.create tcmsCreateBuild(AbstractBuild build) {
+    private static Build.create tcmsCreateBuild(AbstractBuild build,TcmsProperties properties) {
         Build.create create = new Build.create();
-        create.product = this.properties.getProductID();
+        create.product = properties.getProductID();
         create.name = build.getId();
         create.description = build.getDescription();
         return create;
     }
 
-    private TestRun.create tcmsCreateRun(AbstractBuild run) {
+    private static TestRun.create tcmsCreateRun(AbstractBuild run,TcmsProperties properties,Map<String,String> variables) {
         TestRun.create create = new TestRun.create();
-        create.product = this.properties.getProductID();
-        create.product_version = this.properties.getProduct_vID();
-        create.plan = this.properties.getPlanID();
+        create.product = properties.getProductID();
+        create.product_version = properties.getProduct_vID();
+        create.plan = properties.getPlanID();
         create.build = -1;
-        create.manager = this.properties.getManagerId();
+        create.manager = properties.getManagerId();
         create.summary = "Build " + run.getDisplayName();
-        if(run.getBuildVariables().isEmpty() == false){
-            
-            for (Iterator it = run.getBuildVariables().entrySet().iterator(); it.hasNext();) {
+        if(variables!=null && variables.isEmpty() == false){ 
+            for (Iterator it =variables.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<String,String> e = (Map.Entry<String,String>) it.next();
                 create.summary += ", "+ e.getKey()+"="+e.getValue();
             }
@@ -76,7 +77,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         return create;
     }
     
-    private TestCaseRun.create tcmsCreateCaseRun(int status) {
+    private static TestCaseRun.create tcmsCreateCaseRun(int status) {
         TestCaseRun.create c = new TestCaseRun.create();
         c.run = -1;
         c.caseVar = -1;
@@ -91,7 +92,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         CommandWrapper dependency = null;
         TestCaseRun.create c_case_run = tcmsCreateCaseRun(status);
          
-        TestCase.create c_case = tcmsCreateCase(result);
+        TestCase.create c_case = tcmsCreateCase(result,properties);
         if(commands.containsKey(c_case)){
             dependency =commands.get(c_case);
         }else{
@@ -117,18 +118,14 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
 
     }
 
-    public synchronized void gather(FilePath[] paths, AbstractBuild build, AbstractBuild run) throws IOException, InterruptedException {
-        
-        Parser testParser = new Parser();
-
-        TestResults results = testParser.parse(paths, false);
+    public synchronized void gather(TestResults results , AbstractBuild build, AbstractBuild run,Map<String,String> variables) throws IOException, InterruptedException {
 
         if (results == null) {
             return;
         }
      
-        if(build_s==null) build_s = add(tcmsCreateBuild(build),Build.class);
-        CommandWrapper run_s =  add(tcmsCreateRun(run),TestRun.class);
+        if(build_s==null) build_s = add(tcmsCreateBuild(build,properties),Build.class);
+        CommandWrapper run_s =  add(tcmsCreateRun(run,properties,variables),TestRun.class);
         run_s.addDependecy(build_s);
         gatherTestInfo(results, run_s,build_s);
 
@@ -147,7 +144,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
         
         if(commands_sorted.containsKey(current.getClass())==false){
            
-            // FIXME: c.getName is wrong
+            //FIXME: c.getName is wrong
             commands_sorted.put(current.name(), new LinkedList<CommandWrapper>());
         }
         commands_sorted.get(current.name()).add(script);

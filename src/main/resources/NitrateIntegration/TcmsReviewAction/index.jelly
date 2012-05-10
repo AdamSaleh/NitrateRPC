@@ -8,7 +8,6 @@
   
 <script><![CDATA[
 
-
 function updateIcons(elemName, param)
 {
     var cmds = window.document.getElementsByTagName('img');

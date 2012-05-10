@@ -137,8 +137,13 @@ public class TcmsPublisher extends Recorder {
             return true;
         }
 
+        TestResults results = Parser.loadResults(build, null, "test-results");
+        
         TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
-        action.addGatherPath(paths, build);
+        Map<String,String> vars = new HashMap<String, String>();
+        vars.putAll(build.getBuildVariables());
+        
+        action.addGatherPath(results, build,vars);
 
         return true;
     }
