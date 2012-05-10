@@ -47,13 +47,33 @@ function myHide(e){
     updateIcons(e, 'c');
 }
 
+function showAll(){
+    var i;
+    for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
+        var element = document.dataUpload.elements[i];
+        if( element.type == 'checkbox' && element.id != 1 ){
+            myShow(element.name);
+        }
+    }
+}
+
+function hideAll(){
+    var i;
+    for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
+        var element = document.dataUpload.elements[i];
+        if( element.type == 'checkbox' && element.id != 1 ){
+            myHide(element.name);
+        }
+    }
+}
+
 function toggleAll(){
     var i;
     for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
         var element = document.dataUpload.elements[i];
         if( element.type == 'checkbox' )
             {
-        	if(document.getElementById("allCheck").checked == true){
+        	if(document.getElementById("1").checked == true){
                     element.checked = true;
                 } else {
                     element.checked = false;
