@@ -185,6 +185,26 @@ function toggleAll(){
                                         </j:choose>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td></td><td></td>
+                                    <td colspan="7" align="left">
+                                    <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display: none">
+                                        <j:forEach var="field" items="${buildCreate.description().entrySet()}">
+                                            <tr>
+                                                <td width="20px"></td>
+                                                <td style="width:150px">    
+                                                        ${field.getKey()}
+                                                </td>
+                                                <td>    
+                                                        ${field.getValue()}
+                                                </td>
+
+                                            </tr>
+                                        </j:forEach>
+                                       
+                                    </table>
+                                    </td>
+                                </tr>
                                 
                                 <!-- Iterate over all testCases to be created -->
                                 <j:forEach var="testCaseCreate" items="${it.gatherer.getCommandList('TestCase.create')}">
@@ -237,6 +257,26 @@ function toggleAll(){
                                                 </j:when>
                                                 test
                                             </j:choose>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td></td><td></td><td></td><td></td>
+                                        <td colspan="5" align="left">
+                                        <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display: none">
+                                            <j:forEach var="field" items="${testCaseCreate.description().entrySet()}">
+                                                <tr>
+                                                    <td width="20px"></td>
+                                                    <td style="width:150px">    
+                                                            ${field.getKey()}
+                                                    </td>
+                                                    <td>    
+                                                            ${field.getValue()}
+                                                    </td>
+
+                                                </tr>
+                                            </j:forEach>
+
+                                        </table>
                                         </td>
                                     </tr>
                                 </j:forEach>
@@ -292,6 +332,26 @@ function toggleAll(){
                                                 </j:when>
                                                 test
                                             </j:choose>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td></td><td></td><td></td><td></td>
+                                        <td colspan="5" align="left">
+                                        <table id="details-${testRunCreate.hashCode()}" style="visibility:hidden; display: none">
+                                            <j:forEach var="field" items="${testRunCreate.description().entrySet()}">
+                                                <tr>
+                                                    <td width="20px"></td>
+                                                    <td style="width:150px">    
+                                                            ${field.getKey()}
+                                                    </td>
+                                                    <td>    
+                                                            ${field.getValue()}
+                                                    </td>
+
+                                                </tr>
+                                            </j:forEach>
+
+                                        </table>
                                         </td>
                                     </tr>
                                     
@@ -356,81 +416,6 @@ function toggleAll(){
                             
                         </table>
                             
-                        <table>
-                            
-                            <j:forEach var="command" items="${it.gatherer}">
-                                <tr style="background-color: #DEDEDE">
-                                    <td width="20px">
-                                        <j:choose>
-                                            <j:when test="${command.isChecked()}">
-                                                <f:checkbox name="${command.hashCode()}" checked="true" />
-                                            </j:when>
-                                            <j:otherwise>
-                                                <f:checkbox name="${command.hashCode()}" checked="false" />
-                                            </j:otherwise>
-                                        </j:choose>
-
-                                    </td>
-                                    <td style="width:150px; vertical-align: middle">
-                                        <span style="font-weight:bold; ">${command.toString()}</span>
-                                    </td>
-                                    <td style="vertical-align:middle"> 
-                                        <span style="font-weight:bold; ">${command.description().get('summary')}</span>
-                                    </td>
-                                    <td>
-
-                                        <img id="imgCol-${command.hashCode()}"
-                                            src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
-                                            alt="${%Todo}" tooltip="${%Todo}"
-                                            style="visibility: hidden; display: none;" width="16" height="16" 
-                                            onclick="myHide(${command.hashCode()})" />
-                                        <img id="imgExp-${command.hashCode()}"
-                                            src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
-                                            alt="${%Todo}" tooltip="${%Todo}"
-                                            style="visibility: visible;" width="16" height="16" 
-                                            onclick="myShow(${command.hashCode()})" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td width="17px"> </td>
-                                    <td>
-                                        Status
-                                    </td>
-                                    <td>
-                                        <j:choose>
-                                            <j:when test="${command.performed()}">
-                                                Performed
-                                            </j:when>
-                                            <j:when test="${command.completed()}">
-                                                Completed
-                                            </j:when>
-                                            <j:when test="${command.duplicate()}">
-                                                Already present in TCMS
-                                            </j:when>
-                                        </j:choose>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="4" align="left">
-                                    <table id="details-${command.hashCode()}" style="visibility:hidden; display: none">
-                                        <j:forEach var="field" items="${command.description().entrySet()}">
-                                            <tr>
-                                                <td width="20px"></td>
-                                                <td style="width:150px">    
-                                                        ${field.getKey()}
-                                                </td>
-                                                <td>    
-                                                        ${field.getValue()}
-                                                </td>
-
-                                            </tr>
-                                        </j:forEach>
-                                       
-                                    </table>
-                                    </td>
-                                </tr>
-                            </j:forEach>
-                        </table>
 
                     <f:submit value="Submit Report" />
                     </f:entry>

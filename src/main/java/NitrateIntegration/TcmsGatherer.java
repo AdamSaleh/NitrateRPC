@@ -160,6 +160,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper> {
     }
 
     public LinkedList<CommandWrapper> getCommandList(String c){
+        LinkedList a = commands_sorted.get(c);
         return commands_sorted.get(c);
     }
     
