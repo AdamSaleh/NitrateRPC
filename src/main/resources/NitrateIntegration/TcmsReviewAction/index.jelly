@@ -356,7 +356,7 @@ function toggleAll(){
                                     </tr>
                                     
                                     <!-- Iterate over all testCaseRuns to be created -->
-                                    <j:forEach var="testCaseRunCreate" items="${it.gatherer.getCommandList('TestCaseRun.create')}"> 
+                                    <j:forEach var="testCaseRunCreate" items="${it.gatherer.getCommandList('TestCaseRun.create', testRunCreate.hashCode())}"> 
                                         <tr>
                                             <td></td><td></td><td></td><td></td>
                                             <td class="commandHeader">

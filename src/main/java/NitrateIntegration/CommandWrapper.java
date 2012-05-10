@@ -58,6 +58,23 @@ public abstract class CommandWrapper {
     public void addDependecy(CommandWrapper dep) {
         dependecy.push(dep);
     }
+    
+    /**
+     * Returns true iff this command has dependency with which hashCode is 
+     * equal to parameter passed to method.
+     * 
+     * @param hashCode
+     * @return 
+     */
+    public boolean hasDependency(Integer hashCode){
+        for(CommandWrapper w : dependecy){
+            int a = w.hashCode();
+            if(hashCode.equals(w.hashCode())){
+                return true;
+            }
+        }
+        return false;
+    }
 
     public boolean resolved() {
         if (dependecy.size() == 0) {
