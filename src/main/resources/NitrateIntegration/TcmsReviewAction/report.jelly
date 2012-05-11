@@ -124,7 +124,23 @@
                             </j:choose>
                         </td>
                         <td class="commandHeader tdSmallStatus">
-                            St
+                            <j:choose>
+                                <j:when test="${testCaseCreate.exception()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/exception.png" 
+                                        alt="${%Exception occured}" tooltip="${%Exception ocurred}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>
+                                <j:when test="${testCaseCreate.completed()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                        alt="${%Command completed succesfully}" tooltip="${%Command completed succesfully}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>                           
+                                <j:when test="${testCaseCreate.duplicate()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
+                                        alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>
+                            </j:choose>
                         </td>
                         <td colspan="4" class="commandHeader">
                             ${testCaseCreate.toString()}
@@ -150,19 +166,7 @@
                         <td colspan="3">
                             <st:nbsp/> 
                         </td>
-                        <td>
-                            <j:choose>
-                                <j:when test="${testCaseCreate.performed()}">
-                                    Performed
-                                </j:when>
-                                <j:when test="${testCaseCreate.completed()}">
-                                    Completed
-                                </j:when>
-                                <j:when test="${testCaseCreate.duplicate()}">
-                                    Already present in TCMS
-                                </j:when>
-                            </j:choose>                 
-                        </td>
+                        
                     </tr>
                     <tr>
                         <td></td><td></td><td></td><td></td><td></td><td></td>  
@@ -206,7 +210,23 @@
                             </j:choose>
                         </td>
                         <td class="commandHeader tdSmallStatus">
-                            St
+                            <j:choose>
+                                <j:when test="${testRunCreate.exception()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/exception.png" 
+                                        alt="${%Exception occured}" tooltip="${%Exception ocurred}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>
+                                <j:when test="${testRunCreate.completed()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                        alt="${%Command completed succesfully}" tooltip="${%Command completed succesfully}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>                           
+                                <j:when test="${testRunCreate.duplicate()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
+                                        alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>
+                            </j:choose>
                         </td>
                         <td colspan="4" class="commandHeader">
                             ${testRunCreate.toString()}
@@ -232,19 +252,7 @@
                         <td colspan="3">
                             <st:nbsp/> 
                         </td>
-                        <td>
-                            <j:choose>
-                                <j:when test="${testRunCreate.performed()}">
-                                    Performed
-                                </j:when>
-                                <j:when test="${testRunCreate.completed()}">
-                                    Completed
-                                </j:when>
-                                <j:when test="${testRunCreate.duplicate()}">
-                                    Already present in TCMS
-                                </j:when>
-                            </j:choose>
-                        </td>
+                        
                     </tr>
                     <tr>
                         <td></td><td></td><td></td><td></td>
@@ -286,7 +294,23 @@
                                 </j:choose>
                             </td>
                             <td class="commandHeader tdSmallStatus">
-                                St
+                                <j:choose>
+                                    <j:when test="${testCaseRunCreate.exception()}">
+                                        <img src="${rootURL}/plugin/NitrateIntegration/images/exception.png" 
+                                            alt="${%Exception occured}" tooltip="${%Exception ocurred}"
+                                            style="visibility: visible" width="16" height="16" align="center" />
+                                    </j:when>
+                                    <j:when test="${testCaseRunCreate.completed()}">
+                                        <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                            alt="${%Command completed succesfully}" tooltip="${%Command completed succesfully}"
+                                            style="visibility: visible" width="16" height="16" align="center" />
+                                    </j:when>                           
+                                    <j:when test="${testCaseRunCreate.duplicate()}">
+                                        <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
+                                            alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
+                                            style="visibility: visible" width="16" height="16" align="center" />
+                                    </j:when>
+                                </j:choose>
                             </td>
                             <td colspan="2" class="commandHeader">
                                 ${testCaseRunCreate.toString()}
@@ -312,19 +336,7 @@
                             <td>
                                 <st:nbsp/> 
                             </td>
-                            <td>
-                                <j:choose>
-                                    <j:when test="${testCaseRunCreate.performed()}">
-                                        Performed
-                                    </j:when>
-                                    <j:when test="${testCaseRunCreate.completed()}">
-                                        Completed
-                                    </j:when>
-                                    <j:when test="${testCaseRunCreate.duplicate()}">
-                                        Already present in TCMS
-                                    </j:when>
-                                </j:choose>
-                            </td>
+                            
                         </tr>
                         <tr>
                             <td></td><td></td><td></td><td></td>
