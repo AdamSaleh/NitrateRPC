@@ -240,16 +240,21 @@ public class TcmsReviewAction implements Action {
             at_least_one_not_duplicate = false;
             for (CommandWrapper command : gathered) {
                 if (command.isExecutable()) {
-                    if (command.resolved() && (command.performed()||command.completed())==false) {
-                        boolean tmp = command.perform(connection);
-                        if (tmp) {
-                            at_least_one = true;
-                        }
-                        if (command.duplicate() == false) {
-                            at_least_one_not_duplicate = true;
+                    if (command.resolved()) { //If dependecnies are satisfied
+                        if(command.completed()==false){ // not to run command again
+                            if(command.performed()==false){ // this command had satisfied dependecies but failed for some reason, so dont loop o it
+                                boolean tmp = command.perform(connection);
+                                if (tmp) {
+                                    at_least_one = true;
+                                }
+                                if (command.duplicate() == false) {
+                                    at_least_one_not_duplicate = true;
+                                }
+                            }
                         }
                     }
                 }
+                
             }
         } while (at_least_one && at_least_one_not_duplicate);
     }
