@@ -251,7 +251,9 @@ public class TcmsReviewAction implements Action {
                                     at_least_one_not_duplicate = true;
                                 }
                             }
-                        }
+                        } 
+                    }else{ // dependencies we not met
+                        command.setUnmetDependencies();
                     }
                 }
                 

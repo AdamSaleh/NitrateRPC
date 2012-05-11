@@ -53,6 +53,11 @@
                                     alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
                                     style="visibility: visible" width="16" height="16" align="center" />
                             </j:when>
+                            <j:when test="${buildCreate.unmetDependencies()}">
+                                <img src="${rootURL}/plugin/NitrateIntegration/images/dependencies.png" 
+                                    alt="${%This command is missing some dependencies}" tooltip="${%This command is missing some dependencies}"
+                                    style="visibility: visible" width="16" height="16" align="center" />
+                            </j:when>
                         </j:choose>
                     </td> 
                     <td colspan="6" class="commandHeader">
@@ -138,6 +143,11 @@
                                 <j:when test="${testCaseCreate.duplicate()}">
                                     <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
                                         alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>
+                                <j:when test="${testCaseCreate.unmetDependencies()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/dependencies.png" 
+                                        alt="${%This command is missing some dependencies}" tooltip="${%This command is missing some dependencies}"
                                         style="visibility: visible" width="16" height="16" align="center" />
                                 </j:when>
                             </j:choose>
@@ -226,6 +236,11 @@
                                         alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
                                         style="visibility: visible" width="16" height="16" align="center" />
                                 </j:when>
+                                <j:when test="${testRunCreate.unmetDependencies()}">
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/dependencies.png" 
+                                        alt="${%This command is missing some dependencies}" tooltip="${%This command is missing some dependencies}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                </j:when>
                             </j:choose>
                         </td>
                         <td colspan="4" class="commandHeader">
@@ -308,6 +323,11 @@
                                     <j:when test="${testCaseRunCreate.duplicate()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
                                             alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
+                                            style="visibility: visible" width="16" height="16" align="center" />
+                                    </j:when>
+                                    <j:when test="${testCaseRunCreate.unmetDependencies()}">
+                                        <img src="${rootURL}/plugin/NitrateIntegration/images/dependencies.png" 
+                                            alt="${%This command is missing some dependencies}" tooltip="${%This command is missing some dependencies}"
                                             style="visibility: visible" width="16" height="16" align="center" />
                                     </j:when>
                                 </j:choose>
