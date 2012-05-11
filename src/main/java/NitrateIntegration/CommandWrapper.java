@@ -507,7 +507,7 @@ public abstract class CommandWrapper {
             TestRun.link_env_value f = (TestRun.link_env_value) current;
             Env.Value v = env.getValueById(f.env_value_id);
             if(v!=null){
-                map.put("env_value_id",v.property + "=" + v.value + " (" + map.get("env_value_id") +")");
+                map.put("env_value_id", v.value + " (" + map.get("env_value_id") +")");
             }
             return map;
         }
