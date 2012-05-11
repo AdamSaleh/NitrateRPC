@@ -84,7 +84,7 @@ public abstract class CommandWrapper {
             return true;
         }
         for (CommandWrapper s : dependecy) {
-            if (s.completed() == false) {
+            if (s.completed() == false && s.duplicate() == false) {
                 return false;
             }
         }
@@ -486,7 +486,6 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-           
             return null;
         }
 
