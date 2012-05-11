@@ -161,7 +161,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
 
     private CommandWrapper add(TcmsCommand current,Class result_class) {
         if(current!=null){
-            CommandWrapper script = CommandWrapper.wrap(current,result_class,properties);
+            CommandWrapper script = CommandWrapper.wrap(current,result_class,properties,environment);
             list.add(script);
             commands.put(current,script);
 

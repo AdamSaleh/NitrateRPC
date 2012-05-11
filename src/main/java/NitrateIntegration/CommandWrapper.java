@@ -37,8 +37,8 @@ public abstract class CommandWrapper {
     private Object unexpected;
     private Class result_type;
     TcmsProperties properties;
-
-    public CommandWrapper(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
+    TcmsEnvironment env;
+    public CommandWrapper(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
         this.current = current;
         this.status = Status.UNKNOWN;
         this.checked = true;
@@ -46,10 +46,9 @@ public abstract class CommandWrapper {
         this.executable = true;
         this.dependecy = new LinkedList<CommandWrapper>();
         this.result_type = result_type;
-        if (dependecy != null) {
-            this.dependecy.push(dependecy);
-        }
+       
         this.properties = properties;
+        this.env = env;
         result = null;
     }
 
@@ -108,9 +107,6 @@ public abstract class CommandWrapper {
     }
     
 
-    public CommandWrapper(TcmsCommand current, Class result_type,TcmsProperties properties) {
-        this(current, null, result_type,properties);
-    }
 
     TcmsCommand current() {
         return current;
@@ -235,12 +231,8 @@ public abstract class CommandWrapper {
 
     public static class Generic extends CommandWrapper {
 
-        public Generic(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
-        }
-
-        public Generic(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
-            super(current, dependecy, result_type,properties);
+        public Generic(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
+            super(current, result_type,properties, env);
         }
 
         @Override
@@ -256,13 +248,10 @@ public abstract class CommandWrapper {
 
     public static class BuildCreate extends CommandWrapper {
 
-        public BuildCreate(TcmsCommand current, Class result_type, TcmsProperties properties) {
-            super(current, result_type,properties);
+        public BuildCreate(TcmsCommand current, Class result_type, TcmsProperties properties,TcmsEnvironment env) {
+            super(current, result_type,properties, env);
         }
 
-        public BuildCreate(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
-            super(current, dependecy, result_type, properties);
-        }
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
@@ -272,7 +261,7 @@ public abstract class CommandWrapper {
                 f.name = comand.name;
                 f.productid = comand.product;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, Build.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, Build.class,null,null);
                 script.perform(connection);
                 return script.getResult(Build.class);
             } catch (XmlRpcFault ex) {
@@ -301,13 +290,10 @@ public abstract class CommandWrapper {
 
     public static class TestCaseCreate extends CommandWrapper {
 
-        public TestCaseCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type, properties);
+        public TestCaseCreate(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
+            super(current, result_type, properties, env);
         }
 
-        public TestCaseCreate(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
-            super(current, dependecy, result_type, properties);
-        }
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
@@ -319,7 +305,7 @@ public abstract class CommandWrapper {
                 f.priority = comand.priority;
                 f.plan = comand.plan;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class,null,null);
                 script.perform(connection);
                 return script.getResult(TestCase.class);
             } catch (XmlRpcFault ex) {
@@ -350,8 +336,8 @@ public abstract class CommandWrapper {
 
     public static class TestRunCreate extends CommandWrapper {
 
-        public TestRunCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
+        public TestRunCreate(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
+            super(current, result_type,properties, env);
         }
 
         @Override
@@ -364,7 +350,7 @@ public abstract class CommandWrapper {
                 f.summary = command.summary;
                 f.manager = command.manager;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class,null,null);
                 script.perform(connection);
                 return script.getResult(TestRun.class);
             } catch (XmlRpcFault ex) {
@@ -414,8 +400,8 @@ public abstract class CommandWrapper {
 
     public static class TestCaseRunCreate extends CommandWrapper {
 
-        public TestCaseRunCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
+        public TestCaseRunCreate(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
+            super(current, result_type,properties, env);
         }
 
         @Override
@@ -428,7 +414,7 @@ public abstract class CommandWrapper {
                 f.caseVar = command.caseVar;
                 f.case_run_status = command.case_run_status;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class,null,null);
                 script.perform(connection);
                 return script.getResult(TestCaseRun.class);
             } catch (XmlRpcFault ex) {
@@ -489,8 +475,8 @@ public abstract class CommandWrapper {
 
      public static class LinkRunToVarCreate extends CommandWrapper {
 
-        public LinkRunToVarCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
+        public LinkRunToVarCreate(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
+            super(current, result_type,properties, env);
         }
 
         @Override
@@ -517,7 +503,13 @@ public abstract class CommandWrapper {
         }
         
         public Hashtable<String, String> description() {
-            return current.descriptionMap();
+            Hashtable<String, String> map = current.descriptionMap();
+            TestRun.link_env_value f = (TestRun.link_env_value) current;
+            Env.Value v = env.getValueById(f.env_value_id);
+            if(v!=null){
+                map.put("env_value_id",v.property + "=" + v.value + " (" + map.get("env_value_id") +")");
+            }
+            return map;
         }
         
         public String toString(){
@@ -526,19 +518,19 @@ public abstract class CommandWrapper {
         
     }
     
-    public static CommandWrapper wrap(TcmsCommand current, Class result_type,TcmsProperties properties) {
+    public static CommandWrapper wrap(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
         if (current instanceof TestCase.create) {
-            return new CommandWrapper.TestCaseCreate(current, result_type,properties);
+            return new CommandWrapper.TestCaseCreate(current, result_type,properties,env);
         } else if (current instanceof TestCaseRun.create) {
-            return new CommandWrapper.TestCaseRunCreate(current, result_type,properties);
+            return new CommandWrapper.TestCaseRunCreate(current, result_type,properties,env);
         } else if (current instanceof TestRun.create) {
-            return new CommandWrapper.TestRunCreate(current, result_type,properties);
+            return new CommandWrapper.TestRunCreate(current, result_type,properties,env);
         } else if (current instanceof Build.create) {
-            return new CommandWrapper.BuildCreate(current, result_type,properties);
+            return new CommandWrapper.BuildCreate(current, result_type,properties,env);
         } else if (current instanceof TestRun.link_env_value) {
-            return new CommandWrapper.LinkRunToVarCreate(current, result_type,properties);
+            return new CommandWrapper.LinkRunToVarCreate(current, result_type,properties,env);
         }
 
-        return new CommandWrapper.Generic(current, result_type,properties);
+        return new CommandWrapper.Generic(current, result_type,properties,env);
     }
 }
