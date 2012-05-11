@@ -7,6 +7,8 @@
             
 <style>
     .commandHeader { background-color: #DEDEDE; vertical-align: middle; font-weight:bold}
+    .tdSmallCheckbox {width: 20px}
+    .tdSmallStatus {width: 20px}
     .tdSmall {width: 20px}
 </style>
   

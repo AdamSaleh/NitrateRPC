@@ -26,8 +26,9 @@ public abstract class CommandWrapper {
     public TcmsCommand current;
     private boolean executable;
     private boolean checked;
+    private boolean performed;
     enum Status{
-        UNKNOWN, PERFORMED, COMPLETED, DUPLICATE
+        UNKNOWN, COMPLETED, DUPLICATE, EXCEPTION
     }
     private Status status;
     
@@ -41,6 +42,7 @@ public abstract class CommandWrapper {
         this.current = current;
         this.status = Status.UNKNOWN;
         this.checked = true;
+        this.performed = false;
         this.executable = true;
         this.dependecy = new LinkedList<CommandWrapper>();
         this.result_type = result_type;
@@ -97,6 +99,10 @@ public abstract class CommandWrapper {
         return status == Status.DUPLICATE;
     }
     
+    public boolean exception(){
+        return status == Status.EXCEPTION;
+    }
+    
 
     public CommandWrapper(TcmsCommand current, Class result_type,TcmsProperties properties) {
         this(current, null, result_type,properties);
@@ -135,6 +141,7 @@ public abstract class CommandWrapper {
                 if (struct.containsKey("args")) { // usualy when query shows no results
                     result = null;
                     unexpected = o;
+                    status = Status.EXCEPTION;
                     return;
                 } else {
                     result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, result_type);
@@ -150,12 +157,14 @@ public abstract class CommandWrapper {
                 } else {
                     result = null;
                     unexpected = o;
+                    status = Status.EXCEPTION;
                     return;
                 }
 
             } else {
                 result = null;
                 unexpected = o;
+                status = Status.EXCEPTION;
                 return;
             }
 
@@ -187,11 +196,11 @@ public abstract class CommandWrapper {
     }
 
     public void setPerforming() {
-        status = Status.PERFORMED;
+        performed = true;
     }
 
     public boolean performed() {
-        return status == Status.PERFORMED;
+        return performed;
     }
 
     public void setCompleted() {

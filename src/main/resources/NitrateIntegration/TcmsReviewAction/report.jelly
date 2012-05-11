@@ -1,9 +1,11 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
              
-        <table cellspacing="0px" cellpadding="2px"  >
+             
+        <table cellspacing="0px" cellpadding="2px" >
             <tr>
                 <th align="left"><f:checkbox name="allCheck" id="1" onclick="toggleAll()" checked="true" /></th>
+                <th></th>
                 <th colspan="6" width="200px">Action</th> 
                 <th>Description</th>
                 <th>
@@ -24,7 +26,7 @@
 
                 <!-- Iterate over all builds to be created (always should be exactly one) -->
                 <tr>
-                    <td width="20px" class="commandHeader"> 
+                    <td class="commandHeader"> 
                         <j:choose>
                             <j:when test="${buildCreate.isChecked()}">
                                 <f:checkbox name="${buildCreate.hashCode()}" checked="true" />
@@ -34,6 +36,25 @@
                             </j:otherwise>
                         </j:choose>
                     </td>
+                    <td class="commandHeader tdSmallStatus">
+                        <j:choose>
+                            <j:when test="${buildCreate.exception()}">
+                                <img src="${rootURL}/plugin/NitrateIntegration/images/exception.png" 
+                                    alt="${%Exception occured}" tooltip="${%Exception ocurred}"
+                                    style="visibility: visible" width="16" height="16" align="center" />
+                            </j:when>
+                            <j:when test="${buildCreate.completed()}">
+                                <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                    alt="${%Command completed succesfully}" tooltip="${%Command completed succesfully}"
+                                    style="visibility: visible" width="16" height="16" align="center" />
+                            </j:when>                           
+                            <j:when test="${buildCreate.duplicate()}">
+                                <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
+                                    alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
+                                    style="visibility: visible" width="16" height="16" align="center" />
+                            </j:when>
+                        </j:choose>
+                    </td> 
                     <td colspan="6" class="commandHeader">
                         ${buildCreate.toString()}                                    
                     </td>
@@ -54,27 +75,16 @@
                     </td>
                 </tr>
                 <tr>
-                    <td> </td><td></td>
+                    <td> </td><td></td><td class="tdSmall"></td>
                     <td colspan="5">
-                        Status
+                        <st:nbsp/> 
                     </td>
                     <td>
-                        <j:choose>
-                            <j:when test="${buildCreate.performed()}">
-                                Performed
-                            </j:when>
-                            <j:when test="${buildCreate.completed()}">
-                                Completed
-                            </j:when>
-                            <j:when test="${buildCreate.duplicate()}">
-                                Already present in TCMS
-                            </j:when>
-                            test
-                        </j:choose>
+                       
                     </td>
                 </tr>
                 <tr>
-                    <td></td><td></td>
+                    <td></td><td></td><td></td>
                     <td colspan="7" align="left">
                     <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display: none">
                         <j:forEach var="field" items="${buildCreate.description().entrySet()}">
@@ -102,7 +112,7 @@
                 <!-- Iterate over all testCases to be created -->
                 <j:forEach var="testCaseCreate" items="${it.gatherer.getCommandList('TestCase.create')}">
                     <tr >
-                        <td></td><td width="20px"></td>
+                        <td></td><td></td>
                         <td class="commandHeader">
                             <j:choose>
                                 <j:when test="${testCaseCreate.isChecked()}">
@@ -112,6 +122,9 @@
                                     <f:checkbox name="${testCaseCreate.hashCode()}" checked="false" />
                                 </j:otherwise>
                             </j:choose>
+                        </td>
+                        <td class="commandHeader tdSmallStatus">
+                            St
                         </td>
                         <td colspan="4" class="commandHeader">
                             ${testCaseCreate.toString()}
@@ -133,9 +146,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <td></td><td></td><td width="20px"></td><td width="20px"></td>
+                        <td></td><td></td><td></td><td></td><td></td>
                         <td colspan="3">
-                            Status
+                            <st:nbsp/> 
                         </td>
                         <td>
                             <j:choose>
@@ -148,17 +161,16 @@
                                 <j:when test="${testCaseCreate.duplicate()}">
                                     Already present in TCMS
                                 </j:when>
-                                test
-                            </j:choose>
+                            </j:choose>                 
                         </td>
                     </tr>
                     <tr>
-                        <td></td><td></td><td></td><td></td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>  
                         <td colspan="5" align="left">
                         <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display: none">
                             <j:forEach var="field" items="${testCaseCreate.description().entrySet()}">
                                 <tr>
-                                    <td width="20px"></td>
+                                    <td></td>
                                     <td style="width:150px">    
                                             ${field.getKey()}
                                     </td>
@@ -193,6 +205,9 @@
                                 </j:otherwise>
                             </j:choose>
                         </td>
+                        <td class="commandHeader tdSmallStatus">
+                            St
+                        </td>
                         <td colspan="4" class="commandHeader">
                             ${testRunCreate.toString()}
                         </td>
@@ -213,9 +228,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <td></td><td></td><td width="20px"></td><td width="20px"></td>
+                        <td></td><td></td><td></td><td width="20px"></td><td></td>
                         <td colspan="3">
-                            Status
+                            <st:nbsp/> 
                         </td>
                         <td>
                             <j:choose>
@@ -228,7 +243,6 @@
                                 <j:when test="${testRunCreate.duplicate()}">
                                     Already present in TCMS
                                 </j:when>
-                                test
                             </j:choose>
                         </td>
                     </tr>
@@ -238,7 +252,7 @@
                         <table id="details-${testRunCreate.hashCode()}" style="visibility:hidden; display: none">
                             <j:forEach var="field" items="${testRunCreate.description().entrySet()}">
                                 <tr>
-                                    <td width="20px"></td>
+                                    <td></td>
                                     <td style="width:150px">    
                                             ${field.getKey()}
                                     </td>
@@ -271,6 +285,9 @@
                                     </j:otherwise>
                                 </j:choose>
                             </td>
+                            <td class="commandHeader tdSmallStatus">
+                                St
+                            </td>
                             <td colspan="2" class="commandHeader">
                                 ${testCaseRunCreate.toString()}
                             </td>
@@ -291,9 +308,9 @@
                             </td>
                         </tr>
                         <tr>
-                            <td></td><td></td><td></td><td></td><td class="tdSmall"></td><td class="tdSmall"></td>
+                            <td></td><td></td><td></td><td></td><td class="tdSmall"></td><td class="tdSmall"></td><td class="tdSmall"></td>
                             <td>
-                                Status
+                                <st:nbsp/> 
                             </td>
                             <td>
                                 <j:choose>
@@ -306,7 +323,6 @@
                                     <j:when test="${testCaseRunCreate.duplicate()}">
                                         Already present in TCMS
                                     </j:when>
-                                    test
                                 </j:choose>
                             </td>
                         </tr>
