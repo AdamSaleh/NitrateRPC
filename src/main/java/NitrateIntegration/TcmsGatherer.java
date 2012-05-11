@@ -87,6 +87,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         c.case_run_status = status;
         return c;
     }
+    
     private static TestRun.link_env_value tcmsLinkValue(TcmsEnvironment env,String property,String value) {
         TestRun.link_env_value c = new TestRun.link_env_value();
         c.run_id = -1;
@@ -97,7 +98,6 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
                 return c;
             }
         }
-       // c.env_value_id = env.getValues().get(property)
         return null;
     }
     
