@@ -282,8 +282,6 @@ public class TcmsPublisher extends Recorder {
             String session;
             TcmsEnvironment environment = new TcmsEnvironment(env);
 
-            
-            
             try {
                 session = auth.invoke(c);
                 if (session.length() > 0) {

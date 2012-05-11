@@ -148,9 +148,7 @@ public class TcmsReviewAction implements Action {
 
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
-        if (build instanceof MatrixBuild) {
-            MatrixBuild mb = (MatrixBuild) build;
-            AxisList al = mb.getParent().getAxes();
+       
 
             try {
                 connection = new TcmsConnection(serverUrl);
@@ -188,7 +186,7 @@ public class TcmsReviewAction implements Action {
                     }
                 }
             }
-        }
+        
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
