@@ -92,14 +92,7 @@
                     <td></td><td></td><td></td>
                     <td colspan="7" align="left">
                     <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display: none">
-                        <tr>
-                            <td>
-                                <span class="status">Status</span>
-                            </td>
-                            <td>
-                                <span class="statusMsg">msg </span>
-                            </td>
-                        </tr>
+                        
                         <j:forEach var="field" items="${buildCreate.description().entrySet()}">
                             <tr>
                                 <td style="width:150px">    
@@ -186,17 +179,10 @@
                         
                     </tr>
                     <tr>
-                        <td></td><td></td><td></td><td></td><td></td><td></td>  
+                        <td></td><td></td><td></td><td></td><td></td>
                         <td colspan="5" align="left">
                         <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display: none">
-                            <tr>
-                                <td>
-                                    <span class="status">Status</span>
-                                </td>
-                                <td>
-                                    <span class="statusMsg">msg </span>
-                                </td>
-                            </tr>
+                            
                             <j:forEach var="field" items="${testCaseCreate.description().entrySet()}">
                                 <tr>
                                     <td style="width:150px">    
@@ -284,17 +270,10 @@
                         
                     </tr>
                     <tr>
-                        <td></td><td></td><td></td><td></td>
+                        <td></td><td></td><td></td><td></td><td></td>
                         <td colspan="5" align="left">
                         <table id="details-${testRunCreate.hashCode()}" style="visibility:hidden; display: none">
-                            <tr>
-                                <td>
-                                    <span class="status">Status</span>
-                                </td>
-                                <td>
-                                    <span class="statusMsg">msg </span>
-                                </td>
-                            </tr>
+                            
                             <j:forEach var="field" items="${testRunCreate.description().entrySet()}">
                                 <tr>
                                     <td style="width:150px">    
@@ -372,6 +351,37 @@
                                     onclick="myShow(${testRunLinkEnv.hashCode()})" />
                             </td>
                         </tr>
+                        <tr>
+                        <td></td><td></td><td></td><td width="20px"></td><td></td><td></td><td></td>
+                        <td colspan="3">
+                            <st:nbsp/> 
+                        </td>
+                        
+                    </tr>
+                    <tr>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        <td colspan="5" align="left">
+                        <table id="details-${testRunLinkEnv.hashCode()}" style="visibility:hidden; display: none">
+                            
+                            <j:forEach var="field" items="${testRunLinkEnv.description().entrySet()}">
+                                <tr>
+                                    <td style="width:150px">    
+                                            ${field.getKey()}
+                                    </td>
+                                    <td>    
+                                            ${field.getValue()}
+                                    </td>
+
+                                </tr>
+                            </j:forEach>
+                            <tr>
+                                <td>
+                                    <st:nbsp/> 
+                                </td>
+                            </tr>
+                        </table>
+                        </td>
+                    </tr>
                     </j:forEach>    
 
                     <!-- Iterate over all testCaseRuns to be created -->
@@ -439,17 +449,10 @@
                             
                         </tr>
                         <tr>
-                            <td></td><td></td><td></td><td></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
                             <td colspan="5" align="left">
                             <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display: none">
-                                <tr>
-                                    <td>
-                                        <span class="status">Status</span>
-                                    </td>
-                                    <td>
-                                        <span class="statusMsg">msg </span>
-                                    </td>
-                                </tr>
+                                
                                 <j:forEach var="field" items="${testCaseRunCreate.description().entrySet()}">
                                     <tr>
                                         <td style="width:150px">    
