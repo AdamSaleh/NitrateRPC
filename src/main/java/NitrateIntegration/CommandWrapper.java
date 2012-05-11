@@ -534,7 +534,7 @@ public abstract class CommandWrapper {
         }
         
         public String toString(){
-            return "Create Test Case Run";
+            return "Link Run to Environmental Variable in TCMS";
         }
         
     }
