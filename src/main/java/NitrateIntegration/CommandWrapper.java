@@ -99,6 +99,10 @@ public abstract class CommandWrapper {
         return status == Status.DUPLICATE;
     }
     
+    public void setDuplicate(){
+        status = Status.DUPLICATE;
+    }
+    
     public boolean exception(){
         return status == Status.EXCEPTION;
     }
@@ -177,11 +181,12 @@ public abstract class CommandWrapper {
             Object o = getResultIfDuplicate(connection);
             if (o == null) {
                 o = connection.invoke(current());
+                setResult(o);
+                setCompleted();
             }else{
-                status = Status.DUPLICATE;
+                setResult(o);
+                setDuplicate();
             }
-            setResult(o);
-            setCompleted();
             return true;
         }
         return false;
