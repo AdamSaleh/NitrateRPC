@@ -515,22 +515,9 @@ public abstract class CommandWrapper {
             }
             return false;
         }
+        
         public Hashtable<String, String> description() {
-            Hashtable<String, String> map = current.descriptionMap();
-            for (CommandWrapper deps : getDependecies()) {
-                 if (deps.current() instanceof Build.create) {
-                     map.put("build",deps.description().get("name") + " (" +map.get("build")+")");
-          
-                } else if (deps.current() instanceof TestRun.create) {
-                     map.put("run",deps.description().get("summary") + " (" +map.get("run")+")");
-          
-                } else if (deps.current() instanceof TestCase.create) {
-                     map.put("case",deps.description().get("summary") + " (" +map.get("case")+")");
-              
-                }
-            }
-            
-            return map;
+            return current.descriptionMap();
         }
         
         public String toString(){
