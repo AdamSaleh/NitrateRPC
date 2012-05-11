@@ -68,6 +68,8 @@ public class TcmsPublisher extends Recorder {
     public final String manager;
     public final String env;
     
+    static final Object lock = new Object();
+     
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
     public TcmsPublisher(String serverUrl, String username, String password,
@@ -108,28 +110,39 @@ public class TcmsPublisher extends Recorder {
             MatrixRun mrun = (MatrixRun) build;
             agregateBuild = mrun.getParentBuild();            
         }
-
-        if (agregateBuild.getAction(TcmsReviewAction.class) == null) { 
-            agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild,
-                     serverUrl,  username,  password,
-                         plan,
-                         product,
-                         product_v,
-                         category,
-                         priority,
-                         manager,
-                         env,
-                         reportLocationPattern));
+        synchronized (lock){
+            if (agregateBuild.getAction(TcmsReviewAction.class) == null) { 
+                agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild,
+                        serverUrl,  username,  password,
+                            plan,
+                            product,
+                            product_v,
+                            category,
+                            priority,
+                            manager,
+                            env,
+                            reportLocationPattern));
+            }
         }
 
+        
+        FilePath[] paths=null;
+        paths = Parser.locateReports(build.getWorkspace(), reportLocationPattern);
 
-        FilePath[] paths = Parser.locateReports(build.getWorkspace(), reportLocationPattern);
+        /** test for random local testng xml 
+        File local = new File(reportLocationPattern);
+        if(local.exists()){
+            FilePath test = new FilePath(local);
+            FilePath root  = new FilePath(new File("/"));
+            paths = Parser.locateReports(root, reportLocationPattern);
+        }*/
+        
         if (paths.length == 0) {
             listener.getLogger().println("Did not find any matching files.");
             return true;
         }
 
-        paths = Parser.checkReports(build, paths, listener.getLogger());
+        //paths = Parser.checkReports(build, paths, listener.getLogger());
 
         boolean filesSaved = Parser.saveReports(Parser.getReportDir(build), paths,  listener.getLogger(), "test-results");
         if (!filesSaved) {
