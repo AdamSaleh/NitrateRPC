@@ -473,6 +473,59 @@ public abstract class CommandWrapper {
         
     }
 
+     public static class LinkRunToVarCreate extends CommandWrapper {
+
+        public LinkRunToVarCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
+            super(current, result_type,properties);
+        }
+
+        @Override
+        public Object getResultIfDuplicate(TcmsConnection connection) {
+           
+            return null;
+        }
+
+        @Override
+        public boolean processDependecies() {
+            int run = -1;
+            for (CommandWrapper deps : getDependecies()) {
+          
+                if (deps.current() instanceof TestRun.create) {
+                    TestRun r = deps.getResult(TestRun.class);
+                    run = r.run_id;
+                }
+            }
+
+            if (run != -1) {
+                ((TestRun.link_env_value) current()).run_id = run;
+                return true;
+            }
+            return false;
+        }
+        public Hashtable<String, String> description() {
+            Hashtable<String, String> map = current.descriptionMap();
+            for (CommandWrapper deps : getDependecies()) {
+                 if (deps.current() instanceof Build.create) {
+                     map.put("build",deps.description().get("name") + " (" +map.get("build")+")");
+          
+                } else if (deps.current() instanceof TestRun.create) {
+                     map.put("run",deps.description().get("summary") + " (" +map.get("run")+")");
+          
+                } else if (deps.current() instanceof TestCase.create) {
+                     map.put("case",deps.description().get("summary") + " (" +map.get("case")+")");
+              
+                }
+            }
+            
+            return map;
+        }
+        
+        public String toString(){
+            return "Create Test Case Run";
+        }
+        
+    }
+    
     public static CommandWrapper wrap(TcmsCommand current, Class result_type,TcmsProperties properties) {
         if (current instanceof TestCase.create) {
             return new CommandWrapper.TestCaseCreate(current, result_type,properties);
@@ -482,6 +535,8 @@ public abstract class CommandWrapper {
             return new CommandWrapper.TestRunCreate(current, result_type,properties);
         } else if (current instanceof Build.create) {
             return new CommandWrapper.BuildCreate(current, result_type,properties);
+        } else if (current instanceof TestRun.link_env_value) {
+            return new CommandWrapper.LinkRunToVarCreate(current, result_type,properties);
         }
 
         return new CommandWrapper.Generic(current, result_type,properties);

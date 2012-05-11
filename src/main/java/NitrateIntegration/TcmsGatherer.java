@@ -9,37 +9,39 @@ import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.MethodResult;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.*;
+import com.redhat.nitrate.Env.Value;
 import hudson.FilePath;
 import hudson.matrix.Combination;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.*;
 import redstone.xmlrpc.XmlRpcStruct;
 
-import java.io.Serializable;
 
 /**
  *
  * @author asaleh
  */
 public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
+    private static final long serialVersionUID = 7501429501311908358L;
 
     private int run_id;
     private int build_id;
     private TcmsProperties properties;
     CommandWrapper build_s;
+    private TcmsEnvironment environment;
+
     
     LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
     HashMap<TcmsCommand,CommandWrapper> commands = new HashMap<TcmsCommand,CommandWrapper>();
-    
     HashMap<String,LinkedList<CommandWrapper>> commands_sorted = new HashMap<String,LinkedList<CommandWrapper>>();
     
     
-    public TcmsGatherer( TcmsProperties properties) {
+    public TcmsGatherer( TcmsProperties properties,TcmsEnvironment env) {
         this.properties = properties;
         this.build_s=null;
+        this.environment =env;
     }
 
     private static TestCase.create tcmsCreateCase(MethodResult result,TcmsProperties properties) {
@@ -85,7 +87,19 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         c.case_run_status = status;
         return c;
     }
-    
+    private static TestRun.link_env_value tcmsLinkValue(TcmsEnvironment env,String property,String value) {
+        TestRun.link_env_value c = new TestRun.link_env_value();
+        c.run_id = -1;
+        Hashtable<String,Value> prop = env.getValues().get(property);
+        if(prop!=null){
+            if(prop.containsKey(value)){
+                c.env_value_id = prop.get(value).id;
+                return c;
+            }
+        }
+       // c.env_value_id = env.getValues().get(property)
+        return null;
+    }
     
     private void CreateTestCaseRun(MethodResult result, int status, CommandWrapper run, CommandWrapper build) {
         
@@ -127,6 +141,14 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         if(build_s==null) build_s = add(tcmsCreateBuild(build,properties),Build.class);
         CommandWrapper run_s =  add(tcmsCreateRun(run,properties,variables),TestRun.class);
         run_s.addDependecy(build_s);
+        
+        for(Map.Entry<String,String> variable:variables.entrySet()){
+            CommandWrapper link = add(tcmsLinkValue(environment,variable.getKey(),variable.getValue()),Object.class);
+            if(link!=null){
+                link.addDependecy(run_s);
+            }
+        }
+        
         gatherTestInfo(results, run_s,build_s);
 
     }
@@ -138,18 +160,18 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
     }
 
     private CommandWrapper add(TcmsCommand current,Class result_class) {
-        CommandWrapper script = CommandWrapper.wrap(current,result_class,properties);
-        list.add(script);
-        commands.put(current,script);
-        
-        if(commands_sorted.containsKey(current.name())==false){
-           
-            //FIXME: c.getName is wrong
-            commands_sorted.put(current.name(), new LinkedList<CommandWrapper>());
-        }
-        commands_sorted.get(current.name()).add(script);
-        
-        return script;
+        if(current!=null){
+            CommandWrapper script = CommandWrapper.wrap(current,result_class,properties);
+            list.add(script);
+            commands.put(current,script);
+
+            if(commands_sorted.containsKey(current.name())==false){
+                commands_sorted.put(current.name(), new LinkedList<CommandWrapper>());
+            }
+            commands_sorted.get(current.name()).add(script);
+
+            return script;
+        } return null;
     }
 
     public Iterator<CommandWrapper> iterator() {
@@ -184,4 +206,28 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         return commands_sorted.isEmpty();
     }
 
+    
+       /**
+   * Always treat de-serialization as a full-blown constructor, by
+   * validating the final state of the de-serialized object.
+   */
+   private void readObject(
+     ObjectInputStream aInputStream
+   ) throws ClassNotFoundException, IOException {
+     //always perform the default de-serialization first
+     aInputStream.defaultReadObject();
+
+     
+  }
+
+    /**
+    * This is the default implementation of writeObject.
+    * Customise if necessary.
+    */
+    private void writeObject(
+      ObjectOutputStream aOutputStream
+    ) throws IOException {
+      //perform the default serialization for all non-transient, non-static fields
+      aOutputStream.defaultWriteObject();
+    }
 }

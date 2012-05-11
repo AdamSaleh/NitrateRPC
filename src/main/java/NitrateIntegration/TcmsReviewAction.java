@@ -89,7 +89,7 @@ public class TcmsReviewAction implements Action {
         this.serverUrl = serverUrl;
         this.environment = new TcmsEnvironment(env);
         this.build = build;
-        gatherer = new TcmsGatherer(properties);
+        gatherer = new TcmsGatherer(properties,environment);
         env_status = new LinkedList<EnvStatus>();
     }
 
@@ -140,7 +140,10 @@ public class TcmsReviewAction implements Action {
     }
 
     public void addGatherPath(TestResults results, AbstractBuild build,Map<String,String> variables) {
-        gatherFiles.add(new GatherFiles(results, build,variables));
+        GatherFiles f = new GatherFiles(results, build,variables);
+        if(f!=null){
+            gatherFiles.add(f);
+        }
     }
 
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
@@ -167,12 +170,13 @@ public class TcmsReviewAction implements Action {
                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
             }
             env_status.clear();
-            for (Axis ax : al) {
-                String name = ax.getName();
-                for (String val : ax.getValues()) {
+            for (GatherFiles env : gatherFiles) {
+                for (Map.Entry<String,String> prop : env.variables.entrySet()) {
                     /*
                      * check value
                      */
+                    String name =prop.getKey();
+                    String val=prop.getValue();
                     if (environment.containsProperty(name)) {
                         if (environment.containsValue(name, val)) {
                             env_status.add(new EnvStatus(name, val, "CHECKED"));
@@ -236,7 +240,7 @@ public class TcmsReviewAction implements Action {
             at_least_one_not_duplicate = false;
             for (CommandWrapper command : gathered) {
                 if (command.isExecutable()) {
-                    if (command.resolved() && command.performed() == false) {
+                    if (command.resolved() && (command.performed()||command.completed())==false) {
                         boolean tmp = command.perform(connection);
                         if (tmp) {
                             at_least_one = true;
