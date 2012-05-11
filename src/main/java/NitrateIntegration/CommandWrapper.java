@@ -28,7 +28,7 @@ public abstract class CommandWrapper {
     private boolean checked;
     private boolean performed;
     enum Status{
-        UNKNOWN, COMPLETED, DUPLICATE, EXCEPTION
+        UNKNOWN, COMPLETED, DUPLICATE, EXCEPTION, UNMET_DEPENDENCIES
     }
     private Status status;
     
@@ -127,6 +127,15 @@ public abstract class CommandWrapper {
     public boolean isChecked(){
         return checked;
     }
+    
+    public boolean unmetDependencies(){
+        return status == Status.UNMET_DEPENDENCIES;
+    }
+    
+    public void setUnmetDependencies(){
+        status = Status.UNMET_DEPENDENCIES;
+    }
+    
     
     public void setChecked(boolean checked){
         this.checked = checked;
@@ -525,7 +534,7 @@ public abstract class CommandWrapper {
         }
         
         public String toString(){
-            return "Create Test Case Run";
+            return "Link Run to Environmental Variable in TCMS";
         }
         
     }

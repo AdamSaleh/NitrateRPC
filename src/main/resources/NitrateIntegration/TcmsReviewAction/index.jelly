@@ -10,6 +10,8 @@
     .tdSmallCheckbox {width: 20px}
     .tdSmallStatus {width: 20px}
     .tdSmall {width: 20px}
+    .status { font-weight:bold}
+    .statusMsg {}
 </style>
   
 <script><![CDATA[
