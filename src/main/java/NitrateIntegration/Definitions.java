@@ -12,7 +12,7 @@ package NitrateIntegration;
 public class Definitions {
     
     public static final String __DISPLAY_NAME = "Nitrate Plugin";
-    public static final String __ICON_FILE_NAME = "/plugin/report-plugin/images/custom-matrix_small.png";
+    public static final String __ICON_FILE_NAME = "/plugin/NitrateIntegration/images/icon.png";
     public static final String __URL_NAME = "nitrate-plugin";
     static String __PREFIX = "NR::";
     static String __DELIMITER = "::";
