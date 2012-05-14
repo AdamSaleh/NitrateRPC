@@ -8,8 +8,6 @@ import com.redhat.nitrate.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.text.html.HTML;
-import org.apache.commons.jelly.Jelly;
 import redstone.xmlrpc.XmlRpcArray;
 import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
@@ -27,18 +25,20 @@ public abstract class CommandWrapper {
     private boolean executable;
     private boolean checked;
     private boolean performed;
-    enum Status{
+
+    enum Status {
+
         UNKNOWN, COMPLETED, DUPLICATE, EXCEPTION, UNMET_DEPENDENCIES
     }
-    private Status status;
-    
+    protected Status status;
     private LinkedList<CommandWrapper> dependecy;
-    private Object result;
-    private Object unexpected;
-    private Class result_type;
-    TcmsProperties properties;
+    protected Object result;
+    protected Object unexpected;
+    protected Class result_type;
+    protected TcmsProperties properties;
+    protected TcmsEnvironment env;
 
-    public CommandWrapper(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
+    public CommandWrapper(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
         this.current = current;
         this.status = Status.UNKNOWN;
         this.checked = true;
@@ -46,10 +46,9 @@ public abstract class CommandWrapper {
         this.executable = true;
         this.dependecy = new LinkedList<CommandWrapper>();
         this.result_type = result_type;
-        if (dependecy != null) {
-            this.dependecy.push(dependecy);
-        }
+
         this.properties = properties;
+        this.env = env;
         result = null;
     }
 
@@ -60,19 +59,19 @@ public abstract class CommandWrapper {
     public void addDependecy(CommandWrapper dep) {
         dependecy.push(dep);
     }
-    
+
     /**
-     * Returns true iff this command has dependency with which hashCode is 
-     * equal to parameter passed to method.
-     * 
+     * Returns true iff this command has dependency with which hashCode is equal
+     * to parameter passed to method.
+     *
      * @param hashCode
-     * @return 
+     * @return
      */
-    public boolean hasDependency(Integer hashCode){
-        for(CommandWrapper w : dependecy){
+    public boolean hasDependency(Integer hashCode) {
+        for (CommandWrapper w : dependecy) {
             int a = w.hashCode();
-                    
-            if(hashCode.equals(w.hashCode())){
+
+            if (hashCode.equals(w.hashCode())) {
                 return true;
             }
         }
@@ -98,18 +97,13 @@ public abstract class CommandWrapper {
     public boolean duplicate() {
         return status == Status.DUPLICATE;
     }
-    
-    public void setDuplicate(){
+
+    public void setDuplicate() {
         status = Status.DUPLICATE;
     }
-    
-    public boolean exception(){
-        return status == Status.EXCEPTION;
-    }
-    
 
-    public CommandWrapper(TcmsCommand current, Class result_type,TcmsProperties properties) {
-        this(current, null, result_type,properties);
+    public boolean exception() {
+        return status == Status.EXCEPTION;
     }
 
     TcmsCommand current() {
@@ -123,24 +117,22 @@ public abstract class CommandWrapper {
     public boolean isExecutable() {
         return executable;
     }
-   
-    public boolean isChecked(){
+
+    public boolean isChecked() {
         return checked;
     }
-    
-    public boolean unmetDependencies(){
+
+    public boolean unmetDependencies() {
         return status == Status.UNMET_DEPENDENCIES;
     }
-    
-    public void setUnmetDependencies(){
+
+    public void setUnmetDependencies() {
         status = Status.UNMET_DEPENDENCIES;
     }
-    
-    
-    public void setChecked(boolean checked){
+
+    public void setChecked(boolean checked) {
         this.checked = checked;
     }
-    
 
     public void setResult(Object o) {
         if (this.result == null) {
@@ -161,26 +153,12 @@ public abstract class CommandWrapper {
                     unexpected = null;
                     return;
                 }
-
-            } else if (o instanceof XmlRpcArray) {
-                XmlRpcArray array = (XmlRpcArray) o;
-                if (array.size() > 0) { // usualy when query shows no results
-                    setResult(array.get(0));
-                    return;
-                } else {
-                    result = null;
-                    unexpected = o;
-                    status = Status.EXCEPTION;
-                    return;
-                }
-
             } else {
                 result = null;
                 unexpected = o;
                 status = Status.EXCEPTION;
                 return;
             }
-
         }
     }
 
@@ -192,7 +170,7 @@ public abstract class CommandWrapper {
                 o = connection.invoke(current());
                 setResult(o);
                 setCompleted();
-            }else{
+            } else {
                 setResult(o);
                 setDuplicate();
             }
@@ -235,12 +213,8 @@ public abstract class CommandWrapper {
 
     public static class Generic extends CommandWrapper {
 
-        public Generic(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
-        }
-
-        public Generic(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
-            super(current, dependecy, result_type,properties);
+        public Generic(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+            super(current, result_type, properties, env);
         }
 
         @Override
@@ -252,16 +226,54 @@ public abstract class CommandWrapper {
         public boolean processDependecies() {
             return true;
         }
+
+        public void setResult(Object o) {
+            if (this.result == null) {
+                Object r = null;
+                if (result_type.isInstance(o)) {
+                    result = o;
+                    unexpected = null;
+                    return;
+                } else if (o instanceof XmlRpcStruct) {
+                    XmlRpcStruct struct = (XmlRpcStruct) o;
+                    if (struct.containsKey("args")) { // usualy when query shows no results
+                        result = null;
+                        unexpected = o;
+                        status = Status.EXCEPTION;
+                        return;
+                    } else {
+                        result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, result_type);
+                        unexpected = null;
+                        return;
+                    }
+
+                } else if (o instanceof XmlRpcArray) {
+                    XmlRpcArray array = (XmlRpcArray) o;
+                    if (array.size() > 0) { // usualy when query shows no results
+                        setResult(array.get(0));
+                        return;
+                    } else {
+                        result = null;
+                        unexpected = o;
+                        status = Status.EXCEPTION;
+                        return;
+                    }
+
+                } else {
+                    result = null;
+                    unexpected = o;
+                    status = Status.EXCEPTION;
+                    return;
+                }
+
+            }
+        }
     }
 
     public static class BuildCreate extends CommandWrapper {
 
-        public BuildCreate(TcmsCommand current, Class result_type, TcmsProperties properties) {
-            super(current, result_type,properties);
-        }
-
-        public BuildCreate(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
-            super(current, dependecy, result_type, properties);
+        public BuildCreate(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+            super(current, result_type, properties, env);
         }
 
         @Override
@@ -272,7 +284,7 @@ public abstract class CommandWrapper {
                 f.name = comand.name;
                 f.productid = comand.product;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, Build.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, Build.class, null, null);
                 script.perform(connection);
                 return script.getResult(Build.class);
             } catch (XmlRpcFault ex) {
@@ -285,28 +297,22 @@ public abstract class CommandWrapper {
         public boolean processDependecies() {
             return true;
         }
-        
+
         public Hashtable<String, String> description() {
             Hashtable<String, String> map = current.descriptionMap();
-            map.put("product",properties.product + " (" +map.get("product")+")");
+            map.put("product", properties.product + " (" + map.get("product") + ")");
             return map;
         }
-        
-        public String toString(){
+
+        public String toString() {
             return "Create Build";
         }
-        
-
     }
 
     public static class TestCaseCreate extends CommandWrapper {
 
-        public TestCaseCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type, properties);
-        }
-
-        public TestCaseCreate(TcmsCommand current, CommandWrapper dependecy, Class result_type,TcmsProperties properties) {
-            super(current, dependecy, result_type, properties);
+        public TestCaseCreate(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+            super(current, result_type, properties, env);
         }
 
         @Override
@@ -319,7 +325,7 @@ public abstract class CommandWrapper {
                 f.priority = comand.priority;
                 f.plan = comand.plan;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class, null, null);
                 script.perform(connection);
                 return script.getResult(TestCase.class);
             } catch (XmlRpcFault ex) {
@@ -332,26 +338,26 @@ public abstract class CommandWrapper {
         public boolean processDependecies() {
             return true;
         }
+
         public Hashtable<String, String> description() {
             Hashtable<String, String> map = current.descriptionMap();
-            map.put("priority",properties.priority + " (" +map.get("priority")+")");
-            map.put("category",properties.category + " (" +map.get("category")+")");
-            map.put("product",properties.product + " (" +map.get("product")+")");
-            map.put("plan",properties.plan + " (" +map.get("plan")+")");
-            
+            map.put("priority", properties.priority + " (" + map.get("priority") + ")");
+            map.put("category", properties.category + " (" + map.get("category") + ")");
+            map.put("product", properties.product + " (" + map.get("product") + ")");
+            map.put("plan", properties.plan + " (" + map.get("plan") + ")");
+
             return map;
         }
-        
-        public String toString(){
+
+        public String toString() {
             return "Create Test Case";
         }
-        
     }
 
     public static class TestRunCreate extends CommandWrapper {
 
-        public TestRunCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
+        public TestRunCreate(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+            super(current, result_type, properties, env);
         }
 
         @Override
@@ -364,7 +370,7 @@ public abstract class CommandWrapper {
                 f.summary = command.summary;
                 f.manager = command.manager;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class, null, null);
                 script.perform(connection);
                 return script.getResult(TestRun.class);
             } catch (XmlRpcFault ex) {
@@ -390,37 +396,37 @@ public abstract class CommandWrapper {
             }
             return false;
         }
+
         public Hashtable<String, String> description() {
             Hashtable<String, String> map = current.descriptionMap();
-            map.put("product_version",properties.product_v + " (" +map.get("product_version")+")");
-            map.put("manager",properties.manager + " (" +map.get("manager")+")");
-            map.put("product",properties.product + " (" +map.get("product")+")");
-            map.put("plan",properties.plan + " (" +map.get("plan")+")");
-            
+            map.put("product_version", properties.product_v + " (" + map.get("product_version") + ")");
+            map.put("manager", properties.manager + " (" + map.get("manager") + ")");
+            map.put("product", properties.product + " (" + map.get("product") + ")");
+            map.put("plan", properties.plan + " (" + map.get("plan") + ")");
+
             for (CommandWrapper deps : getDependecies()) {
                 if (deps.current() instanceof Build.create) {
-                    map.put("build",deps.description().get("name") + " (" +map.get("build")+")");
+                    map.put("build", deps.description().get("name") + " (" + map.get("build") + ")");
                 }
             }
-            
+
             return map;
         }
-        
-        public String toString(){
+
+        public String toString() {
             return "Create Test Run";
         }
-        
     }
 
     public static class TestCaseRunCreate extends CommandWrapper {
 
-        public TestCaseRunCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
+        public TestCaseRunCreate(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+            super(current, result_type, properties, env);
         }
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-             try {
+            try {
                 TestCaseRun.filter f = new TestCaseRun.filter();
                 TestCaseRun.create command = (TestCaseRun.create) current;
                 f.build = command.build;
@@ -428,7 +434,7 @@ public abstract class CommandWrapper {
                 f.caseVar = command.caseVar;
                 f.case_run_status = command.case_run_status;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class,null);
+                CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class, null, null);
                 script.perform(connection);
                 return script.getResult(TestCaseRun.class);
             } catch (XmlRpcFault ex) {
@@ -463,34 +469,34 @@ public abstract class CommandWrapper {
             }
             return false;
         }
+
         public Hashtable<String, String> description() {
             Hashtable<String, String> map = current.descriptionMap();
             for (CommandWrapper deps : getDependecies()) {
-                 if (deps.current() instanceof Build.create) {
-                     map.put("build",deps.description().get("name") + " (" +map.get("build")+")");
-          
+                if (deps.current() instanceof Build.create) {
+                    map.put("build", deps.description().get("name") + " (" + map.get("build") + ")");
+
                 } else if (deps.current() instanceof TestRun.create) {
-                     map.put("run",deps.description().get("summary") + " (" +map.get("run")+")");
-          
+                    map.put("run", deps.description().get("summary") + " (" + map.get("run") + ")");
+
                 } else if (deps.current() instanceof TestCase.create) {
-                     map.put("case",deps.description().get("summary") + " (" +map.get("case")+")");
-              
+                    map.put("case", deps.description().get("summary") + " (" + map.get("case") + ")");
+
                 }
             }
-            
+
             return map;
         }
-        
-        public String toString(){
+
+        public String toString() {
             return "Create Test Case Run";
         }
-        
     }
 
-     public static class LinkRunToVarCreate extends CommandWrapper {
+    public static class LinkRunToVarCreate extends CommandWrapper {
 
-        public LinkRunToVarCreate(TcmsCommand current, Class result_type,TcmsProperties properties) {
-            super(current, result_type,properties);
+        public LinkRunToVarCreate(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+            super(current, result_type, properties, env);
         }
 
         @Override
@@ -502,7 +508,7 @@ public abstract class CommandWrapper {
         public boolean processDependecies() {
             int run = -1;
             for (CommandWrapper deps : getDependecies()) {
-          
+
                 if (deps.current() instanceof TestRun.create) {
                     TestRun r = deps.getResult(TestRun.class);
                     run = r.run_id;
@@ -515,30 +521,55 @@ public abstract class CommandWrapper {
             }
             return false;
         }
-        
+
         public Hashtable<String, String> description() {
-            return current.descriptionMap();
-        }
-        
-        public String toString(){
-            return "Link Run to Environmental Variable in TCMS";
-        }
-        
-    }
-    
-    public static CommandWrapper wrap(TcmsCommand current, Class result_type,TcmsProperties properties) {
-        if (current instanceof TestCase.create) {
-            return new CommandWrapper.TestCaseCreate(current, result_type,properties);
-        } else if (current instanceof TestCaseRun.create) {
-            return new CommandWrapper.TestCaseRunCreate(current, result_type,properties);
-        } else if (current instanceof TestRun.create) {
-            return new CommandWrapper.TestRunCreate(current, result_type,properties);
-        } else if (current instanceof Build.create) {
-            return new CommandWrapper.BuildCreate(current, result_type,properties);
-        } else if (current instanceof TestRun.link_env_value) {
-            return new CommandWrapper.LinkRunToVarCreate(current, result_type,properties);
+            Hashtable<String, String> map = current.descriptionMap();
+            TestRun.link_env_value f = (TestRun.link_env_value) current;
+            Env.Value v = env.getValueById(f.env_value_id);
+            if (v != null) {
+                map.put("env_value_id", v.value + " (" + map.get("env_value_id") + ")");
+            }
+            return map;
         }
 
-        return new CommandWrapper.Generic(current, result_type,properties);
+        public void setResult(Object o) {
+            if (this.result == null) {
+                if (o instanceof XmlRpcStruct) {
+                    XmlRpcStruct struct = (XmlRpcStruct) o;
+                    result = null;
+                    unexpected = o;
+                    status = Status.EXCEPTION;
+                    return;
+
+                } else if (o instanceof XmlRpcArray) {
+                    XmlRpcArray array = (XmlRpcArray) o;
+                    result = null;
+                    unexpected = o;
+                    status = Status.EXCEPTION;
+                    return;
+                }
+
+            }
+        }
+
+        public String toString() {
+            return "Link Run to Environmental Variable in TCMS";
+        }
+    }
+
+    public static CommandWrapper wrap(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+        if (current instanceof TestCase.create) {
+            return new CommandWrapper.TestCaseCreate(current, result_type, properties, env);
+        } else if (current instanceof TestCaseRun.create) {
+            return new CommandWrapper.TestCaseRunCreate(current, result_type, properties, env);
+        } else if (current instanceof TestRun.create) {
+            return new CommandWrapper.TestRunCreate(current, result_type, properties, env);
+        } else if (current instanceof Build.create) {
+            return new CommandWrapper.BuildCreate(current, result_type, properties, env);
+        } else if (current instanceof TestRun.link_env_value) {
+            return new CommandWrapper.LinkRunToVarCreate(current, result_type, properties, env);
+        }
+
+        return new CommandWrapper.Generic(current, result_type, properties, env);
     }
 }

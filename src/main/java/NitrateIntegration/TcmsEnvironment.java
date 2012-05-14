@@ -25,6 +25,7 @@ public class TcmsEnvironment {
     private Integer envId;
     private Env.Group env_obj;
     private Hashtable<String, Env.Property> properties;
+    private Hashtable<Integer, Env.Value> values_by_id;
     private Hashtable<String, Hashtable<String,Env.Value>> values;
 
     public TcmsEnvironment(String env) {
@@ -77,6 +78,7 @@ public class TcmsEnvironment {
                         XmlRpcStruct pr_str = (XmlRpcStruct) pr;
                         Env.Property pr_obj = TcmsConnection.rpcStructToFields(pr_str, Env.Property.class);
                         properties.put(pr_obj.name, pr_obj);
+                        
                     }
                 }
             }
@@ -85,7 +87,8 @@ public class TcmsEnvironment {
     }
 
     private void reloadValues() throws XmlRpcFault {
-        values = new  Hashtable<String, Hashtable<String, Value>>();
+        values = new  Hashtable<String, Hashtable<String, Value>>(); 
+        values_by_id = new Hashtable<Integer, Env.Value>();
         for (Env.Property property:properties.values()) {
             Env.get_values get = new Env.get_values();
             get.env_property_id =property.id;
@@ -98,6 +101,7 @@ public class TcmsEnvironment {
                         XmlRpcStruct vl_str = (XmlRpcStruct) vl;
                         Env.Value vl_obj = TcmsConnection.rpcStructToFields(vl_str, Env.Value.class);
                         value_set.put(vl_obj.value,vl_obj);
+                        values_by_id.put(vl_obj.id, vl_obj);
                     }
                 }
             }
@@ -107,6 +111,9 @@ public class TcmsEnvironment {
 
     public Hashtable<String, Hashtable<String, Value>> getValues() {
         return values;
+    }
+    public Env.Value getValueById(Integer i) {
+        return values_by_id.get(i);
     }
     public boolean containsProperty(String property){
         if(properties!=null){
