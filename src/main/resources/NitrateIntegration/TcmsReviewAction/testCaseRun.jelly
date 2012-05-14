@@ -1,11 +1,13 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+             
              <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td class="commandHeader">
+                 <td></td>
+                 <td></td>
+                 <td colspan="6">
+                     <table border="1" width="100%">
+                         <tr>
+                             <td class="commandHeader tdSmallCheckbox">
                                 <j:choose>
                                     <j:when test="${testCaseRunCreate.isChecked()}">
                                         <f:checkbox name="${testCaseRunCreate.hashCode()}" checked="true" />
@@ -57,31 +59,18 @@
                                     style="visibility: visible;" width="16" height="16" 
                                     onclick="myShow(${testCaseRunCreate.hashCode()})" />
                             </td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td class="tdSmall"></td>
-                            <td class="tdSmall"></td>
-                            <td class="tdSmall"></td>
-                            <td>
+                         </tr>
+                         <tr>
+                            <td></td><td></td>
+                            <td width="220px">
                                 <st:nbsp/> 
                             </td>
-
                         </tr>
                         <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td colspan="5" align="left">
-                                <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display: none">
-
+                            <td></td><td></td>
+                            <td colspan="4" align="left">
+                                
+                                <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
                                     <j:forEach var="field" items="${testCaseRunCreate.description().entrySet()}">
                                         <tr>
                                             <td style="width:150px">    
@@ -90,7 +79,6 @@
                                             <td>    
                                                 ${field.getValue()}
                                             </td>
-
                                         </tr>
                                     </j:forEach>
                                     <tr>
@@ -101,16 +89,7 @@
                                 </table>
                             </td>
                         </tr>
-             
-             
-             
-             
-             
-             
-             
-             
-             
-             
-             
-             
+                     </table>
+                 </td>
+             </tr>    
 </j:jelly>

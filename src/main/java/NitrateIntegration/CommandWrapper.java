@@ -553,7 +553,7 @@ public abstract class CommandWrapper {
         }
 
         public String toString() {
-            return "Link Run to Environmental Variable in TCMS";
+            return "Link Run to Environmental Variable";
         }
     }
 

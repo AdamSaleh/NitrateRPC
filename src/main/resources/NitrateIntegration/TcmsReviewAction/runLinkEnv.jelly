@@ -2,7 +2,8 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">  
          
             <tr>
-                <td></td><td></td><td></td><td></td>
+                
+                <td></td><td></td>
                 <td colspan="6">
                     <table border="1" style="width: 100%">
                         <tr>
@@ -60,24 +61,24 @@
                             </td>
                         </tr>       
                         <tr>
-                            <td colspan="3">
+                            <td></td><td></td> 
+                            <td width="220px">
                                 <st:nbsp/> 
                             </td>
 
                         </tr>
                         <tr>
-                            <td colspan="5" align="left">
-                                <table id="details-${testRunLinkEnv.hashCode()}" style="visibility:hidden; display: none">
-
+                            <td></td><td></td>
+                            <td colspan="4" align="left">
+                                <table id="details-${testRunLinkEnv.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
                                     <j:forEach var="field" items="${testRunLinkEnv.description().entrySet()}">
                                         <tr>
                                             <td style="width:150px">    
-                                                    ${field.getKey()}
+                                                ${field.getKey()}
                                             </td>
                                             <td>    
-                                                    ${field.getValue()}
+                                                ${field.getValue()}
                                             </td>
-
                                         </tr>
                                     </j:forEach>
                                     <tr>

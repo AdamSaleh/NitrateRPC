@@ -39,7 +39,7 @@
                                     </j:when>
                                 </j:choose>
                             </td> 
-                            <td colspan="4" class="commandHeader">
+                            <td colspan="2" class="commandHeader">
                                 ${buildCreate.toString()}                                    
                             </td>
                             <td class="commandHeader">
@@ -60,7 +60,7 @@
                         </tr>
                         <tr>
                             <td></td><td></td><td class="tdSmall"></td>
-                            <td colspan="3">
+                            <td width="280px">
                                 <st:nbsp/> 
                             </td>
                             <td>
@@ -69,26 +69,24 @@
                         </tr>
                         <tr>
                             <td></td><td></td><td></td>
-                            <td colspan="7" align="left">
-                            <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display: none" width="100%" border="1">
-                                <j:forEach var="field" items="${buildCreate.description().entrySet()}">
-                                    <tr>
-                                        <td style="width:150px">    
+                            <td colspan="5" align="left">
+                                <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
+                                    <j:forEach var="field" items="${buildCreate.description().entrySet()}">
+                                        <tr>
+                                            <td style="width:150px">    
                                                 ${field.getKey()}
-                                        </td>
-                                        <td>    
+                                            </td>
+                                            <td>    
                                                 ${field.getValue()}
+                                            </td>
+                                        </tr>
+                                    </j:forEach>
+                                    <tr>
+                                        <td>
+                                            <st:nbsp/> 
                                         </td>
-
                                     </tr>
-
-                                </j:forEach>
-                                <tr>
-                                    <td>
-                                        <st:nbsp/> 
-                                    </td>
-                                </tr>
-                            </table>
+                                </table>
                             </td>
                         </tr>
                         <!-- Iterate over all testCases to be created -->

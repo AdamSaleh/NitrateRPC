@@ -69,18 +69,16 @@
                     </tr>
                     <tr>
                         <td></td><td></td><td></td>
-                        <td colspan="5" align="left">
-                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display: none" width="100%" border="1">
-
+                        <td colspan="3" align="left">
+                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
                                 <j:forEach var="field" items="${testCaseCreate.description().entrySet()}">
                                     <tr>
                                         <td style="width:150px">    
-                                                ${field.getKey()}
+                                            ${field.getKey()}
                                         </td>
                                         <td>    
-                                                ${field.getValue()}
+                                            ${field.getValue()}
                                         </td>
-
                                     </tr>
                                 </j:forEach>
                                 <tr>
