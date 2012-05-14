@@ -41,7 +41,7 @@
                                 </j:when>
                             </j:choose>
                         </td>
-                        <td class="commandHeader" width="260px" colspan="2">
+                        <td class="commandHeader" colspan="2">
                             ${testCaseCreate.toString()}
                         </td>
                         <td class="commandHeader">
@@ -62,7 +62,7 @@
                     </tr>
                     <tr>
                         <td></td><td></td><td class="tdSmall"></td>
-                        <td>
+                        <td width="240px">
                             <st:nbsp/> 
                         </td>
 
@@ -70,7 +70,7 @@
                     <tr>
                         <td></td><td></td><td></td>
                         <td colspan="5" align="left">
-                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display: none">
+                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display: none" width="100%" border="1">
 
                                 <j:forEach var="field" items="${testCaseCreate.description().entrySet()}">
                                     <tr>
