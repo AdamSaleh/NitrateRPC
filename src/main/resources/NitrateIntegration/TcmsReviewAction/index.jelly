@@ -6,9 +6,10 @@
         <l:main-panel>
             
 <style>
-    .commandHeader { background-color: #DEDEDE; vertical-align: middle; font-weight:bold}
+    .commandHeader { background-color: #DEDEDE; vertical-align: middle }
+    .commandTitle { background-color: #DEDEDE; vertical-align: middle; font-weight:bold }
     .tdSmallCheckbox {width: 20px}
-    .tdSmallStatus {width: 20px}
+    .tdSmallStatus {width: 40px; }
     .tdSmall {width: 20px}
     .status { font-weight:bold}
     .statusMsg {}
@@ -114,7 +115,7 @@ function toggleAll(){
                         <f:submit value="Check enviromental vars" />
                         </f:entry>
                     </f:form>
-
+                    <br/><br/><br/>
                     <f:form method="post" action="reportSubmit" name="dataUpload">
                         <f:entry>
 

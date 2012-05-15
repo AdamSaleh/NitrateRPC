@@ -22,26 +22,26 @@
                                     <j:when test="${testRunLinkEnv.exception()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/exception.png" 
                                             alt="${%Exception occured}" tooltip="${%Exception ocurred}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>
                                     <j:when test="${testRunLinkEnv.completed()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
                                             alt="${%Command completed succesfully}" tooltip="${%Command completed succesfully}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>                           
                                     <j:when test="${testRunLinkEnv.duplicate()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
                                             alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>
                                     <j:when test="${testRunLinkEnv.unmetDependencies()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/dependencies.png" 
                                             alt="${%This command is missing some dependencies}" tooltip="${%This command is missing some dependencies}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>
                                 </j:choose>
                             </td>
-                            <td colspan="2" class="commandHeader">
+                            <td colspan="2" class="commandTitle">
                                 ${testRunLinkEnv.toString()}
                             </td>
                             <td class="commandHeader">
