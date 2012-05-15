@@ -3,9 +3,9 @@
          
          
         <tr>
-            <td></td><td></td>
+            <td class="tdSmall"></td><td class="tdSmall"></td>
             <td colspan="8">
-                <table border="1" style="width: 100%" cellspacing="0px" cellpadding="2px"> 
+                <table  style="width: 100%" cellspacing="0px" cellpadding="2px"> 
                     <tr>
                         <td class="commandHeader tdSmallCheckbox">
                             <j:choose>
@@ -40,6 +40,7 @@
                                         style="visibility: visible" width="16" height="16" align="center" />
                                 </j:when>
                             </j:choose>
+                            
                         </td>
                         <td class="commandHeader" colspan="2">
                             ${testCaseCreate.toString()}
@@ -48,16 +49,16 @@
                             ${testCaseCreate.description().get('summary')}
                         </td>
                         <td class="commandHeader">
-                            <img id="imgCol-${testCaseCreate.hashCode()}"
+                            <img id="details-Col-${testCaseCreate.hashCode()}"
                                 src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
                                 alt="${%Click to collapse details}" tooltip="${%Click to collapse details}"
                                 style="visibility: hidden; display: none;" width="16" height="16" 
-                                onclick="myHide(${testCaseCreate.hashCode()})" />
-                            <img id="imgExp-${testCaseCreate.hashCode()}"
+                                onclick="myHide(${testCaseCreate.hashCode()}, 'details-')" />
+                            <img id="details-Exp-${testCaseCreate.hashCode()}"
                                 src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
                                 alt="${%Click to expand details}" tooltip="${%Click to expand details}"
                                 style="visibility: visible;" width="16" height="16" 
-                                onclick="myShow(${testCaseCreate.hashCode()})" />
+                                onclick="myShow(${testCaseCreate.hashCode()},'details-')" />
                         </td>
                     </tr>
                     <tr>
@@ -70,7 +71,7 @@
                     <tr>
                         <td></td><td></td><td></td>
                         <td colspan="3" align="left">
-                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
+                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display:none"  width="100%">
                                 <j:forEach var="field" items="${testCaseCreate.description().entrySet()}">
                                     <tr>
                                         <td style="width:150px">    

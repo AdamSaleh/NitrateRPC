@@ -2,10 +2,10 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
              
              <tr>
-                 <td></td>
-                 <td></td>
+                 <td class="tdSmall"></td>
+                 <td class="tdSmall"></td>
                  <td colspan="6">
-                     <table border="1" width="100%">
+                     <table width="100%" cellspacing="0px" cellpadding="2px">
                          <tr>
                              <td class="commandHeader tdSmallCheckbox">
                                 <j:choose>
@@ -48,29 +48,29 @@
                                 ${testCaseRunCreate.description().get('summary')}
                             </td>
                             <td class="commandHeader">
-                                <img id="imgCol-${testCaseRunCreate.hashCode()}"
+                                <img id="details-Col-${testCaseRunCreate.hashCode()}"
                                     src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
                                     alt="${%Click to collapse details}" tooltip="${%Click to collapse details}"
                                     style="visibility: hidden; display: none;" width="16" height="16" 
-                                    onclick="myHide(${testCaseRunCreate.hashCode()})" />
-                                <img id="imgExp-${testCaseRunCreate.hashCode()}"
+                                    onclick="myHide(${testCaseRunCreate.hashCode()},'details-')" />
+                                <img id="details-Exp-${testCaseRunCreate.hashCode()}"
                                     src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
                                     alt="${%Click to expand details}" tooltip="${%Click to expand details}"
                                     style="visibility: visible;" width="16" height="16" 
-                                    onclick="myShow(${testCaseRunCreate.hashCode()})" />
+                                    onclick="myShow(${testCaseRunCreate.hashCode()},'details-')" />
                             </td>
                          </tr>
                          <tr>
-                            <td></td><td></td>
+                            <td></td><td></td><td class="tdSmall"></td>
                             <td width="220px">
                                 <st:nbsp/> 
                             </td>
                         </tr>
                         <tr>
-                            <td></td><td></td>
+                            <td></td><td></td><td></td>
                             <td colspan="4" align="left">
                                 
-                                <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
+                                <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display:none"  width="100%">
                                     <j:forEach var="field" items="${testCaseRunCreate.description().entrySet()}">
                                         <tr>
                                             <td style="width:150px">    

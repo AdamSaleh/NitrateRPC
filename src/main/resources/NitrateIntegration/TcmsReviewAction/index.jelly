@@ -13,19 +13,20 @@
     .status { font-weight:bold}
     .statusMsg {}
 </style>
+
   
 <script><![CDATA[
 
-function updateIcons(elemName, param)
+function updateIcons(elemName, param, type)
 {
     var cmds = window.document.getElementsByTagName('img');
     var collapse;
     var expand;
     for (var cmdIndex in cmds) {
         cmd = cmds[cmdIndex];
-        if (cmd.id && cmd.id == ('imgExp-'+elemName)) {
+        if (cmd.id && cmd.id == (type + 'Exp-' + elemName)) {
             expand = cmd;
-        } else if (cmd.id && cmd.id == ('imgCol-'+elemName)) {
+        } else if (cmd.id && cmd.id == (type + 'Col-' + elemName)) {
             collapse = cmd;
         }
     }
@@ -35,38 +36,38 @@ function updateIcons(elemName, param)
     collapse.style.display = (param == 'c') ? 'none' : '';
 }
 
-function myShow(e){
-    table = "details-" + e;
+function myShow(e, type){
+    table = type + e;
     elem = document.getElementById(table);
     elem.style.visibility = 'visible';
     elem.style.display = '';
-    updateIcons(e, 'e');
+    updateIcons(e, 'e', type);
 }
 
-function myHide(e){
-    table = "details-" + e;
+function myHide(e, type){
+    table = type + e;
     elem = document.getElementById(table);
     elem.style.visibility = 'hidden';
     elem.style.display = 'none';
-    updateIcons(e, 'c');
+    updateIcons(e, 'c', type);
 }
 
-function showAll(){
+function showAll(type){
     var i;
     for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
         var element = document.dataUpload.elements[i];
         if( element.type == 'checkbox' && element.id != 1 ){
-            myShow(element.name);
+            myShow(element.name, type);
         }
     }
 }
 
-function hideAll(){
+function hideAll(type){
     var i;
     for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
         var element = document.dataUpload.elements[i];
         if( element.type == 'checkbox' && element.id != 1 ){
-            myHide(element.name);
+            myHide(element.name, type);
         }
     }
 }
@@ -88,46 +89,45 @@ function toggleAll(){
 
 ]]></script>
 
-    <j:choose>
-        <j:when test="${it.gatherer.isEmpty()}">
-            
-            <h1>Gather Report</h1>
-            
-            <f:form method="post" action="gather" name="nitrateplugin-gather">
-                  <f:entry>
-                      <f:submit value="Gather report from test-files" />
-                  </f:entry>
-            </f:form>
-            
-        </j:when>
-        
-        <j:otherwise>
-            
-            <h1>Review Report</h1>       
-        
-            <f:form method="post" action="checkSubmit" name="envCheck" >
-                <f:entry>
+            <j:choose>
+                <j:when test="${it.gatherer.isEmpty()}">
 
-                    <st:include page="envCheck.jelly"/>
+                    <h1>Gather Report</h1>
 
-                <f:submit value="Check enviromental vars" />
-                </f:entry>
-            </f:form>
+                    <f:form method="post" action="gather" name="nitrateplugin-gather">
+                        <f:entry>
+                            <f:submit value="Gather report from test-files" />
+                        </f:entry>
+                    </f:form>
 
-            <f:form method="post" action="reportSubmit" name="dataUpload">
-                <f:entry>
+                </j:when>
 
-                    <st:include page="report.jelly"/>
+                <j:otherwise>
 
-                <f:submit value="Submit Report" />
-                </f:entry>
-            </f:form>
-            
-        </j:otherwise>
-        
-    </j:choose>
-        
-            
+                    <h1>Review Report</h1>       
+
+                    <f:form method="post" action="checkSubmit" name="envCheck" >
+                        <f:entry>
+
+                            <st:include page="envCheck.jelly"/>
+
+                        <f:submit value="Check enviromental vars" />
+                        </f:entry>
+                    </f:form>
+
+                    <f:form method="post" action="reportSubmit" name="dataUpload">
+                        <f:entry>
+
+                            <st:include page="report.jelly"/>
+
+                            <f:submit value="Submit Report" />
+                        </f:entry>
+                    </f:form>
+
+                </j:otherwise>
+
+            </j:choose>
+       
         
         </l:main-panel>
     </l:layout>

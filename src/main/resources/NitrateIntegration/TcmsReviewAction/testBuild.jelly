@@ -3,7 +3,7 @@
          
             <tr>
                 <td colspan="10">
-                    <table width="100%" border="1">
+                    <table width="100%" cellspacing="0px" cellpadding="2px">
                         <tr>
                             <td class="commandHeader tdSmallCheckbox"> 
                                 <j:choose>
@@ -38,6 +38,16 @@
                                             style="visibility: visible" width="16" height="16" align="center" />
                                     </j:when>
                                 </j:choose>
+                                <img id="subitems-Col-${buildCreate.hashCode()}"
+                                    src="${rootURL}/plugin/NitrateIntegration/images/col_subitems.png" align="right"
+                                    alt="${%Click to collapse subitems}" tooltip="${%Click to collapse subitems}"
+                                    style="visibility: visible" width="16" height="16" 
+                                    onclick="myHide(${buildCreate.hashCode()}, 'subitems-')" />
+                                <img id="subitems-Exp-${buildCreate.hashCode()}"
+                                    src="${rootURL}/plugin/NitrateIntegration/images/exp_subitems.png" align="right"
+                                    alt="${%Click to expand subitems}" tooltip="${%Click to expand subitems}"
+                                    style="visibility: hidden; display: none;" width="16" height="16" 
+                                    onclick="myShow(${buildCreate.hashCode()}, 'subitems-')" />
                             </td> 
                             <td colspan="2" class="commandHeader">
                                 ${buildCreate.toString()}                                    
@@ -46,16 +56,16 @@
                                 ${buildCreate.description().get('summary')}
                             </td>
                             <td class="commandHeader">
-                                <img id="imgCol-${buildCreate.hashCode()}"
+                                <img id="details-Col-${buildCreate.hashCode()}"
                                     src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
                                     alt="${%Click to collapse details}" tooltip="${%Click to collapse details}"
                                     style="visibility: hidden; display: none;" width="16" height="16" 
-                                    onclick="myHide(${buildCreate.hashCode()})" />
-                                <img id="imgExp-${buildCreate.hashCode()}"
+                                    onclick="myHide(${buildCreate.hashCode()}, 'details-')" />
+                                <img id="details-Exp-${buildCreate.hashCode()}"
                                     src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
                                     alt="${%Click to expand details}" tooltip="${%Click to expand details}"
                                     style="visibility: visible;" width="16" height="16" 
-                                    onclick="myShow(${buildCreate.hashCode()})" />
+                                    onclick="myShow(${buildCreate.hashCode()}, 'details-')" />
                             </td>
                         </tr>
                         <tr>
@@ -70,7 +80,7 @@
                         <tr>
                             <td></td><td></td><td></td>
                             <td colspan="5" align="left">
-                                <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
+                                <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display:none" width="100%">
                                     <j:forEach var="field" items="${buildCreate.description().entrySet()}">
                                         <tr>
                                             <td style="width:150px">    
@@ -89,16 +99,21 @@
                                 </table>
                             </td>
                         </tr>
-                        <!-- Iterate over all testCases to be created -->
-                        <j:forEach var="testCaseCreate" items="${it.gatherer.getCommandList('TestCase.create')}">
-                            <st:include page="testCase.jelly"/>                    
-                        </j:forEach>
+                        <tr><td colspan="8">
+                                <table id="subitems-${buildCreate.hashCode()}" width="100%">
+                                    <tr><td>
+                                        <!-- Iterate over all testCases to be created -->
+                                        <j:forEach var="testCaseCreate" items="${it.gatherer.getCommandList('TestCase.create')}">
+                                            <st:include page="testCase.jelly"/>                    
+                                        </j:forEach>
 
-                        <!-- Iterate over all testRuns to be created -->
-                        <j:forEach var="testRunCreate" items="${it.gatherer.getCommandList('TestRun.create')}"> 
-                            <st:include page="testRun.jelly"/> 
-                        </j:forEach>
-                        
+                                        <!-- Iterate over all testRuns to be created -->
+                                        <j:forEach var="testRunCreate" items="${it.gatherer.getCommandList('TestRun.create')}"> 
+                                            <st:include page="testRun.jelly"/> 
+                                        </j:forEach>
+                                    </td></tr>
+                                </table>
+                         </td></tr>
                     </table>
                 </td>
             </tr>
