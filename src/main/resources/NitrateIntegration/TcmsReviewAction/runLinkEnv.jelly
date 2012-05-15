@@ -10,10 +10,12 @@
                             <td class="commandHeader tdSmallCheckbox">
                                 <j:choose>
                                     <j:when test="${testRunLinkEnv.isChecked()}">
-                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="true" />
+                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="true" 
+                                        id="testRun-${testRunCreate.hashCode()};testCaseRun-${testRunLinkEnv.hashCode()}"/>
                                     </j:when>
                                     <j:otherwise>
-                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="false" />
+                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="false" 
+                                        id="testRun-${testRunCreate.hashCode()};testCaseRun-${testRunLinkEnv.hashCode()}"/>
                                     </j:otherwise>
                                 </j:choose>
                             </td>

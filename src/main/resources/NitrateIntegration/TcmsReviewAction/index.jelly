@@ -88,6 +88,21 @@ function toggleAll(){
     }
 }
 
+function toggleSubitems(prefix, code){
+    var i;
+    for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
+        var element = document.dataUpload.elements[i];
+        if( element.type == 'checkbox' && element.id.indexOf("testRun-" + code) != -1 )
+            {
+        	if(document.getElementById(prefix + code).checked == true){
+                    element.checked = true;
+                } else {
+                    element.checked = false;
+                }
+            }
+    }
+}
+
 ]]></script>
 
             <j:choose>
