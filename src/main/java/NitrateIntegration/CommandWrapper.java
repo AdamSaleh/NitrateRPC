@@ -175,6 +175,8 @@ public abstract class CommandWrapper {
                 setDuplicate();
             }
             return true;
+        } else{
+            setUnmetDependencies();
         }
         return false;
     }
