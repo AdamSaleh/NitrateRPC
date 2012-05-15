@@ -7,19 +7,16 @@ package NitrateIntegration;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.Auth;
 import com.redhat.nitrate.TcmsConnection;
-import hudson.matrix.Axis;
-import hudson.matrix.AxisList;
-import hudson.matrix.MatrixBuild;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
-import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import redstone.xmlrpc.XmlRpcFault;
@@ -39,6 +36,8 @@ public class TcmsReviewAction implements Action {
     public final TcmsProperties properties;
     public final TcmsEnvironment environment;
     private LinkedList<EnvStatus> env_status;
+    private boolean wrongProperty;
+    private HashSet<String> propertyWWrongValue;
 
     public String getIconFileName() {
         return Definitions.__ICON_FILE_NAME;
@@ -64,6 +63,15 @@ public class TcmsReviewAction implements Action {
         return env_status;
     }
 
+    public boolean existsWrongProperty() {
+        return wrongProperty;
+    }
+
+    public HashSet<String> getPropertyWWrongValue() {
+        return propertyWWrongValue;
+    }
+    
+
     public TcmsEnvironment getEnvironment() {
         return environment;
     }
@@ -72,7 +80,6 @@ public class TcmsReviewAction implements Action {
         return build;
     }
 
-    @DataBoundConstructor
     public TcmsReviewAction(AbstractBuild build, String serverUrl, String username, String password,
             String plan,
             String product,
@@ -82,7 +89,7 @@ public class TcmsReviewAction implements Action {
             String manager,
             String env,
             String testPath) {
-        //this.build = this.;
+
         this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
         this.username = username;
         this.password = password;
@@ -91,6 +98,8 @@ public class TcmsReviewAction implements Action {
         this.build = build;
         gatherer = new TcmsGatherer(properties,environment);
         env_status = new LinkedList<EnvStatus>();
+        propertyWWrongValue = new HashSet<String>();
+        wrongProperty =false;
     }
 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws ServletException,
@@ -98,7 +107,6 @@ public class TcmsReviewAction implements Action {
         
                 gatherer.clear();
 
-      
                 connection = new TcmsConnection(serverUrl);
                 connection.setUsernameAndPassword(username, password);
                 Auth.login_krbv auth = new Auth.login_krbv();
@@ -168,6 +176,8 @@ public class TcmsReviewAction implements Action {
                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
             }
             env_status.clear();
+            propertyWWrongValue.clear();
+            wrongProperty = false;
             for (GatherFiles env : gatherFiles) {
                 for (Map.Entry<String,String> prop : env.variables.entrySet()) {
                     /*
@@ -180,9 +190,11 @@ public class TcmsReviewAction implements Action {
                             env_status.add(new EnvStatus(name, val, "CHECKED"));
                         } else {
                             env_status.add(new EnvStatus(name, val, "VALUE"));
+                            propertyWWrongValue.add(name);
                         }
                     } else {
                         env_status.add(new EnvStatus(name, val, "PROPERTY"));
+                        wrongProperty = true;
                     }
                 }
             }
