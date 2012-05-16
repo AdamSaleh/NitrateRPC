@@ -169,7 +169,7 @@ public abstract class CommandWrapper {
             if (o == null) {
                 o = connection.invoke(current());
                 setResult(o);
-                setCompleted();
+                if(status == Status.UNKNOWN) setCompleted();
             } else {
                 setResult(o);
                 setDuplicate();

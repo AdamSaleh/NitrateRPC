@@ -26,12 +26,12 @@
                         <img id="subitems-Col-${testRunCreate.hashCode()}"
                             src="${rootURL}/plugin/NitrateIntegration/images/col_subitems.png" align="left"
                             alt="${%Click to collapse subitems}" tooltip="${%Click to collapse subitems}"
-                            style="visibility: visible" width="16" height="16" 
+                            style="visibility: hidden; display:none;" width="16" height="16" 
                             onclick="myHide(${testRunCreate.hashCode()}, 'subitems-')" />
                         <img id="subitems-Exp-${testRunCreate.hashCode()}"
                             src="${rootURL}/plugin/NitrateIntegration/images/exp_subitems.png" align="left"
                             alt="${%Click to expand subitems}" tooltip="${%Click to expand subitems}"
-                            style="visibility: hidden; display: none;" width="16" height="16" 
+                            style="visibility: visible" width="16" height="16" 
                             onclick="myShow(${testRunCreate.hashCode()}, 'subitems-')" />
                         <j:choose>
                             <j:when test="${testRunCreate.exception()}">
@@ -110,7 +110,7 @@
                     </td>
                 </tr>
                 <tr><td colspan="6">
-                    <table id="subitems-${testRunCreate.hashCode()}"  width="100%">
+                    <table id="subitems-${testRunCreate.hashCode()}"  width="100%" style="visibility: hidden; display: none;">
                         <tr><td>
                             <!-- Iterate over all environmental variables to be lined with this run -->
                             <j:forEach var="testRunLinkEnv" items="${it.gatherer.getCommandList('TestRun.link_env_value', testRunCreate.hashCode())}">
