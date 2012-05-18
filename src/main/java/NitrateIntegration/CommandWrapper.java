@@ -207,6 +207,8 @@ public abstract class CommandWrapper {
     public Hashtable<String, String> description() {
         return current.descriptionMap();
     }
+    
+    public abstract String summary();
 
     public String name() {
         return current.name();
@@ -269,6 +271,11 @@ public abstract class CommandWrapper {
 
             }
         }
+
+        @Override
+        public String summary() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
     }
 
     public static class BuildCreate extends CommandWrapper {
@@ -303,6 +310,10 @@ public abstract class CommandWrapper {
             Hashtable<String, String> map = current.descriptionMap();
             map.put("product", properties.product + " (" + map.get("product") + ")");
             return map;
+        }
+        
+        public String summary(){
+           return description().get("name") + " "+ description().get("product");
         }
 
         public String toString() {
@@ -350,6 +361,10 @@ public abstract class CommandWrapper {
             return map;
         }
 
+        public String summary(){
+           return description().get("summary");
+        }
+        
         public String toString() {
             return "Create Test Case";
         }
@@ -413,7 +428,11 @@ public abstract class CommandWrapper {
 
             return map;
         }
-
+        
+        public String summary(){
+           return description().get("summary");
+        }
+        
         public String toString() {
             return "Create Test Run";
         }
@@ -473,6 +492,17 @@ public abstract class CommandWrapper {
 
         public Hashtable<String, String> description() {
             Hashtable<String, String> map = current.descriptionMap();
+            
+             String status = map.get("case_run_status");
+             if(status.contentEquals( String.valueOf(TestCaseRun.FAILED) )){
+                        status = "FAILED";
+                    }else if(status.contentEquals( String.valueOf(TestCaseRun.PASSED) )){
+                        status = "PASSED";
+                    }else if(status.contentEquals( String.valueOf(TestCaseRun.WAIVED) )){
+                        status = "WAIVED";
+                    }
+             map.put("case_run_status",status);
+             
             for (CommandWrapper deps : getDependecies()) {
                 if (deps.current() instanceof Build.create) {
                     map.put("build", deps.description().get("name") + " (" + map.get("build") + ")");
@@ -481,6 +511,7 @@ public abstract class CommandWrapper {
                     map.put("run", deps.description().get("summary") + " (" + map.get("run") + ")");
 
                 } else if (deps.current() instanceof TestCase.create) {
+                 
                     map.put("case", deps.description().get("summary") + " (" + map.get("case") + ")");
 
                 }
@@ -488,7 +519,11 @@ public abstract class CommandWrapper {
 
             return map;
         }
-
+        
+        public String summary(){
+           return description().get("case") + " " +description().get("case_run_status");
+        }
+        
         public String toString() {
             return "Create Test Case Run";
         }
@@ -545,6 +580,10 @@ public abstract class CommandWrapper {
                 map.put("env_value_id", v.value + " (" + map.get("env_value_id") + ")");
             }
             return map;
+        }
+        
+        public String summary(){
+           return description().get("env_value_id");
         }
 
         public void setResult(Object o) {

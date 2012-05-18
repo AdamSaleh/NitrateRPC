@@ -47,7 +47,7 @@
                                 ${testRunLinkEnv.toString()}
                             </td>
                             <td class="commandHeader">
-                                ${testRunLinkEnv.description().get('summary')}
+                                ${testRunLinkEnv.summary()}
                             </td>
                             <td class="commandHeader">
                                 <img id="details-Col-${testRunLinkEnv.hashCode()}"

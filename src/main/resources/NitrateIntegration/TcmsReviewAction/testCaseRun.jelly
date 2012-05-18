@@ -47,7 +47,7 @@
                                 ${testCaseRunCreate.toString()}
                             </td>
                             <td class="commandHeader">
-                                ${testCaseRunCreate.description().get('summary')}
+                                ${testCaseRunCreate.summary()}
                             </td>
                             <td class="commandHeader">
                                 <img id="details-Col-${testCaseRunCreate.hashCode()}"
