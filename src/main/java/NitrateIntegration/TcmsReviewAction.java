@@ -110,6 +110,13 @@ public class TcmsReviewAction implements Action {
 
                 connection = new TcmsConnection(serverUrl);
                 connection.setUsernameAndPassword(username, password);
+                
+                boolean test = connection.testTcmsConnection();
+                if(test == false){
+                    throw new IOException("Couln't connect to tcms server");
+                }
+                
+                
                 Auth.login_krbv auth = new Auth.login_krbv();
                 String session;
                 session = auth.invoke(connection);
@@ -162,6 +169,12 @@ public class TcmsReviewAction implements Action {
             try {
                 connection = new TcmsConnection(serverUrl);
                 connection.setUsernameAndPassword(username, password);
+                
+                boolean test = connection.testTcmsConnection();
+                if(test == false){
+                    throw new IOException("Couln't connect to tcms server");
+                }
+                
                 Auth.login_krbv auth = new Auth.login_krbv();
                 String session;
                 session = auth.invoke(connection);
@@ -242,18 +255,22 @@ public class TcmsReviewAction implements Action {
             properties.setConnection(connection);
             properties.reload();
 
+            
             upload(gatherer, connection);
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        
+        
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
 
 
     }
 
-    public void upload(TcmsGatherer gathered, TcmsConnection connection) throws XmlRpcFault {
+    public void upload(TcmsGatherer gathered, TcmsConnection connection) /*throws XmlRpcFault*/ {
         boolean at_least_one;
         boolean at_least_one_not_duplicate;
         do {
