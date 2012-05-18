@@ -82,7 +82,7 @@ public abstract class CommandWrapper {
             return true;
         }
         for (CommandWrapper s : dependecy) {
-            if (s.completed() == false && s.duplicate() == false) {
+            if (s.completed() == false && s.duplicate() == false && s.subitemFailed() == false) {
                 return false;
             }
         }
@@ -120,7 +120,15 @@ public abstract class CommandWrapper {
     public boolean isChecked() {
         return checked;
     }
-
+    
+    public boolean subitemFailed(){
+        return status == Status.SUBITEM_FAILED;
+    }
+    
+    public void setSubitemFailed(){
+        status = Status.SUBITEM_FAILED;
+    }
+    
     public boolean unmetDependencies() {
         return status == Status.UNMET_DEPENDENCIES;
     }
@@ -156,6 +164,9 @@ public abstract class CommandWrapper {
                 result = null;
                 unexpected = o;
                 status = Status.EXCEPTION;
+                for(CommandWrapper c : dependecy){
+                    c.setSubitemFailed();
+                }
                 return;
             }
         }
@@ -437,7 +448,8 @@ public abstract class CommandWrapper {
         public Object getResultIfDuplicate(TcmsConnection connection) {
                 TestCaseRun.filter f = new TestCaseRun.filter();
                 TestCaseRun.create command = (TestCaseRun.create) current;
-                f.build = command.build;
+                // FIXME
+                //f.build = command.build;
                 f.run = command.run;
                 f.caseVar = command.caseVar;
                 f.case_run_status = command.case_run_status;
@@ -466,7 +478,8 @@ public abstract class CommandWrapper {
             }
 
             if (build != -1 && run != -1 && caseVar != -1) {
-                ((TestCaseRun.create) current()).build = build;
+                // FIXME
+                //((TestCaseRun.create) current()).build = build;
                 ((TestCaseRun.create) current()).caseVar = caseVar;
                 ((TestCaseRun.create) current()).run = run;
                 return true;

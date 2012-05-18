@@ -54,6 +54,11 @@
                                         alt="${%This command is missing some dependencies}" tooltip="${%This command is missing some dependencies}"
                                         style="visibility: visible" width="16" height="16" align="right" />
                             </j:when>
+                            <j:when test="${testRunCreate.subitemFailed()}">
+                                <img src="${rootURL}/plugin/NitrateIntegration/images/subitem-failed.png" 
+                                    alt="${%A subcommand failed.}" tooltip="${%A subcommand failed.}"
+                                    style="visibility: visible" width="16" height="16" align="right" />
+                            </j:when>
                         </j:choose>
                         
                     </td>

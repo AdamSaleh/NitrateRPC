@@ -83,7 +83,8 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         TestCaseRun.create c = new TestCaseRun.create();
         c.run = -1;
         c.caseVar = -1;
-        c.build = -1;
+        // FIXME
+        //c.build = -1;
         c.case_run_status = status;
         return c;
     }
