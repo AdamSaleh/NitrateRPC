@@ -161,12 +161,16 @@ public abstract class CommandWrapper {
         }
     }
 
-    public boolean perform(TcmsConnection connection) throws XmlRpcFault {
+    public boolean perform(TcmsConnection connection) /*throws XmlRpcFault*/ {
         if (processDependecies()) {
             setPerforming();
             Object o = getResultIfDuplicate(connection);
             if (o == null) {
-                o = connection.invoke(current());
+                try {
+                    o = connection.invoke(current());
+                } catch (XmlRpcFault ex) {
+                    setResult(ex);
+                }
                 setResult(o);
                 if(status == Status.UNKNOWN) setCompleted();
             } else {
@@ -286,7 +290,6 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-            try {
                 Build.check_build f = new Build.check_build();
                 Build.create comand = (Build.create) current;
                 f.name = comand.name;
@@ -295,10 +298,6 @@ public abstract class CommandWrapper {
                 CommandWrapper script = new CommandWrapper.Generic(f, Build.class, null, null);
                 script.perform(connection);
                 return script.getResult(Build.class);
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            return null;
         }
 
         @Override
@@ -329,7 +328,6 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-            try {
                 TestCase.filter f = new TestCase.filter();
                 TestCase.create comand = (TestCase.create) current;
                 f.summary = comand.summary;
@@ -340,10 +338,6 @@ public abstract class CommandWrapper {
                 CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class, null, null);
                 script.perform(connection);
                 return script.getResult(TestCase.class);
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            return null;
         }
 
         @Override
@@ -378,7 +372,6 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-            try {
                 TestRun.filter f = new TestRun.filter();
                 TestRun.create command = (TestRun.create) current;
                 f.build = command.build;
@@ -389,10 +382,6 @@ public abstract class CommandWrapper {
                 CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class, null, null);
                 script.perform(connection);
                 return script.getResult(TestRun.class);
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            return null;
         }
 
         @Override
@@ -446,7 +435,6 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-            try {
                 TestCaseRun.filter f = new TestCaseRun.filter();
                 TestCaseRun.create command = (TestCaseRun.create) current;
                 f.build = command.build;
@@ -457,10 +445,6 @@ public abstract class CommandWrapper {
                 CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class, null, null);
                 script.perform(connection);
                 return script.getResult(TestCaseRun.class);
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            return null;
         }
 
         @Override
