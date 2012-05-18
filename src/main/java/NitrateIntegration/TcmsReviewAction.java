@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import org.apache.commons.io.IOExceptionWithCause;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import redstone.xmlrpc.XmlRpcFault;
@@ -205,23 +206,33 @@ public class TcmsReviewAction implements Action {
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
         
-        // parse 
-        String input = null;
-        for (CommandWrapper c : gatherer) {
-            String a = new Integer(c.hashCode()).toString();
-            input = req.getParameter(a);
-            if (input != null) {
-                c.setExecutable(true);
-                c.setChecked(true);
-            } else {
-                c.setExecutable(false);
-                c.setChecked(false);
-            }
-        }
-
+        
+        
+      
         try {
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(username, password);
+
+            boolean test = connection.testTcmsConnection();
+            if(test == false){
+                throw new IOException("Couln't connect to tcms server");
+            }
+            
+            // parse 
+            String input = null;
+            for (CommandWrapper c : gatherer) {
+                String a = new Integer(c.hashCode()).toString();
+                input = req.getParameter(a);
+                if (input != null) {
+                    c.setExecutable(true);
+                    c.setChecked(true);
+                } else {
+                    c.setExecutable(false);
+                    c.setChecked(false);
+                }
+            }
+
+            
             Auth.login_krbv auth = new Auth.login_krbv();
             String session;
             session = auth.invoke(connection);

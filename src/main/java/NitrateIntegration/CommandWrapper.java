@@ -70,7 +70,6 @@ public abstract class CommandWrapper {
     public boolean hasDependency(Integer hashCode) {
         for (CommandWrapper w : dependecy) {
             int a = w.hashCode();
-
             if (hashCode.equals(w.hashCode())) {
                 return true;
             }
@@ -503,6 +502,20 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
+            try {
+                TestRun.get_env_values f = new TestRun.get_env_values();
+                TestRun.link_env_value link_val = ((TestRun.link_env_value) current);
+                f.run_id = link_val.run_id;
+                XmlRpcArray a = (XmlRpcArray) connection.invoke(f);
+                for(Object o:a){
+                    Env.Value v= TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Env.Value.class);
+                    if(v.id.compareTo(link_val.env_value_id) == 0){
+                        return o;
+                    }
+                }
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            }
             return null;
         }
 
