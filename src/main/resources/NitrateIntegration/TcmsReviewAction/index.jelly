@@ -13,16 +13,15 @@
     .tdSmall {width: 20px}
     .status { font-weight:bold}
     .statusMsg {}
+    .exception { color: red }
 </style>
 
   
 <script><![CDATA[
 
-function updateIcons(elemName, param, type)
-{
-    var cmds = window.document.getElementsByTagName('img');
-    var collapse;
-    var expand;
+
+function updateIcons(elemName, param, type) {
+    var cmds = window.document.getElementsByTagName('img'), collapse, expand;
     for (var cmdIndex in cmds) {
         cmd = cmds[cmdIndex];
         if (cmd.id && cmd.id == (type + 'Exp-' + elemName)) {
@@ -37,7 +36,7 @@ function updateIcons(elemName, param, type)
     collapse.style.display = (param == 'c') ? 'none' : '';
 }
 
-function myShow(e, type){
+function myShow(e, type) {
     table = type + e;
     elem = document.getElementById(table);
     elem.style.visibility = 'visible';

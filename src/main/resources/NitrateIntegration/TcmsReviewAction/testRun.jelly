@@ -11,7 +11,6 @@
                     <td class="commandHeader">
                         <j:choose>
                             <j:when test="${testRunCreate.isChecked()}">
-                                
                                 <f:checkbox name="${testRunCreate.hashCode()}" checked="true" 
                                 id="checkbox-${testRunCreate.hashCode()}" 
                                 onclick="toggleSubitems('checkbox-',${testRunCreate.hashCode()})"/>
@@ -92,6 +91,16 @@
                     <td></td>
                     <td align="left" colspan="3">
                         <table id="details-${testRunCreate.hashCode()}" style="visibility:hidden; display:none"  width="100%">
+                            <j:if test="${testCaseRunCreate.exception()}">
+                                <tr class="exception">
+                                    <td>
+                                        Exception: 
+                                    </td>
+                                    <td>
+                                        ${testCaseRunCreate.unexpected}
+                                    </td>
+                                </tr>
+                            </j:if>
                             <j:forEach var="field" items="${testRunCreate.description().entrySet()}">
                                 <tr>
                                     <td style="width:150px">    
