@@ -2,23 +2,34 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
              
              
-        <table cellspacing="0px" cellpadding="2px" border="1">
+        <table cellspacing="0px" cellpadding="2px" >
             <tr>
                 <th align="left" class="tdSmallCheckbox"><f:checkbox name="allCheck" id="1" onclick="toggleAll()" checked="true" /></th>
-                <th class="tdSmallStatus"></th>
+                <th style="width: 40px; ">
+                    <img id="allSubColl"
+                        src="${rootURL}/plugin/NitrateIntegration/images/col_subitems.png" align="right"
+                        alt="${%Click to collapse all subitems}" tooltip="${%Click to collapse all subitems}"
+                        style="visibility: visible" width="16" height="16" 
+                        onclick="hideAll('subitems-')" />
+                    <img id="allSubExp"
+                        src="${rootURL}/plugin/NitrateIntegration/images/exp_subitems.png" align="right"
+                        alt="${%Click to expand all subitems}" tooltip="${%Click to expand all subitems}"
+                        style="visibility: visible" width="16" height="16" 
+                        onclick="showAll('subitems-')" />
+                </th>
                 <th  width="300px">Action</th> 
                 <th>Description</th>
                 <th>
-                    <img id="allColl"
+                    <img id="allDetailColl"
                         src="${rootURL}/plugin/NitrateIntegration/images/top.png" align="right"
                         alt="${%Click to collapse all details}" tooltip="${%Click to collapse all details}"
                         style="visibility: visible" width="16" height="16" 
-                        onclick="hideAll()" />
-                    <img id="allExp"
+                        onclick="hideAll('details-')" />
+                    <img id="allDetailExp"
                         src="${rootURL}/plugin/NitrateIntegration/images/bottom.png" align="right"
                         alt="${%Click to expand all details}" tooltip="${%Click to expand all details}"
                         style="visibility: visible" width="16" height="16" 
-                        onclick="showAll()" />
+                        onclick="showAll('details-')" />
                 </th>
             </tr>
 

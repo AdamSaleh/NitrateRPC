@@ -3,17 +3,19 @@
          
             <tr>
                 
-                <td></td><td></td>
+                <td class="tdSmall"></td><td class="tdSmall"></td>
                 <td colspan="6">
-                    <table border="1" style="width: 100%">
+                    <table  style="width: 100%" cellspacing="0px" cellpadding="2px">
                         <tr>
                             <td class="commandHeader tdSmallCheckbox">
                                 <j:choose>
                                     <j:when test="${testRunLinkEnv.isChecked()}">
-                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="true" />
+                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="true" 
+                                        id="testRun-${testRunCreate.hashCode()};testCaseRun-${testRunLinkEnv.hashCode()}"/>
                                     </j:when>
                                     <j:otherwise>
-                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="false" />
+                                        <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="false" 
+                                        id="testRun-${testRunCreate.hashCode()};testCaseRun-${testRunLinkEnv.hashCode()}"/>
                                     </j:otherwise>
                                 </j:choose>
                             </td>
@@ -22,55 +24,55 @@
                                     <j:when test="${testRunLinkEnv.exception()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/exception.png" 
                                             alt="${%Exception occured}" tooltip="${%Exception ocurred}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>
                                     <j:when test="${testRunLinkEnv.completed()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
                                             alt="${%Command completed succesfully}" tooltip="${%Command completed succesfully}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>                           
                                     <j:when test="${testRunLinkEnv.duplicate()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
                                             alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>
                                     <j:when test="${testRunLinkEnv.unmetDependencies()}">
                                         <img src="${rootURL}/plugin/NitrateIntegration/images/dependencies.png" 
                                             alt="${%This command is missing some dependencies}" tooltip="${%This command is missing some dependencies}"
-                                            style="visibility: visible" width="16" height="16" align="center" />
+                                            style="visibility: visible" width="16" height="16" align="right" />
                                     </j:when>
                                 </j:choose>
                             </td>
-                            <td colspan="2" class="commandHeader">
+                            <td colspan="2" class="commandTitle">
                                 ${testRunLinkEnv.toString()}
                             </td>
                             <td class="commandHeader">
                                 ${testRunLinkEnv.description().get('summary')}
                             </td>
                             <td class="commandHeader">
-                                <img id="imgCol-${testRunLinkEnv.hashCode()}"
+                                <img id="details-Col-${testRunLinkEnv.hashCode()}"
                                     src="${rootURL}/plugin/NitrateIntegration/images/go-top.png" align="right"
                                     alt="${%Click to collapse details}" tooltip="${%Click to collapse details}"
                                     style="visibility: hidden; display: none;" width="16" height="16" 
-                                    onclick="myHide(${testRunLinkEnv.hashCode()})" />
-                                <img id="imgExp-${testRunLinkEnv.hashCode()}"
+                                    onclick="myHide(${testRunLinkEnv.hashCode()},'details-')" />
+                                <img id="details-Exp-${testRunLinkEnv.hashCode()}"
                                     src="${rootURL}/plugin/NitrateIntegration/images/go-bottom.png" align="right"
                                     alt="${%Click to expand details}" tooltip="${%Click to expand details}"
                                     style="visibility: visible;" width="16" height="16" 
-                                    onclick="myShow(${testRunLinkEnv.hashCode()})" />
+                                    onclick="myShow(${testRunLinkEnv.hashCode()},'details-')" />
                             </td>
                         </tr>       
                         <tr>
-                            <td></td><td></td> 
+                            <td></td><td></td> <td class="tdSmall"></td> 
                             <td width="220px">
                                 <st:nbsp/> 
                             </td>
 
                         </tr>
                         <tr>
-                            <td></td><td></td>
+                            <td></td><td></td><td></td> 
                             <td colspan="4" align="left">
-                                <table id="details-${testRunLinkEnv.hashCode()}" style="visibility:hidden; display:none" border="1" width="100%">
+                                <table id="details-${testRunLinkEnv.hashCode()}" style="visibility:hidden; display:none" width="100%">
                                     <j:forEach var="field" items="${testRunLinkEnv.description().entrySet()}">
                                         <tr>
                                             <td style="width:150px">    
