@@ -35,7 +35,7 @@
 
             <j:forEach var="buildCreate" items="${it.gatherer.getCommandList('Build.create')}">
 
-                <!-- Iterate over all builds to be created (always should be exactly one) -->
+                <!-- Iterate over all builds to be created (always must be exactly one) -->
                 <st:include page="testBuild.jelly"/>
             </j:forEach>
 

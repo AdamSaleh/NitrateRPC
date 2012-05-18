@@ -132,7 +132,6 @@ function toggleSubitems(prefix, code){
                     <br/><br/><br/>
                     <f:form method="post" action="reportSubmit" name="dataUpload">
                         <f:entry>
-
                             <st:include page="report.jelly"/>
 
                             <f:submit value="Submit Report" />

@@ -6,9 +6,9 @@
         <td></td>
         <td></td>
         <td colspan="8">
-            <table width="100%" cellspacing="0px" cellpadding="2px" align="right">
+            <table width="100%" cellspacing="0px" cellpadding="2px" align="right" >
                 <tr>
-                    <td class="commandHeader">
+                    <td class="commandHeader tdSmall">
                         <j:choose>
                             <j:when test="${testRunCreate.isChecked()}">
                                 <f:checkbox name="${testRunCreate.hashCode()}" checked="true" 
@@ -102,14 +102,31 @@
                                 </tr>
                             </j:if>
                             <j:forEach var="field" items="${testRunCreate.description().entrySet()}">
-                                <tr>
-                                    <td style="width:150px">    
-                                        ${field.getKey()}
-                                    </td>
-                                    <td>    
-                                        ${field.getValue()}
-                                    </td>
-                                </tr>
+                                 <j:choose>
+                                    <j:when test="${field.getKey() == 'summary'}">
+                                        <tr>
+                                            <td style="width:150px">
+                                                ${field.getKey()}
+                                            </td>
+                                            <td>
+                                                <f:textbox name="testRunSummary" clazz="required" style="width: 200px" value="${field.getValue()}" />
+                                                <f:submit value="update" />
+                                            </td>
+                                        </tr>
+                                    </j:when>
+                                    <j:otherwise>
+                                        <tr>
+                                            <td style="width:150px">    
+                                                ${field.getKey()}
+                                            </td>
+                                            <td>    
+                                                ${field.getValue()}
+                                            </td>
+                                        </tr>
+                                    </j:otherwise>
+                                 </j:choose>
+                                 
+                                
                             </j:forEach>
                             <tr>
                                 <td>
