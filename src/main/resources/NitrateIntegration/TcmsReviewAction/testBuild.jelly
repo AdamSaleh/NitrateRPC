@@ -57,7 +57,7 @@
                                 ${buildCreate.toString()}                                    
                             </td>
                             <td class="commandHeader">
-                                ${buildCreate.description().get('summary')}
+                                ${buildCreate.summary()}
                             </td>
                             <td class="commandHeader">
                                 <img id="details-Col-${buildCreate.hashCode()}"

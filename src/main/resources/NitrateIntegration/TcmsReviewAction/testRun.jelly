@@ -61,7 +61,7 @@
                         ${testRunCreate.toString()}
                     </td>
                     <td class="commandHeader">
-                        ${testRunCreate.description().get('summary')}
+                        ${testRunCreate.summary()}
                     </td>
                     <td class="commandHeader">
                         <img id="details-Col-${testRunCreate.hashCode()}"
