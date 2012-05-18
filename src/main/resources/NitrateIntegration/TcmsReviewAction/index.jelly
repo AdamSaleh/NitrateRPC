@@ -56,7 +56,7 @@ function showAll(type){
     var i;
     for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
         var element = document.dataUpload.elements[i];
-        if( element.type == 'checkbox' && element.id.indexOf("checkbox") != -1 ){
+        if( element.type == 'checkbox' && element.id != "1" && (element.id.indexOf("checkbox") != -1 || type == 'details-') ){
             myShow(element.name, type);
         }
     }
@@ -66,7 +66,7 @@ function hideAll(type){
     var i;
     for( i = 0, len = document.dataUpload.elements.length ; i < len ; i++ ){
         var element = document.dataUpload.elements[i];
-        if( element.type == 'checkbox' && element.id.indexOf("checkbox") != -1  ){
+        if( element.type == 'checkbox' && element.id != "1" && (element.id.indexOf("checkbox") != -1 || type == 'details-') ){
             myHide(element.name, type);
         }
     }
