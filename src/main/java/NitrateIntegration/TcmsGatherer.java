@@ -34,7 +34,6 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
 
     
     LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
-    HashMap<TcmsCommand,CommandWrapper> commands = new HashMap<TcmsCommand,CommandWrapper>();
     HashMap<String,LinkedList<CommandWrapper>> commands_sorted = new HashMap<String,LinkedList<CommandWrapper>>();
     
     
@@ -107,8 +106,15 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         TestCaseRun.create c_case_run = tcmsCreateCaseRun(status);
          
         TestCase.create c_case = tcmsCreateCase(result,properties);
-        if(commands.containsKey(c_case)){
-            dependency =commands.get(c_case);
+        
+        String name_of_case = (new TestCase.create()).name(); // mne sa to nechce hladat
+        
+        if(commands_sorted.get(name_of_case)!=null){
+            for(CommandWrapper w:commands_sorted.get(name_of_case)){
+                if(w.current.equals(c_case)){
+                    dependency =w;
+                }
+            }
         }else{
             dependency = add(c_case,TestCase.class);
         }
@@ -155,7 +161,6 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
 
     public void clear() {
         list.clear();
-        commands.clear();
         commands_sorted.clear();
     }
 
@@ -163,7 +168,8 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         if(current!=null){
             CommandWrapper script = CommandWrapper.wrap(current,result_class,properties,environment);
             list.add(script);
-            commands.put(current,script);
+            
+          
 
             if(commands_sorted.containsKey(current.name())==false){
                 commands_sorted.put(current.name(), new LinkedList<CommandWrapper>());
