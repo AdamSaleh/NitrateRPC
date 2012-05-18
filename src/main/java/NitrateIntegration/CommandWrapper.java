@@ -70,7 +70,6 @@ public abstract class CommandWrapper {
     public boolean hasDependency(Integer hashCode) {
         for (CommandWrapper w : dependecy) {
             int a = w.hashCode();
-
             if (hashCode.equals(w.hashCode())) {
                 return true;
             }
