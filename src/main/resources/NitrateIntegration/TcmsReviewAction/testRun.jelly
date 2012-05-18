@@ -11,8 +11,9 @@
                     <td class="commandHeader">
                         <j:choose>
                             <j:when test="${testRunCreate.isChecked()}">
+                                
                                 <f:checkbox name="${testRunCreate.hashCode()}" checked="true" 
-                                id="checkbox-${testRunCreate.hashCode()}"
+                                id="checkbox-${testRunCreate.hashCode()}" 
                                 onclick="toggleSubitems('checkbox-',${testRunCreate.hashCode()})"/>
                             </j:when>
                             <j:otherwise>
