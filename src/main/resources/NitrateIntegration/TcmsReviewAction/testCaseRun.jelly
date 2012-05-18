@@ -64,8 +64,8 @@
                          </tr>
                          <tr>
                             <td></td><td></td><td class="tdSmall"></td>
-                            <td width="220px">
-                                <st:nbsp/> 
+                            <td width="220px">                                
+                                <st:nbsp/>
                             </td>
                         </tr>
                         <tr>
@@ -73,6 +73,16 @@
                             <td colspan="4" align="left">
                                 
                                 <table id="details-${testCaseRunCreate.hashCode()}" style="visibility:hidden; display:none"  width="100%">
+                                   <j:if test="${testCaseRunCreate.exception()}">
+                                       <tr class="exception">
+                                            <td>
+                                                Exception: 
+                                            </td>
+                                            <td>
+                                                ${testCaseRunCreate.unexpected}
+                                            </td>
+                                        </tr>
+                                    </j:if>
                                     <j:forEach var="field" items="${testCaseRunCreate.description().entrySet()}">
                                         <tr>
                                             <td style="width:150px">    

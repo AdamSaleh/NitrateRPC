@@ -28,7 +28,7 @@ public abstract class CommandWrapper {
 
     enum Status {
 
-        UNKNOWN, COMPLETED, DUPLICATE, EXCEPTION, UNMET_DEPENDENCIES
+        UNKNOWN, COMPLETED, DUPLICATE, EXCEPTION, UNMET_DEPENDENCIES, SUBITEM_FAILED
     }
     protected Status status;
     private LinkedList<CommandWrapper> dependecy;
