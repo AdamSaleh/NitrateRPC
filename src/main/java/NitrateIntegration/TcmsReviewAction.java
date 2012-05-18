@@ -6,7 +6,9 @@ package NitrateIntegration;
 
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.Auth;
+import com.redhat.nitrate.Build;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TestRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import java.io.IOException;
@@ -207,49 +209,58 @@ public class TcmsReviewAction implements Action {
             IOException, InterruptedException {
         
         
-        
-      
-        try {
-            connection = new TcmsConnection(serverUrl);
-            connection.setUsernameAndPassword(username, password);
-
-            boolean test = connection.testTcmsConnection();
-            if(test == false){
-                throw new IOException("Couln't connect to tcms server");
-            }
+        if(req.getParameter("Submit").equals("update")) {
+            // update build name
+            Build.create buildCreate = (Build.create) gatherer.getCommandList("Build.create").getFirst().current;
+            buildCreate.name = req.getParameter("buildName");
             
-            // parse 
-            String input = null;
-            for (CommandWrapper c : gatherer) {
-                String a = new Integer(c.hashCode()).toString();
-                input = req.getParameter(a);
-                if (input != null) {
-                    c.setExecutable(true);
-                    c.setChecked(true);
-                } else {
-                    c.setExecutable(false);
-                    c.setChecked(false);
+            // update testRun summary
+            TestRun.create testRunCreate = (TestRun.create) gatherer.getCommandList("TestRun.create").getFirst().current;
+            testRunCreate.summary = req.getParameter("testRunSummary");
+            
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+        } else {
+            try {
+                connection = new TcmsConnection(serverUrl);
+                connection.setUsernameAndPassword(username, password);
+
+                boolean test = connection.testTcmsConnection();
+                if(test == false){
+                    throw new IOException("Couln't connect to tcms server");
                 }
-            }
 
-            
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            session = auth.invoke(connection);
-            if (session.length() > 0) {
-                connection.setSession(session);
-            }
-            properties.setConnection(connection);
-            properties.reload();
+                // parse 
+                String input;
+                for (CommandWrapper c : gatherer) {
+                    String a = new Integer(c.hashCode()).toString();
+                    input = req.getParameter(a);
+                    if (input != null) {
+                        c.setExecutable(true);
+                        c.setChecked(true);
+                    } else {
+                        c.setExecutable(false);
+                        c.setChecked(false);
+                    }
+                }
 
-            upload(gatherer, connection);
-        } catch (XmlRpcFault ex) {
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+
+                Auth.login_krbv auth = new Auth.login_krbv();
+                String session;
+                session = auth.invoke(connection);
+                if (session.length() > 0) {
+                    connection.setSession(session);
+                }
+                properties.setConnection(connection);
+                properties.reload();
+
+                upload(gatherer, connection);
+            } catch (XmlRpcFault ex) {
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
         }
-        rsp.sendRedirect("../" + Definitions.__URL_NAME);
-
 
     }
 

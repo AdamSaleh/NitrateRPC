@@ -96,14 +96,30 @@
                                         </tr>
                                     </j:if>
                                     <j:forEach var="field" items="${buildCreate.description().entrySet()}">
-                                        <tr>
-                                            <td style="width:150px">    
-                                                ${field.getKey()}
-                                            </td>
-                                            <td>    
-                                                ${field.getValue()}
-                                            </td>
-                                        </tr>
+                                        <j:choose>
+                                            <j:when test="${field.getKey() == 'name'}">
+                                                <tr>
+                                                    <td style="width:150px">
+                                                        ${field.getKey()}
+                                                    </td>
+                                                    <td>
+                                                        <f:textbox name="buildName" clazz="required" style="width: 200px" value="${field.getValue()}" />
+                                                        <f:submit value="update" />
+                                                    </td>
+                                                </tr>
+                                            </j:when>
+                                            <j:otherwise>
+                                                <tr>
+                                                    <td style="width:150px">  
+                                                        ${field.getKey()}
+                                                    </td>
+                                                    <td>    
+                                                        ${field.getValue()}
+                                                    </td>
+                                                </tr>
+                                            </j:otherwise>
+                                        </j:choose>
+                                                
                                     </j:forEach>
                                     <tr>
                                         <td>
