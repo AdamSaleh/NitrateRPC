@@ -163,6 +163,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
     public void clear() {
         list.clear();
         commands_sorted.clear();
+        this.build_s=null;
     }
 
     private CommandWrapper add(TcmsCommand current,Class result_class) {

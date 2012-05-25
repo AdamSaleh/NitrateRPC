@@ -118,6 +118,13 @@ function toggleSubitems(prefix, code){
                 </j:when>
 
                 <j:otherwise>
+                    <h1>Re-Gather Report</h1>
+
+                    <f:form method="post" action="gather" name="nitrateplugin-gather">
+                        <f:entry>
+                            <f:submit value="Re-Gather report from test-files" />
+                        </f:entry>
+                    </f:form>
 
                     <h1>Review Report</h1>       
 
@@ -126,7 +133,7 @@ function toggleSubitems(prefix, code){
 
                             <st:include page="envCheck.jelly"/>
 
-                        <f:submit value="Check enviromental vars" />
+                        <f:submit value="Check enviromental vars" /><f:submit value="Change" />
                         </f:entry>
                     </f:form>
                     <br/><br/><br/>

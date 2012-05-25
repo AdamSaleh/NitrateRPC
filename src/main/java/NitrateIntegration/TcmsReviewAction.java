@@ -13,9 +13,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -38,10 +36,16 @@ public class TcmsReviewAction implements Action {
     String password;
     public final TcmsProperties properties;
     public final TcmsEnvironment environment;
-    private LinkedList<EnvStatus> env_status;
+    private Hashtable<String, Hashtable<String, String>> env_status;
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
+    boolean change_axis =false;
 
+    public boolean isChange_axis() {
+        return change_axis;
+    }
+
+    
     public String getIconFileName() {
         return Definitions.__ICON_FILE_NAME;
     }
@@ -62,7 +66,7 @@ public class TcmsReviewAction implements Action {
         return gatherer;
     }
 
-    public LinkedList<EnvStatus> getEnv_status() {
+    public Hashtable<String, Hashtable<String, String>> getEnv_status() {
         return env_status;
     }
 
@@ -73,7 +77,6 @@ public class TcmsReviewAction implements Action {
     public HashSet<String> getPropertyWWrongValue() {
         return propertyWWrongValue;
     }
-    
 
     public TcmsEnvironment getEnvironment() {
         return environment;
@@ -99,57 +102,57 @@ public class TcmsReviewAction implements Action {
         this.serverUrl = serverUrl;
         this.environment = new TcmsEnvironment(env);
         this.build = build;
-        gatherer = new TcmsGatherer(properties,environment);
-        env_status = new LinkedList<EnvStatus>();
+        gatherer = new TcmsGatherer(properties, environment);
+        env_status = new Hashtable<String, Hashtable<String, String>>();
         propertyWWrongValue = new HashSet<String>();
-        wrongProperty =false;
+        wrongProperty = false;
     }
 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException, XmlRpcFault {
-        
-                gatherer.clear();
 
-                connection = new TcmsConnection(serverUrl);
-                connection.setUsernameAndPassword(username, password);
-                
-                boolean test = connection.testTcmsConnection();
-                if(test == false){
-                    throw new IOException("Couln't connect to tcms server");
-                }
-                
-                
-                Auth.login_krbv auth = new Auth.login_krbv();
-                String session;
-                session = auth.invoke(connection);
-                if (session.length() > 0) {
-                    connection.setSession(session);
-                }
-                environment.setConnection(connection);
-                environment.reloadEnvId();
-                
-                properties.setConnection(connection);
-                properties.reload();
+        gatherer.clear();
 
-        
-        for (GatherFiles gatherfile : gatherFiles) {
-            gatherer.gather(gatherfile.results, build, gatherfile.build,gatherfile.variables);
+        connection = new TcmsConnection(serverUrl);
+        connection.setUsernameAndPassword(username, password);
+
+        boolean test = connection.testTcmsConnection();
+        if (test == false) {
+            throw new IOException("Couln't connect to tcms server");
         }
-        
+
+
+        Auth.login_krbv auth = new Auth.login_krbv();
+        String session;
+        session = auth.invoke(connection);
+        if (session.length() > 0) {
+            connection.setSession(session);
+        }
+        environment.setConnection(connection);
+        environment.reloadEnvId();
+
+        properties.setConnection(connection);
+        properties.reload();
+
+
+        for (GatherFiles gatherfile : gatherFiles) {
+            gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
+        }
+
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
     public static class GatherFiles {
+
         public TestResults results;
         public AbstractBuild build;
-        public Map<String,String> variables;
+        public Map<String, String> variables;
 
         public GatherFiles(TestResults results, AbstractBuild build, Map<String, String> variables) {
             this.results = results;
             this.build = build;
             this.variables = variables;
         }
-   
     }
     LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
 
@@ -157,82 +160,134 @@ public class TcmsReviewAction implements Action {
         gatherFiles.clear();
     }
 
-    public void addGatherPath(TestResults results, AbstractBuild build,Map<String,String> variables) {
-        GatherFiles f = new GatherFiles(results, build,variables);
-        if(f!=null){
+    public void addGatherPath(TestResults results, AbstractBuild build, Map<String, String> variables) {
+        GatherFiles f = new GatherFiles(results, build, variables);
+        if (f != null) {
             gatherFiles.add(f);
         }
     }
 
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
-       
 
-            try {
-                connection = new TcmsConnection(serverUrl);
-                connection.setUsernameAndPassword(username, password);
-                
-                boolean test = connection.testTcmsConnection();
-                if(test == false){
-                    throw new IOException("Couln't connect to tcms server");
-                }
-                
-                Auth.login_krbv auth = new Auth.login_krbv();
-                String session;
-                session = auth.invoke(connection);
-                if (session.length() > 0) {
-                    connection.setSession(session);
-                }
-                environment.setConnection(connection);
-                environment.reloadEnvId();
+        change_axis=false;
+        if(req.getParameter("Submit").equals("Change")){
+            change_axis=true;
+        }
 
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            env_status.clear();
-            propertyWWrongValue.clear();
-            wrongProperty = false;
-            for (GatherFiles env : gatherFiles) {
-                for (Map.Entry<String,String> prop : env.variables.entrySet()) {
-                    /*
-                     * check value
-                     */
-                    String name =prop.getKey();
-                    String val=prop.getValue();
-                    if (environment.containsProperty(name)) {
-                        if (environment.containsValue(name, val)) {
-                            env_status.add(new EnvStatus(name, val, "CHECKED"));
-                        } else {
-                            env_status.add(new EnvStatus(name, val, "VALUE"));
-                            propertyWWrongValue.add(name);
+        
+        Map params = req.getParameterMap();
+        /*update values first*/
+        for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<String,Object> entry =(Map.Entry<String,Object>) it.next();
+            if(entry.getKey().startsWith("value-")){
+                String value = ((String[]) entry.getValue())[0];
+                
+                String property_name = entry.getKey().replaceFirst("value-", "");
+                String value_name = property_name.split("=>")[1];
+                property_name = property_name.split("=>")[0];
+                
+                for (GatherFiles env : gatherFiles) {
+                    if(env.variables.containsKey(property_name)){
+                        if(env.variables.get(property_name).equals(value_name)){
+                            env.variables.remove(property_name);
+                            env.variables.put(property_name, value);
                         }
-                    } else {
-                        env_status.add(new EnvStatus(name, val, "PROPERTY"));
-                        wrongProperty = true;
                     }
                 }
             }
+        }
+        /*change property-names second*/
+        for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<String,Object> entry =(Map.Entry<String,Object>) it.next();
+            if(entry.getKey().startsWith("property-")){
+                String new_property_name = ((String[]) entry.getValue())[0];
+                
+                String property_name = entry.getKey().replaceFirst("property-", "");
+                
+                for (GatherFiles env : gatherFiles) {
+                    if(env.variables.containsKey(property_name)){
+                        String val = env.variables.get(property_name);
+                        env.variables.remove(property_name);
+                        env.variables.put(new_property_name, val);
+                        
+                    }
+                }
+            }
+        }
         
+        try {
+            connection = new TcmsConnection(serverUrl);
+            connection.setUsernameAndPassword(username, password);
+
+            boolean test = connection.testTcmsConnection();
+            if (test == false) {
+                throw new IOException("Couln't connect to tcms server");
+            }
+
+            Auth.login_krbv auth = new Auth.login_krbv();
+            String session;
+            session = auth.invoke(connection);
+            if (session.length() > 0) {
+                connection.setSession(session);
+            }
+            environment.setConnection(connection);
+            environment.reloadEnvId();
+
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        env_status.clear();      
+        propertyWWrongValue.clear();
+        wrongProperty = false;
+        for (GatherFiles env : gatherFiles) {
+            for (Map.Entry<String, String> prop : env.variables.entrySet()) {
+                // check value
+                String name = prop.getKey();
+                String val = prop.getValue();
+
+                String result = "UNKNOWN";
+
+                if (environment.containsProperty(name)) {
+                    if (environment.containsValue(name, val)) {
+                        result = "CHECKED";
+                    } else {
+                        result = "VALUE";
+                        propertyWWrongValue.add(name);
+                    }
+                } else {
+                    result = "PROPERTY";
+                    wrongProperty = true;
+                }
+
+                if (env_status.containsKey(name) == false) {
+                    env_status.put(name, new Hashtable<String, String>());
+                }
+                env_status.get(name).put(val, result);
+
+
+            }
+        }
+
+
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
-    
-    
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
         
-        
-        if(req.getParameter("Submit").equals("update")) {
+        if (req.getParameter("Submit").equals("update")) {
             // update build name
             Build.create buildCreate = (Build.create) gatherer.getCommandList("Build.create").getFirst().current;
             buildCreate.name = req.getParameter("buildName");
-            
+
             // update testRun summary
             TestRun.create testRunCreate = (TestRun.create) gatherer.getCommandList("TestRun.create").getFirst().current;
             testRunCreate.summary = req.getParameter("testRunSummary");
-            
+
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
         } else {
             try {
@@ -240,7 +295,7 @@ public class TcmsReviewAction implements Action {
                 connection.setUsernameAndPassword(username, password);
 
                 boolean test = connection.testTcmsConnection();
-                if(test == false){
+                if (test == false) {
                     throw new IOException("Couln't connect to tcms server");
                 }
 
@@ -279,7 +334,9 @@ public class TcmsReviewAction implements Action {
 
     }
 
-    public void upload(TcmsGatherer gathered, TcmsConnection connection) /*throws XmlRpcFault*/ {
+    public void upload(TcmsGatherer gathered, TcmsConnection connection) /*
+     * throws XmlRpcFault
+     */ {
         boolean at_least_one;
         boolean at_least_one_not_duplicate;
         do {
@@ -288,8 +345,8 @@ public class TcmsReviewAction implements Action {
             for (CommandWrapper command : gathered) {
                 if (command.isExecutable()) {
                     if (command.resolved()) { //If dependecnies are satisfied
-                        if(command.completed()==false){ // not to run command again
-                            if(command.performed()==false){ // this command had satisfied dependecies but failed for some reason, so dont loop o it
+                        if (command.completed() == false) { // not to run command again
+                            if (command.performed() == false) { // this command had satisfied dependecies but failed for some reason, so dont loop o it
                                 boolean tmp = command.perform(connection);
                                 if (tmp) {
                                     at_least_one = true;
@@ -298,38 +355,15 @@ public class TcmsReviewAction implements Action {
                                     at_least_one_not_duplicate = true;
                                 }
                             }
-                        } 
-                    }else{ // dependencies we not met
+                        }
+                    } else { // dependencies we not met
                         command.setUnmetDependencies();
                     }
                 }
-                
+
             }
         } while (at_least_one && at_least_one_not_duplicate);
     }
 
-    public static class EnvStatus {
-
-        private final String property;
-        private final String value;
-        private final String status;
-
-        public EnvStatus(String property, String value, String status) {
-            this.property = property;
-            this.value = value;
-            this.status = status;
-        }
-
-        public String getProperty() {
-            return property;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
+  
 }

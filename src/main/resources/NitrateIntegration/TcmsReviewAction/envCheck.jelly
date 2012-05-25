@@ -4,38 +4,59 @@
        
     <table>                       
                         
-        <j:forEach var="env" items="${it.env_status}">
+        <j:forEach var="env" items="${it.env_status.entrySet()}">
             <tr>
                 <td>
-                    ${env.property}
+                    ${env.getKey()}
+                     <j:choose>
+                            <j:when test="${env.getValue().values().iterator().next()=='PROPERTY'}">
+                                <br />
+                                New property: <br />
+                                <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
+                             </j:when>
+                             <j:otherwise>
+                            </j:otherwise>
+                     </j:choose>
                 </td>
                 <td>
-                    ${env.value}
-                </td>
-                <td>
-                    <j:choose>
-                        <j:when test="${env.status=='CHECKED'}">
-                             <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
-                                    alt="${%Property checked}" tooltip="${%Property checked}"
-                                    style="visibility: visible" width="16" height="16" align="center" />
-                        </j:when>
-                        <j:when test="${env.status=='VALUE'}">
-                            Value 
-                            <strong>${env.value}</strong> is not linked with 
-                            <strong> ${env.property}</strong> in TCMS. 
-                                    
-                        </j:when>
-                        <j:when test="${env.status=='PROPERTY'}">
-                            Property 
-                            <strong>${env.property}</strong> is not linked with group 
-                            <strong>${it.environment.env}</strong> in TCMS. 
-                                 
-                        </j:when>
-                        <j:otherwise>
-                            ${env.status}
-                        </j:otherwise>
-                    </j:choose>
+                    <table>
+                    <j:forEach var="val" items="${env.getValue().entrySet()}">
+                    <tr>    
+                    <td>
+                    ${val.getKey()}
+                    </td>
+                    <td>
+                        <j:choose>
+                            <j:when test="${val.getValue()=='CHECKED'}">
+                                <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                        alt="${%Property checked}" tooltip="${%Property checked}"
+                                        style="visibility: visible" width="16" height="16" align="center" />
+                                         <j:choose>
+                                        <j:when test="${it.change_axis}">
+                                               New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                                        </j:when>
+                                        </j:choose>
+                            </j:when>
+                            <j:when test="${val.getValue()=='VALUE'}">
+                                Value is not linked with <strong> ${env.getKey()}</strong>.
+                                New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                            </j:when>
+                            <j:when test="${val.getValue()=='PROPERTY'}">
+                                Property is not linked to 
+                                <strong>${it.environment.env}</strong>. 
+                                New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
 
+                                
+                            </j:when>
+                            <j:otherwise>
+                                ${val.getValue()}
+                            </j:otherwise>
+                        </j:choose>
+
+                    </td>
+                    </tr>
+                    </j:forEach>
+                    </table>
                 </td>
             </tr>
         </j:forEach>
@@ -50,8 +71,6 @@
             <br />
     </j:when>
     </j:choose>
-    <j:choose>
-    <j:when test="${env.status=='PROPERTY'}">
         
          <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
             Aviable values for property <strong>${prop}:</strong>
@@ -62,8 +81,6 @@
          </j:forEach>
          
         
-    </j:when>
-    </j:choose>
          
              
 </j:jelly>
