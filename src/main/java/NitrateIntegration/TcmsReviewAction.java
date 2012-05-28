@@ -11,13 +11,13 @@ import com.redhat.nitrate.TcmsConnection;
 import com.redhat.nitrate.TestRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
-import org.apache.commons.io.IOExceptionWithCause;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import redstone.xmlrpc.XmlRpcFault;
@@ -31,20 +31,41 @@ public class TcmsReviewAction implements Action {
     public AbstractBuild<?, ?> build;
     private TcmsGatherer gatherer;
     private TcmsConnection connection;
+    
     String serverUrl;
     String username;
     String password;
-    public final TcmsProperties properties;
+    
+    public TcmsProperties properties;
     public final TcmsEnvironment environment;
     private Hashtable<String, Hashtable<String, String>> env_status;
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
     boolean change_axis =false;
 
+    List<String> update_problems = new LinkedList<String>();
+    
     public boolean isChange_axis() {
         return change_axis;
     }
 
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
+    public List<String> getUpdate_problems() {
+        return update_problems;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    
     
     public String getIconFileName() {
         return Definitions.__ICON_FILE_NAME;
@@ -167,6 +188,74 @@ public class TcmsReviewAction implements Action {
         }
     }
 
+     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws ServletException,
+            IOException, InterruptedException {
+                   List<String> problems=new LinkedList<String>();
+
+         String serverUrl = req.getParameter("_.serverUrl");
+         String username = req.getParameter("_.username");
+         String password = req.getParameter("_.password");
+         
+         if(this.serverUrl.contentEquals(serverUrl) &&
+             this.username.contentEquals(username)  &&
+             this.password.contentEquals(password)){
+             //do nothing
+         }else{
+             TcmsConnection c = new TcmsConnection(serverUrl);
+             c.setUsernameAndPassword(username, password);
+             if(c.testTcmsConnection()){
+                 connection = c;
+             }else{
+                 problems.add("Conection with new url,username and password failed.");
+             }
+         }
+         
+         String plan = req.getParameter("_.plan");
+         String product = req.getParameter("_.product");
+         String product_v = req.getParameter("_.product_v");
+         String category = req.getParameter("_.category");
+         String priority = req.getParameter("_.priority");
+         String manager = req.getParameter("_.manager");
+         
+         TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+            String session;
+            Auth.login_krbv auth = new Auth.login_krbv();
+
+           try {
+                session = auth.invoke(connection);
+                if (session.length() > 0) {
+                    connection.setSession(session);
+                }
+                properties.setConnection(connection);
+                properties.reload();
+            } catch (XmlRpcFault ex) {
+                problems.add("Possibly wrong username/password");
+            }
+            if (properties.getPlanID() == null) {
+               problems.add("Possibly wrong plan id");
+            }
+            if (properties.getProductID() == null) {
+                problems.add("Possibly wrong product name");
+            }
+            if (properties.getProduct_vID() == null) {
+                problems.add("Possibly wrong product version");
+            }
+            if (properties.getCategoryID() == null) {
+                problems.add("Possibly wrong category name");
+            }
+            if (properties.getPriorityID() == null) {
+                problems.add("Possibly wrong priority name");
+            }
+            if (properties.getManagerId() == null) {
+                problems.add("Possibly wrong manager's username");
+            }
+         
+            if(problems.isEmpty()){
+                this.properties=properties;
+            }
+         this.update_problems = problems;
+         rsp.sendRedirect("../" + Definitions.__URL_NAME);
+     }
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
 

@@ -39,11 +39,13 @@
                             </j:when>
                             <j:when test="${val.getValue()=='VALUE'}">
                                 Value is not linked with <strong> ${env.getKey()}</strong>.
+                                <br />
                                 New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
                             </j:when>
                             <j:when test="${val.getValue()=='PROPERTY'}">
                                 Property is not linked to 
                                 <strong>${it.environment.env}</strong>. 
+                                <br />
                                 New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
 
                                 

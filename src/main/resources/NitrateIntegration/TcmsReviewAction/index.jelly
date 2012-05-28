@@ -103,7 +103,7 @@ function toggleSubitems(prefix, code){
 }
 
 ]]></script>
-
+       
             <j:choose>
                 <j:when test="${it.gatherer.isEmpty()}">
 
@@ -118,6 +118,9 @@ function toggleSubitems(prefix, code){
                 </j:when>
 
                 <j:otherwise>
+                 <table>
+                 <tr>
+                 <td>
                     <h1>Re-Gather Report</h1>
 
                     <f:form method="post" action="gather" name="nitrateplugin-gather">
@@ -126,8 +129,7 @@ function toggleSubitems(prefix, code){
                         </f:entry>
                     </f:form>
 
-                    <h1>Review Report</h1>       
-
+                 
                     <f:form method="post" action="checkSubmit" name="envCheck" >
                         <f:entry>
 
@@ -136,7 +138,29 @@ function toggleSubitems(prefix, code){
                         <f:submit value="Check enviromental vars" /><f:submit value="Change" />
                         </f:entry>
                     </f:form>
-                    <br/><br/><br/>
+                 
+                 </td>
+                 <td>
+                     <f:form method="post" action="updateSettings" name="updaetSettings" >
+                        <f:entry>
+                            
+                     <st:include page="settings.jelly"/>
+                     <br />
+                     <f:submit value="Update" />
+                      </f:entry>
+                    </f:form>
+                 </td>
+                 </tr>
+                 <tr>
+                     <td>
+                         
+                     </td>
+                 </tr>
+                 </table>                 
+                 
+                 <h1>Review Report</h1>       
+
+                 <br/><br/><br/>
                     <f:form method="post" action="reportSubmit" name="dataUpload">
                         <f:entry>
                             <st:include page="report.jelly"/>

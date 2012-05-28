@@ -169,4 +169,30 @@ public class TcmsProperties {
     public Integer getManagerId() {
         return manager_id;
     }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public String getManager() {
+        return manager;
+    }
+
+    public String getPlan() {
+        return plan;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public String getProduct() {
+        return product;
+    }
+
+    public String getProduct_v() {
+        return product_v;
+    }
+    
+    
 }
