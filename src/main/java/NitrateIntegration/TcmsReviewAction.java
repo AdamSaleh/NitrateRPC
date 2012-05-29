@@ -43,7 +43,7 @@ public class TcmsReviewAction implements Action {
     private HashSet<String> propertyWWrongValue;
     boolean change_axis =false;
 
-    List<String> update_problems = new LinkedList<String>();
+    public List<String> update_problems = new LinkedList<String>();
     
     public boolean isChange_axis() {
         return change_axis;
@@ -133,7 +133,8 @@ public class TcmsReviewAction implements Action {
             IOException, InterruptedException, XmlRpcFault {
 
         gatherer.clear();
-
+        
+        
         connection = new TcmsConnection(serverUrl);
         connection.setUsernameAndPassword(username, password);
 
@@ -156,6 +157,8 @@ public class TcmsReviewAction implements Action {
         properties.reload();
 
 
+        gatherer.setProperties(properties);
+        
         for (GatherFiles gatherfile : gatherFiles) {
             gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
         }

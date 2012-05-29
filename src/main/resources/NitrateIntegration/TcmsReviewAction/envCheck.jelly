@@ -14,6 +14,11 @@
                                 New property: <br />
                                 <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
                              </j:when>
+                             <j:when test="${it.change_axis}">
+                              <br />
+                                New property: <br />
+                                <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
+                           </j:when>
                              <j:otherwise>
                             </j:otherwise>
                      </j:choose>

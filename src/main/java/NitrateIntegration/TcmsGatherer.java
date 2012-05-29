@@ -43,6 +43,11 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         this.environment =env;
     }
 
+    public void setProperties(TcmsProperties properties) {
+        this.properties = properties;
+    }
+
+    
     private static TestCase.create tcmsCreateCase(MethodResult result,TcmsProperties properties) {
         TestCase.create create = new TestCase.create();
         create.product = properties.getProductID();
@@ -82,8 +87,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         TestCaseRun.create c = new TestCaseRun.create();
         c.run = -1;
         c.caseVar = -1;
-        // FIXME
-        //c.build = -1;
+        c.build = -1;
         c.case_run_status = status;
         return c;
     }
@@ -110,13 +114,16 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         
         String name_of_case = (new TestCase.create()).name(); // mne sa to nechce hladat
         
+        boolean case_not_found =true;
         if(commands_sorted.get(name_of_case)!=null){
             for(CommandWrapper w:commands_sorted.get(name_of_case)){
                 if(w.current.equals(c_case)){
                     dependency =w;
+                    case_not_found = false;
                 }
             }
-        }else{
+        }
+        if(case_not_found){
             dependency = add(c_case,TestCase.class);
         }
         CommandWrapper case_run = add(c_case_run,TestCaseRun.class);

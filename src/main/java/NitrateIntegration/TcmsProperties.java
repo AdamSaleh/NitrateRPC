@@ -30,7 +30,7 @@ public class TcmsProperties {
     private Integer category_id = null;
     private Integer priority_id = null;
     private Integer manager_id = null;
-    
+
     public TcmsProperties(String plan, String product, String product_v, String category, String priority, String manager) {
         this.plan = plan;
         this.product = product;
@@ -39,19 +39,43 @@ public class TcmsProperties {
         this.priority = priority;
         this.manager = manager;
     }
-   
     TcmsConnection connection;
+
     public void setConnection(TcmsConnection connection) {
         this.connection = connection;
     }
-    
-    public void reload() throws XmlRpcFault {
-        reloadPlanId();
-        reloadProductId();
-        reloadProduct_vId();
-        reloadPriorityId();
-        reloadCategoryId();
-        reloadManagerId();
+
+    public void reload() {
+        try {
+            reloadPlanId();
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            reloadProductId();
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            reloadProduct_vId();
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            reloadPriorityId();
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            reloadCategoryId();
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            reloadManagerId();
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public Integer getPlanID() {
@@ -61,7 +85,12 @@ public class TcmsProperties {
     public void reloadPlanId() throws XmlRpcFault {
         plan_id = null;
         TestPlan.get get = new TestPlan.get();
-        get.id = Integer.parseInt(plan);
+        try {
+            get.id = Integer.parseInt(plan);
+
+        } catch (Exception e) {//plan is not numeric
+            return;
+        }
         Object o = connection.invoke(get);
 
         if (o instanceof XmlRpcStruct) {
@@ -193,6 +222,4 @@ public class TcmsProperties {
     public String getProduct_v() {
         return product_v;
     }
-    
-    
 }

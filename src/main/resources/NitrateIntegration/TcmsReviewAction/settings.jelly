@@ -38,7 +38,7 @@
   </f:entry>
 
   <ul>
-       <j:forEach var="val" items="${env.update_problems}">
+       <j:forEach var="val" items="${it.update_problems}">
        <li> ${val}</li>
        </j:forEach>             
   </ul>

@@ -448,8 +448,7 @@ public abstract class CommandWrapper {
         public Object getResultIfDuplicate(TcmsConnection connection) {
                 TestCaseRun.filter f = new TestCaseRun.filter();
                 TestCaseRun.create command = (TestCaseRun.create) current;
-                // FIXME
-                //f.build = command.build;
+                f.build = command.build;
                 f.run = command.run;
                 f.caseVar = command.caseVar;
                 f.case_run_status = command.case_run_status;
@@ -478,8 +477,8 @@ public abstract class CommandWrapper {
             }
 
             if (build != -1 && run != -1 && caseVar != -1) {
-                // FIXME
-                //((TestCaseRun.create) current()).build = build;
+                
+                ((TestCaseRun.create) current()).build = build;
                 ((TestCaseRun.create) current()).caseVar = caseVar;
                 ((TestCaseRun.create) current()).run = run;
                 return true;
