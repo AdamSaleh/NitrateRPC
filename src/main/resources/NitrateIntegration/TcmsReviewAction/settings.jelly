@@ -9,8 +9,8 @@
     Creates a text field that shows the value of the "name" property.
     When submitted, it will be passed to the corresponding constructor parameter.
   -->
-  <f:entry title="Url" field="serverUrl">
-    <f:textbox  value="${it.serverUrl}"/>
+  <f:entry title="Url" field="serverUrl" >
+    <f:textbox  value="${it.serverUrl}"  style="width: 180px"/>
   </f:entry>
   <f:entry title="Username" field="username">
     <f:textbox value="${it.username}"/>

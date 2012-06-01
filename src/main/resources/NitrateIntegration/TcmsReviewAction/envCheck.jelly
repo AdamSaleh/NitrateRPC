@@ -2,7 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
        
-    <table>                       
+    <table border="1">                       
                         
         <j:forEach var="env" items="${it.env_status.entrySet()}">
             <tr>
@@ -24,7 +24,7 @@
                      </j:choose>
                 </td>
                 <td>
-                    <table>
+                    <table border="1">
                     <j:forEach var="val" items="${env.getValue().entrySet()}">
                     <tr>    
                     <td>
@@ -66,28 +66,27 @@
                     </table>
                 </td>
             </tr>
+            <tr><td><st:nbsp/></td></tr>
         </j:forEach>
     </table> 
     <br />
-     <j:choose>
-    <j:when test="${it.existsWrongProperty()}">
-        Aviable properties for group <strong>${it.environment.env}</strong>:                       
-           <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
-                ${posible_val},  
-            </j:forEach>
-            <br />
-    </j:when>
-    </j:choose>
-        
-         <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
+        <j:choose>
+            <j:when test="${it.existsWrongProperty()}">
+                Aviable properties for group <strong>${it.environment.env}</strong>:                       
+                <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
+                        ${posible_val},  
+                    </j:forEach>
+                    <br />
+            </j:when>
+        </j:choose>
+
+        <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
             Aviable values for property <strong>${prop}:</strong>
             <j:forEach var="posible_val" items="${it.environment.values.get(prop).keySet()}">
                 ${posible_val}, 
             </j:forEach>
             <br />
-         </j:forEach>
-         
-        
+        </j:forEach>
          
              
 </j:jelly>
