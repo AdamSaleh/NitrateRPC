@@ -212,7 +212,7 @@ public class TcmsReviewAction implements Action {
                  problems.add("Conection with new url,username and password failed.");
              }
          }
-         
+         if(problems.isEmpty()){
          String plan = req.getParameter("_.plan");
          String product = req.getParameter("_.product");
          String product_v = req.getParameter("_.product_v");
@@ -252,10 +252,11 @@ public class TcmsReviewAction implements Action {
             if (properties.getManagerId() == null) {
                 problems.add("Possibly wrong manager's username");
             }
-         
-            if(problems.isEmpty()){
+             if(problems.isEmpty()){
                 this.properties=properties;
             }
+         }
+           
          this.update_problems = problems;
          rsp.sendRedirect("../" + Definitions.__URL_NAME);
      }
