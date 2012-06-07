@@ -110,7 +110,7 @@
                                  <j:choose>
                                     <j:when test="${field.getKey() == 'summary'}">
                                         <tr>
-                                            <td style="width:150px">
+                                            <td style="width:150px; vertical-align: middle">
                                                 ${field.getKey()}
                                             </td>
                                             <td>
