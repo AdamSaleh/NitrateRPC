@@ -235,22 +235,24 @@ public class TcmsReviewAction implements Action {
                 problems.add("Possibly wrong username/password");
             }
             if (properties.getPlanID() == null) {
-               problems.add("Possibly wrong plan id");
+               problems.add(properties.plan + " is possibly wrong plan id");
             }
             if (properties.getProductID() == null) {
-                problems.add("Possibly wrong product name");
+                problems.add(properties.product + " is possibly wrong product name (couldn't check product version and category)");
+            }else{
+                if (properties.getProduct_vID() == null) {
+                problems.add(properties.product_v + " is possibly wrong product version");
+                }
+                if (properties.getCategoryID() == null) {
+                    problems.add(properties.category + " is possibly wrong category name");
+                }
             }
-            if (properties.getProduct_vID() == null) {
-                problems.add("Possibly wrong product version");
-            }
-            if (properties.getCategoryID() == null) {
-                problems.add("Possibly wrong category name");
-            }
+            
             if (properties.getPriorityID() == null) {
-                problems.add("Possibly wrong priority name");
+                problems.add(properties.priority + " is possibly wrong priority name");
             }
             if (properties.getManagerId() == null) {
-                problems.add("Possibly wrong manager's username");
+                problems.add(properties.manager + " is possibly wrong manager's username");
             }
              if(problems.isEmpty()){
                 this.properties=properties;
