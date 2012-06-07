@@ -87,6 +87,10 @@
             </j:forEach>
             <br />
         </j:forEach>
-         
+  <ul>
+       <j:forEach var="val" items="${it.env_check_problems}">
+       <li> ${val}</li>
+       </j:forEach>             
+  </ul>
              
 </j:jelly>

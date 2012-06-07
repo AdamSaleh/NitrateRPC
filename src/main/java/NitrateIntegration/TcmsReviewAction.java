@@ -44,6 +44,8 @@ public class TcmsReviewAction implements Action {
     boolean change_axis =false;
 
     public List<String> update_problems = new LinkedList<String>();
+    public HashSet<String> env_check_problems = new HashSet<String>();
+
     
     public boolean isChange_axis() {
         return change_axis;
@@ -57,6 +59,12 @@ public class TcmsReviewAction implements Action {
         return update_problems;
     }
 
+    public HashSet<String> getEnv_check_problems() {
+        return env_check_problems;
+    }
+
+    
+    
     public String getUsername() {
         return username;
     }
@@ -264,14 +272,16 @@ public class TcmsReviewAction implements Action {
      }
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
+        HashSet<String> problems=new HashSet<String>();
 
+        
         change_axis=false;
         if(req.getParameter("Submit").equals("Change")){
             change_axis=true;
         }
-
         
         Map params = req.getParameterMap();
+      
         /*update values first*/
         for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
             Map.Entry<String,Object> entry =(Map.Entry<String,Object>) it.next();
@@ -292,6 +302,8 @@ public class TcmsReviewAction implements Action {
                 }
             }
         }
+        
+        
         /*change property-names second*/
         for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
             Map.Entry<String,Object> entry =(Map.Entry<String,Object>) it.next();
@@ -302,15 +314,20 @@ public class TcmsReviewAction implements Action {
                 
                 for (GatherFiles env : gatherFiles) {
                     if(env.variables.containsKey(property_name)){
-                        String val = env.variables.get(property_name);
-                        env.variables.remove(property_name);
-                        env.variables.put(new_property_name, val);
-                        
+                        if(env.variables.containsKey(new_property_name)){
+                            problems.add("Duplicit property name error."); 
+                        }else{
+                            String val = env.variables.get(property_name);
+                            env.variables.remove(property_name);
+                            env.variables.put(new_property_name, val);
+                        }
+
                     }
                 }
             }
         }
         
+        /*test*/
         try {
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(username, password);
@@ -367,6 +384,7 @@ public class TcmsReviewAction implements Action {
             }
         }
 
+        this.env_check_problems = problems;
 
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
