@@ -4,19 +4,16 @@
  */
 package NitrateIntegration;
 
-import NitrateIntegration.CommandWrapper;
-import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.MethodResult;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.*;
 import com.redhat.nitrate.Env.Value;
-import hudson.FilePath;
-import hudson.matrix.Combination;
-import hudson.matrix.MatrixRun;
+import com.redhat.nitrate.*;
 import hudson.model.AbstractBuild;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
-import redstone.xmlrpc.XmlRpcStruct;
 
 
 /**

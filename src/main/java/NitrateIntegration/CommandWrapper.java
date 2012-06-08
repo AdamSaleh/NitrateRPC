@@ -5,7 +5,8 @@
 package NitrateIntegration;
 
 import com.redhat.nitrate.*;
-import java.util.*;
+import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import redstone.xmlrpc.XmlRpcArray;
@@ -120,15 +121,15 @@ public abstract class CommandWrapper {
     public boolean isChecked() {
         return checked;
     }
-    
-    public boolean subitemFailed(){
+
+    public boolean subitemFailed() {
         return status == Status.SUBITEM_FAILED;
     }
-    
-    public void setSubitemFailed(){
+
+    public void setSubitemFailed() {
         status = Status.SUBITEM_FAILED;
     }
-    
+
     public boolean unmetDependencies() {
         return status == Status.UNMET_DEPENDENCIES;
     }
@@ -164,7 +165,7 @@ public abstract class CommandWrapper {
                 result = null;
                 unexpected = o;
                 status = Status.EXCEPTION;
-                for(CommandWrapper c : dependecy){
+                for (CommandWrapper c : dependecy) {
                     c.setSubitemFailed();
                 }
                 return;
@@ -172,7 +173,9 @@ public abstract class CommandWrapper {
         }
     }
 
-    public boolean perform(TcmsConnection connection) /*throws XmlRpcFault*/ {
+    public boolean perform(TcmsConnection connection) /*
+     * throws XmlRpcFault
+     */ {
         if (processDependecies()) {
             setPerforming();
             Object o = getResultIfDuplicate(connection);
@@ -183,13 +186,15 @@ public abstract class CommandWrapper {
                     setResult(ex);
                 }
                 setResult(o);
-                if(status == Status.UNKNOWN) setCompleted();
+                if (status == Status.UNKNOWN) {
+                    setCompleted();
+                }
             } else {
                 setResult(o);
                 setDuplicate();
             }
             return true;
-        } else{
+        } else {
             setUnmetDependencies();
         }
         return false;
@@ -222,7 +227,7 @@ public abstract class CommandWrapper {
     public Hashtable<String, String> description() {
         return current.descriptionMap();
     }
-    
+
     public abstract String summary();
 
     public String name() {
@@ -301,14 +306,14 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-                Build.check_build f = new Build.check_build();
-                Build.create comand = (Build.create) current;
-                f.name = comand.name;
-                f.productid = comand.product;
+            Build.check_build f = new Build.check_build();
+            Build.create comand = (Build.create) current;
+            f.name = comand.name;
+            f.productid = comand.product;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, Build.class, null, null);
-                script.perform(connection);
-                return script.getResult(Build.class);
+            CommandWrapper script = new CommandWrapper.Generic(f, Build.class, null, null);
+            script.perform(connection);
+            return script.getResult(Build.class);
         }
 
         @Override
@@ -321,9 +326,9 @@ public abstract class CommandWrapper {
             map.put("product", properties.product + " (" + map.get("product") + ")");
             return map;
         }
-        
-        public String summary(){
-           return description().get("name") + " "+ description().get("product");
+
+        public String summary() {
+            return description().get("name") + " " + description().get("product");
         }
 
         public String toString() {
@@ -339,16 +344,16 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-                TestCase.filter f = new TestCase.filter();
-                TestCase.create comand = (TestCase.create) current;
-                f.summary = comand.summary;
-                f.category = comand.category;
-                f.priority = comand.priority;
-                f.plan = comand.plan;
+            TestCase.filter f = new TestCase.filter();
+            TestCase.create comand = (TestCase.create) current;
+            f.summary = comand.summary;
+            f.category = comand.category;
+            f.priority = comand.priority;
+            f.plan = comand.plan;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class, null, null);
-                script.perform(connection);
-                return script.getResult(TestCase.class);
+            CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class, null, null);
+            script.perform(connection);
+            return script.getResult(TestCase.class);
         }
 
         @Override
@@ -366,10 +371,10 @@ public abstract class CommandWrapper {
             return map;
         }
 
-        public String summary(){
-           return description().get("summary");
+        public String summary() {
+            return description().get("summary");
         }
-        
+
         public String toString() {
             return "Create Test Case";
         }
@@ -383,16 +388,16 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-                TestRun.filter f = new TestRun.filter();
-                TestRun.create command = (TestRun.create) current;
-                f.build = command.build;
-                f.plan = command.plan;
-                f.summary = command.summary;
-                f.manager = command.manager;
+            TestRun.filter f = new TestRun.filter();
+            TestRun.create command = (TestRun.create) current;
+            f.build = command.build;
+            f.plan = command.plan;
+            f.summary = command.summary;
+            f.manager = command.manager;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class, null, null);
-                script.perform(connection);
-                return script.getResult(TestRun.class);
+            CommandWrapper script = new CommandWrapper.Generic(f, TestRun.class, null, null);
+            script.perform(connection);
+            return script.getResult(TestRun.class);
         }
 
         @Override
@@ -428,11 +433,11 @@ public abstract class CommandWrapper {
 
             return map;
         }
-        
-        public String summary(){
-           return description().get("summary");
+
+        public String summary() {
+            return description().get("summary");
         }
-        
+
         public String toString() {
             return "Create Test Run";
         }
@@ -446,16 +451,16 @@ public abstract class CommandWrapper {
 
         @Override
         public Object getResultIfDuplicate(TcmsConnection connection) {
-                TestCaseRun.filter f = new TestCaseRun.filter();
-                TestCaseRun.create command = (TestCaseRun.create) current;
-                f.build = command.build;
-                f.run = command.run;
-                f.caseVar = command.caseVar;
-                f.case_run_status = command.case_run_status;
+            TestCaseRun.filter f = new TestCaseRun.filter();
+            TestCaseRun.create command = (TestCaseRun.create) current;
+            f.build = command.build;
+            f.run = command.run;
+            f.caseVar = command.caseVar;
+            f.case_run_status = command.case_run_status;
 
-                CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class, null, null);
-                script.perform(connection);
-                return script.getResult(TestCaseRun.class);
+            CommandWrapper script = new CommandWrapper.Generic(f, TestCaseRun.class, null, null);
+            script.perform(connection);
+            return script.getResult(TestCaseRun.class);
         }
 
         @Override
@@ -477,7 +482,7 @@ public abstract class CommandWrapper {
             }
 
             if (build != -1 && run != -1 && caseVar != -1) {
-                
+
                 ((TestCaseRun.create) current()).build = build;
                 ((TestCaseRun.create) current()).caseVar = caseVar;
                 ((TestCaseRun.create) current()).run = run;
@@ -488,17 +493,17 @@ public abstract class CommandWrapper {
 
         public Hashtable<String, String> description() {
             Hashtable<String, String> map = current.descriptionMap();
-            
-             String status = map.get("case_run_status");
-             if(status.contentEquals( String.valueOf(TestCaseRun.FAILED) )){
-                        status = "FAILED";
-                    }else if(status.contentEquals( String.valueOf(TestCaseRun.PASSED) )){
-                        status = "PASSED";
-                    }else if(status.contentEquals( String.valueOf(TestCaseRun.WAIVED) )){
-                        status = "WAIVED";
-                    }
-             map.put("case_run_status",status);
-             
+
+            String status = map.get("case_run_status");
+            if (status.contentEquals(String.valueOf(TestCaseRun.FAILED))) {
+                status = "FAILED";
+            } else if (status.contentEquals(String.valueOf(TestCaseRun.PASSED))) {
+                status = "PASSED";
+            } else if (status.contentEquals(String.valueOf(TestCaseRun.WAIVED))) {
+                status = "WAIVED";
+            }
+            map.put("case_run_status", status);
+
             for (CommandWrapper deps : getDependecies()) {
                 if (deps.current() instanceof Build.create) {
                     map.put("build", deps.description().get("name") + " (" + map.get("build") + ")");
@@ -507,7 +512,7 @@ public abstract class CommandWrapper {
                     map.put("run", deps.description().get("summary") + " (" + map.get("run") + ")");
 
                 } else if (deps.current() instanceof TestCase.create) {
-                 
+
                     map.put("case", deps.description().get("summary") + " (" + map.get("case") + ")");
 
                 }
@@ -515,11 +520,11 @@ public abstract class CommandWrapper {
 
             return map;
         }
-        
-        public String summary(){
-           return description().get("case") + " " +description().get("case_run_status");
+
+        public String summary() {
+            return description().get("case") + " " + description().get("case_run_status");
         }
-        
+
         public String toString() {
             return "Create Test Case Run";
         }
@@ -538,9 +543,9 @@ public abstract class CommandWrapper {
                 TestRun.link_env_value link_val = ((TestRun.link_env_value) current);
                 f.run_id = link_val.run_id;
                 XmlRpcArray a = (XmlRpcArray) connection.invoke(f);
-                for(Object o:a){
-                    Env.Value v= TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Env.Value.class);
-                    if(v.id.compareTo(link_val.env_value_id) == 0){
+                for (Object o : a) {
+                    Env.Value v = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Env.Value.class);
+                    if (v.id.compareTo(link_val.env_value_id) == 0) {
                         return o;
                     }
                 }
@@ -577,9 +582,9 @@ public abstract class CommandWrapper {
             }
             return map;
         }
-        
-        public String summary(){
-           return description().get("env_value_id");
+
+        public String summary() {
+            return description().get("env_value_id");
         }
 
         public void setResult(Object o) {

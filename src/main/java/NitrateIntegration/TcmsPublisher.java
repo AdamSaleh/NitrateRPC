@@ -1,43 +1,33 @@
 package NitrateIntegration;
 
+import com.redhat.engineering.jenkins.testparser.Parser;
+import com.redhat.engineering.jenkins.testparser.results.TestResults;
+import com.redhat.nitrate.Auth;
+import com.redhat.nitrate.TcmsAccessCredentials;
+import com.redhat.nitrate.TcmsConnection;
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Extension;
-import hudson.tasks.BuildStepMonitor;
-import hudson.util.FormValidation;
+import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
 import hudson.model.AbstractProject;
-import hudson.tasks.Builder;
+import hudson.model.BuildListener;
 import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Builder;
 import hudson.tasks.Recorder;
+import hudson.util.FormValidation;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
-
-import java.io.IOException;
-
-import com.redhat.nitrate.*;
-import hudson.tasks.test.TestResult;
-
-import hudson.tasks.junit.TestResultAction;
-import java.net.URL;
-import java.util.Hashtable;
-
-import java.util.LinkedList;
-
-import redstone.xmlrpc.*;
-import com.redhat.engineering.jenkins.testparser.Parser;
-import com.redhat.engineering.jenkins.testparser.results.*;
-import hudson.matrix.MatrixRun;
-import hudson.model.Result;
-import java.io.File;
-import java.io.PrintStream;
-import java.util.*;
+import org.kohsuke.stapler.StaplerRequest;
+import redstone.xmlrpc.XmlRpcFault;
 
 /**
  * Sample {@link Builder}.
@@ -58,7 +48,6 @@ public class TcmsPublisher extends Recorder {
     public final String serverUrl;
     private TcmsAccessCredentials credentials;
     public final String reportLocationPattern;
-
     public final String plan;
     public final String product;
     public final String product_v;
@@ -66,9 +55,8 @@ public class TcmsPublisher extends Recorder {
     public final String priority;
     public final String manager;
     public final String env;
-    
     static final Object lock = new Object();
-     
+
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
     public TcmsPublisher(String serverUrl, String username, String password,
@@ -82,16 +70,16 @@ public class TcmsPublisher extends Recorder {
             String testPath) {
 
         this.serverUrl = serverUrl;
-        this.reportLocationPattern = testPath;     
-        
+        this.reportLocationPattern = testPath;
+
         this.category = category;
         this.manager = manager;
         this.plan = plan;
         this.priority = priority;
         this.product = product;
-        this.product_v= product_v;
-        
-        this.env =env;
+        this.product_v = product_v;
+
+        this.env = env;
 
     }
 
@@ -104,25 +92,25 @@ public class TcmsPublisher extends Recorder {
         AbstractBuild agregateBuild = build;
         if (build instanceof MatrixRun) {
             MatrixRun mrun = (MatrixRun) build;
-            agregateBuild = mrun.getParentBuild();            
+            agregateBuild = mrun.getParentBuild();
         }
-        synchronized (lock){
-            if (agregateBuild.getAction(TcmsReviewAction.class) == null) { 
+        synchronized (lock) {
+            if (agregateBuild.getAction(TcmsReviewAction.class) == null) {
                 agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild,
                         serverUrl,
-                            plan,
-                            product,
-                            product_v,
-                            category,
-                            priority,
-                            manager,
-                            env,
-                            reportLocationPattern));
+                        plan,
+                        product,
+                        product_v,
+                        category,
+                        priority,
+                        manager,
+                        env,
+                        reportLocationPattern));
             }
         }
 
-        
-        FilePath[] paths=null;
+
+        FilePath[] paths = null;
         paths = Parser.locateReports(build.getWorkspace(), reportLocationPattern);
 
         if (paths.length == 0) {
@@ -132,19 +120,19 @@ public class TcmsPublisher extends Recorder {
 
         //paths = Parser.checkReports(build, paths, listener.getLogger());
 
-        boolean filesSaved = Parser.saveReports(Parser.getReportDir(build), paths,  listener.getLogger(), "test-results");
+        boolean filesSaved = Parser.saveReports(Parser.getReportDir(build), paths, listener.getLogger(), "test-results");
         if (!filesSaved) {
             listener.getLogger().println("Failed to save TestNG XML reports");
             return true;
         }
 
         TestResults results = Parser.loadResults(build, null, "test-results");
-        
+
         TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
-        Map<String,String> vars = new HashMap<String, String>();
+        Map<String, String> vars = new HashMap<String, String>();
         vars.putAll(build.getBuildVariables());
-        
-        action.addGatherPath(results, build,vars);
+
+        action.addGatherPath(results, build, vars);
 
         return true;
     }
@@ -277,7 +265,7 @@ public class TcmsPublisher extends Recorder {
                 return FormValidation.error("Something weird happened");
             }
 
-            
+
             c.setUsernameAndPassword(username, password);
             Auth.login_krbv auth = new Auth.login_krbv();
             String session;
@@ -293,7 +281,7 @@ public class TcmsPublisher extends Recorder {
             } catch (XmlRpcFault ex) {
                 return FormValidation.error("Possibly wrong username/password");
             }
-            
+
             if (environment.getEnvId() == null) {
                 return FormValidation.error("Possibly wrong environment group");
             }
