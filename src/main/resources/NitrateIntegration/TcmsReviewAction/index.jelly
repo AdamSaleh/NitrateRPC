@@ -103,9 +103,9 @@ function toggleSubitems(prefix, code){
 }
 
 ]]></script>
-       
+       <!-- 
             <j:choose>
-                <j:when test="${it.gatherer.isEmpty()}">
+               <j:when test="${it.gatherer.isEmpty()}">
 
                     <h1>Gather Report</h1>
 
@@ -118,6 +118,7 @@ function toggleSubitems(prefix, code){
                 </j:when>
 
                 <j:otherwise>
+                -->
                  <table border="1">
                      <tr>
                          <td colspan="3">
@@ -161,7 +162,9 @@ function toggleSubitems(prefix, code){
                         </td>
                     </tr>
                  </table>                 
-                 
+              <!--   <j:choose> -->
+               <j:when test="${it.gatherer.isEmpty()}"></j:when>
+               
                  <h1>Review Report</h1>       
 
                  <br/><br/><br/>

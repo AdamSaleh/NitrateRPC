@@ -129,14 +129,6 @@ public class TcmsPublisher extends Recorder {
         FilePath[] paths=null;
         paths = Parser.locateReports(build.getWorkspace(), reportLocationPattern);
 
-        //test for random local testng xml 
-        /*File local = new File(reportLocationPattern);
-        if(local.exists()){
-            FilePath test = new FilePath(local);
-            FilePath root  = new FilePath(new File("/"));
-            paths = Parser.locateReports(root, reportLocationPattern);
-        }*/
-        
         if (paths.length == 0) {
             listener.getLogger().println("Did not find any matching files.");
             return true;
