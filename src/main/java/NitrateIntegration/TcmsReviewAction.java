@@ -134,7 +134,7 @@ public class TcmsReviewAction implements Action {
 
         this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
         this.credentials =  new TcmsAccessCredentials();
-        boolean a = credentials.isEmpty();
+        
         this.serverUrl = serverUrl;
         this.environment = new TcmsEnvironment(env);
         this.build = build;
@@ -148,10 +148,10 @@ public class TcmsReviewAction implements Action {
             IOException, InterruptedException, XmlRpcFault {
 
         gatherer.clear();
-        
-        credentials.setUsername(req.getParameter("_.username"));
-        credentials.setPassword(req.getParameter("_.password"));
-        
+        if(credentials.isEmpty()){
+            credentials.setUsername(req.getParameter("_.username"));
+            credentials.setPassword(req.getParameter("_.password"));
+        }
         connection = new TcmsConnection(serverUrl);
         connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
