@@ -100,6 +100,8 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
             c.notes = result.getException().getExceptionName();
             c.notes += "\n\n";
             c.notes += result.getException().getStackTrace();
+            c.notes += "\n\n";
+            c.notes += result.getException().getMessage();
             
         }
         
