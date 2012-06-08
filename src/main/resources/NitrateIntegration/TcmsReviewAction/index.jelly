@@ -131,7 +131,7 @@ function toggleSubitems(prefix, code){
                 </j:when>
 
                 <j:otherwise>
-                    <table border="1">
+                    <table >
                         <tr>
                             <td colspan="3">
                                 <h1 style="display:inline">Manage settings </h1> 
@@ -140,7 +140,7 @@ function toggleSubitems(prefix, code){
                             </td>
                         </tr>
                         <tr id="settings-all">
-                            <td style="vertical-align: top">
+                            <td style="vertical-align: top" width="300">
                                 <f:form method="post" action="updateSettings" name="updaetSettings" >
                                     <st:include page="settings.jelly"/>
                                     <br/>

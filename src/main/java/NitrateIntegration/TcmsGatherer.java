@@ -55,7 +55,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         create.priority = properties.getPriorityID();
         create.summary = "";
         if(result.getParent()!=null){
-            create.summary += result.getParent().getName()+" ";
+            create.summary += result.getParent().getName()+".";
         }
         create.summary += result.getDisplayName();
         create.plan = properties.getPlanID();

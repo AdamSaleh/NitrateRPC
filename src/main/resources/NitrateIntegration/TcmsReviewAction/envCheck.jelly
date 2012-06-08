@@ -2,76 +2,74 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
        
-    <table border="1">                       
+    <table >                       
                         
         <j:forEach var="env" items="${it.env_status.entrySet()}">
             <tr>
+                <td colspan="2">
+                    <strong>${env.getKey()}</strong>
+                </td>
                 <td>
-                    ${env.getKey()}
                     <j:choose>
                         <j:when test="${env.getValue().values().iterator().next()=='PROPERTY'}">
-                            <br />
-                            New property: 
-                            <br />
                             <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
                         </j:when>
                         <j:when test="${it.change_axis}">
-                            <br />
-                            New property: 
-                            <br />
                             <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
                         </j:when>
                         <j:otherwise>
                         </j:otherwise>
                     </j:choose>
                 </td>
+                
                 <td>
-                    <table border="1">
-                        <j:forEach var="val" items="${env.getValue().entrySet()}">
-                            <tr>    
-                                <td>
-                                    ${val.getKey()}
-                                </td>
-                                <td>
-                                    <j:choose>
-                                        <j:when test="${val.getValue()=='CHECKED'}">
-                                            <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
-                                                 alt="${%Property checked}" tooltip="${%Property checked}"
-                                                 style="visibility: visible" width="16" height="16" align="center" />
-                                            <j:choose>
-                                                <j:when test="${it.change_axis}">
-                                                    New value: 
-                                                    <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
-                                                </j:when>
-                                            </j:choose>
-                                        </j:when>
-                                        <j:when test="${val.getValue()=='VALUE'}">
-                                            Value is not linked with 
-                                            <strong> ${env.getKey()}</strong>.
-                                            <br />
-                                            New value: 
-                                            <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
-                                        </j:when>
-                                        <j:when test="${val.getValue()=='PROPERTY'}">
-                                            Property is not linked to 
-                                            <strong>${it.environment.env}</strong>. 
-                                            <br />
-                                            New value: 
-                                            <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
-
-                                
-                                        </j:when>
-                                        <j:otherwise>
-                                            ${val.getValue()}
-                                        </j:otherwise>
-                                    </j:choose>
-
-                                </td>
-                            </tr>
-                        </j:forEach>
-                    </table>
+                    <j:if test="${env.getValue().containsValue('PROPERTY')}">
+                        Property is not linked to 
+                        <strong>${it.environment.env}</strong>. 
+                    </j:if>
                 </td>
             </tr>
+                    
+                    
+                    
+            <j:forEach var="val" items="${env.getValue().entrySet()}">
+                <tr>    
+                    <td class="tdSmall"></td>
+                    <td>
+                        ${val.getKey()}
+                    </td>
+                    <td>
+                        <j:choose>
+                            <j:when test="${val.getValue()=='CHECKED'}">
+                                <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                         alt="${%Property checked}" tooltip="${%Property checked}"
+                                         style="visibility: visible" width="16" height="16" align="center" />
+                                <j:choose>
+                                    <j:when test="${it.change_axis}">
+                                        <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                                    </j:when>
+                                </j:choose>
+                            </j:when>
+                            <j:when test="${val.getValue()=='VALUE'}">
+                                <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                            </j:when>
+                            <j:when test="${val.getValue()=='PROPERTY'}">
+                                <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" />                                 
+                            </j:when>
+                            <j:otherwise>
+                                ${val.getValue()}
+                            </j:otherwise>
+                        </j:choose>
+
+                    </td>
+                    <td>
+                        <j:if test="${val.getValue()=='VALUE'}">
+                            Value is not linked with 
+                                <strong> ${env.getKey()}</strong>.
+                        </j:if>
+                    </td>
+                </tr>
+            </j:forEach>
             <tr>
                 <td>
                     <st:nbsp/>
@@ -82,20 +80,26 @@
     <br />
     <j:choose>
         <j:when test="${it.existsWrongProperty()}">
-                Available properties for group 
-                <strong>${it.environment.env}</strong>: <br/>                      
-                <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
-                    ${posible_val},<st:nbsp/> 
-                </j:forEach>
-                <br />
+            Available properties for group 
+            <strong>${it.environment.env}</strong>: 
+            <br/>                      
+            <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
+                ${posible_val},
+                <st:nbsp/> 
+            </j:forEach>
+            <br />
         </j:when>
     </j:choose>
 
+    
     <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
+        <br/>
         Available values for property 
-        <strong>${prop}:</strong> <br/>
+        <strong>${prop}:</strong> 
+        <br/>
         <j:forEach var="posible_val" items="${it.environment.values.get(prop).keySet()}">
-            ${posible_val},<st:nbsp/>
+            ${posible_val},
+            <st:nbsp/>
         </j:forEach>
         <br />
     </j:forEach>
