@@ -37,11 +37,15 @@ public class TcmsReviewAction implements Action {
     private Hashtable<String, Hashtable<String, String>> env_status;
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
-    boolean change_axis =false;
+    boolean change_axis = false;
 
     public List<String> update_problems = new LinkedList<String>();
     public HashSet<String> env_check_problems = new HashSet<String>();
 
+    /* Used to store exception, if occurs, and print it in reasonable format, not
+     * ugly long exception
+     */
+    private String exception;
     
     public boolean isChange_axis() {
         return change_axis;
@@ -109,6 +113,14 @@ public class TcmsReviewAction implements Action {
     public AbstractBuild getBuild() {
         return build;
     }
+    
+    public boolean exceptionOccured(){
+        return !exception.isEmpty();
+    }
+    
+    public String getException(){
+        return exception;
+    }
 
     public TcmsReviewAction(AbstractBuild build, String serverUrl, 
             String plan,
@@ -143,9 +155,15 @@ public class TcmsReviewAction implements Action {
         connection = new TcmsConnection(serverUrl);
         connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
-        boolean test = connection.testTcmsConnection();
-        if (test == false) {
-            throw new IOException("Couln't connect to tcms server");
+        try{
+            boolean test = connection.testTcmsConnection();
+            if (test == false) {
+                throw new IOException("Couln't connect to tcms server");
+            }
+        } catch(IOException e){
+            exception = e.toString();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
         }
 
 
