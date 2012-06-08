@@ -8,89 +8,101 @@
             <tr>
                 <td>
                     ${env.getKey()}
-                     <j:choose>
-                            <j:when test="${env.getValue().values().iterator().next()=='PROPERTY'}">
-                                <br />
-                                New property: <br />
-                                <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
-                             </j:when>
-                             <j:when test="${it.change_axis}">
-                              <br />
-                                New property: <br />
-                                <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
-                           </j:when>
-                             <j:otherwise>
-                            </j:otherwise>
-                     </j:choose>
+                    <j:choose>
+                        <j:when test="${env.getValue().values().iterator().next()=='PROPERTY'}">
+                            <br />
+                            New property: 
+                            <br />
+                            <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
+                        </j:when>
+                        <j:when test="${it.change_axis}">
+                            <br />
+                            New property: 
+                            <br />
+                            <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
+                        </j:when>
+                        <j:otherwise>
+                        </j:otherwise>
+                    </j:choose>
                 </td>
                 <td>
                     <table border="1">
-                    <j:forEach var="val" items="${env.getValue().entrySet()}">
-                    <tr>    
-                    <td>
-                    ${val.getKey()}
-                    </td>
-                    <td>
-                        <j:choose>
-                            <j:when test="${val.getValue()=='CHECKED'}">
-                                <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
-                                        alt="${%Property checked}" tooltip="${%Property checked}"
-                                        style="visibility: visible" width="16" height="16" align="center" />
-                                         <j:choose>
-                                        <j:when test="${it.change_axis}">
-                                               New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                        <j:forEach var="val" items="${env.getValue().entrySet()}">
+                            <tr>    
+                                <td>
+                                    ${val.getKey()}
+                                </td>
+                                <td>
+                                    <j:choose>
+                                        <j:when test="${val.getValue()=='CHECKED'}">
+                                            <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                                 alt="${%Property checked}" tooltip="${%Property checked}"
+                                                 style="visibility: visible" width="16" height="16" align="center" />
+                                            <j:choose>
+                                                <j:when test="${it.change_axis}">
+                                                    New value: 
+                                                    <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                                                </j:when>
+                                            </j:choose>
                                         </j:when>
-                                        </j:choose>
-                            </j:when>
-                            <j:when test="${val.getValue()=='VALUE'}">
-                                Value is not linked with <strong> ${env.getKey()}</strong>.
-                                <br />
-                                New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
-                            </j:when>
-                            <j:when test="${val.getValue()=='PROPERTY'}">
-                                Property is not linked to 
-                                <strong>${it.environment.env}</strong>. 
-                                <br />
-                                New value: <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                                        <j:when test="${val.getValue()=='VALUE'}">
+                                            Value is not linked with 
+                                            <strong> ${env.getKey()}</strong>.
+                                            <br />
+                                            New value: 
+                                            <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
+                                        </j:when>
+                                        <j:when test="${val.getValue()=='PROPERTY'}">
+                                            Property is not linked to 
+                                            <strong>${it.environment.env}</strong>. 
+                                            <br />
+                                            New value: 
+                                            <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
 
                                 
-                            </j:when>
-                            <j:otherwise>
-                                ${val.getValue()}
-                            </j:otherwise>
-                        </j:choose>
+                                        </j:when>
+                                        <j:otherwise>
+                                            ${val.getValue()}
+                                        </j:otherwise>
+                                    </j:choose>
 
-                    </td>
-                    </tr>
-                    </j:forEach>
+                                </td>
+                            </tr>
+                        </j:forEach>
                     </table>
                 </td>
             </tr>
-            <tr><td><st:nbsp/></td></tr>
+            <tr>
+                <td>
+                    <st:nbsp/>
+                </td>
+            </tr>
         </j:forEach>
     </table> 
     <br />
-        <j:choose>
-            <j:when test="${it.existsWrongProperty()}">
-                Available properties for group <strong>${it.environment.env}</strong>:                       
+    <j:choose>
+        <j:when test="${it.existsWrongProperty()}">
+                Available properties for group 
+                <strong>${it.environment.env}</strong>: <br/>                      
                 <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
-                        ${posible_val},  
-                    </j:forEach>
-                    <br />
-            </j:when>
-        </j:choose>
+                    ${posible_val},<st:nbsp/> 
+                </j:forEach>
+                <br />
+        </j:when>
+    </j:choose>
 
-        <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
-            Available values for property <strong>${prop}:</strong>
-            <j:forEach var="posible_val" items="${it.environment.values.get(prop).keySet()}">
-                ${posible_val}, 
-            </j:forEach>
-            <br />
+    <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
+        Available values for property 
+        <strong>${prop}:</strong> <br/>
+        <j:forEach var="posible_val" items="${it.environment.values.get(prop).keySet()}">
+            ${posible_val},<st:nbsp/>
         </j:forEach>
-  <ul>
-       <j:forEach var="val" items="${it.env_check_problems}">
-       <li> ${val}</li>
-       </j:forEach>             
-  </ul>
+        <br />
+    </j:forEach>
+    <ul>
+        <j:forEach var="val" items="${it.env_check_problems}">
+            <li> ${val}</li>
+        </j:forEach>             
+    </ul>
              
 </j:jelly>

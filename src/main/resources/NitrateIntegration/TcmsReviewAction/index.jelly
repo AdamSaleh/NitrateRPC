@@ -14,6 +14,7 @@
                 .status { font-weight:bold}
                 .statusMsg {}
                 .exception { color: red }
+                .settingsTextbox { width: 200px}
             </style>
 
   
