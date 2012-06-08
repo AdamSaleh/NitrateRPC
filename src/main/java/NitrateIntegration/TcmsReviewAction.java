@@ -34,7 +34,7 @@ public class TcmsReviewAction implements Action {
     
     public TcmsProperties properties;
     public final TcmsEnvironment environment;
-    private Hashtable<String, Hashtable<String, String>> env_status;
+    private LinkedHashMap<String, Hashtable<String, String>> env_status;
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
@@ -94,7 +94,7 @@ public class TcmsReviewAction implements Action {
         return gatherer;
     }
 
-    public Hashtable<String, Hashtable<String, String>> getEnv_status() {
+    public LinkedHashMap<String, Hashtable<String, String>> getEnv_status() {
         return env_status;
     }
 
@@ -139,7 +139,7 @@ public class TcmsReviewAction implements Action {
         this.environment = new TcmsEnvironment(env);
         this.build = build;
         gatherer = new TcmsGatherer(properties, environment);
-        env_status = new Hashtable<String, Hashtable<String, String>>();
+        env_status = new LinkedHashMap<String, Hashtable<String, String>>();
         propertyWWrongValue = new HashSet<String>();
         wrongProperty = false;
     }
@@ -328,8 +328,9 @@ public class TcmsReviewAction implements Action {
                 String property_name = entry.getKey().replaceFirst("property-", "");
                 
                 for (GatherFiles env : gatherFiles) {
-                    if(env.variables.containsKey(property_name)){
+                    if(env.variables.containsKey(property_name) && !property_name.equals(new_property_name)){
                         if(env.variables.containsKey(new_property_name)){
+                            /* FIXME: this will print even when value is not changed, because*/
                             problems.add("Duplicit property name error."); 
                         }else{
                             String val = env.variables.get(property_name);
