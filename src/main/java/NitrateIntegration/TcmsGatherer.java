@@ -55,6 +55,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         create.priority = properties.getPriorityID();
         create.summary = result.getDisplayName();
         create.plan = properties.getPlanID();
+        create.is_automated = 1;
         return create;
     }
 
@@ -74,21 +75,30 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         create.build = -1;
         create.manager = properties.getManagerId();
         create.summary = "Build " + run.getDisplayName();
+        
         if(variables!=null && variables.isEmpty() == false){ 
             for (Iterator it =variables.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<String,String> e = (Map.Entry<String,String>) it.next();
                 create.summary += ", "+ e.getKey()+"="+e.getValue();
             }
         }
+        
         return create;
     }
     
-    private static TestCaseRun.create tcmsCreateCaseRun(int status) {
+    private static TestCaseRun.create tcmsCreateCaseRun(MethodResult result,int status) {
         TestCaseRun.create c = new TestCaseRun.create();
         c.run = -1;
         c.caseVar = -1;
         c.build = -1;
         c.case_run_status = status;
+        if(result.getException() !=null){
+            c.notes = result.getException().getExceptionName();
+            c.notes += "\n\n";
+            c.notes += result.getException().getStackTrace();
+            
+        }
+        
         return c;
     }
     
@@ -108,7 +118,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
     private void CreateTestCaseRun(MethodResult result, int status, CommandWrapper run, CommandWrapper build) {
         
         CommandWrapper dependency = null;
-        TestCaseRun.create c_case_run = tcmsCreateCaseRun(status);
+        TestCaseRun.create c_case_run = tcmsCreateCaseRun(result,status);
          
         TestCase.create c_case = tcmsCreateCase(result,properties);
         
