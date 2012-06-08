@@ -148,7 +148,7 @@ public class TcmsReviewAction implements Action {
             IOException, InterruptedException, XmlRpcFault {
 
         gatherer.clear();
-        if(credentials.isEmpty()){
+        if(req.getParameter("Submit").equals("Gather report from test-files")){
             credentials.setUsername(req.getParameter("_.username"));
             credentials.setPassword(req.getParameter("_.password"));
         }

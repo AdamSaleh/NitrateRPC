@@ -72,7 +72,7 @@
     <br />
         <j:choose>
             <j:when test="${it.existsWrongProperty()}">
-                Aviable properties for group <strong>${it.environment.env}</strong>:                       
+                Available properties for group <strong>${it.environment.env}</strong>:                       
                 <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
                         ${posible_val},  
                     </j:forEach>
@@ -81,7 +81,7 @@
         </j:choose>
 
         <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
-            Aviable values for property <strong>${prop}:</strong>
+            Available values for property <strong>${prop}:</strong>
             <j:forEach var="posible_val" items="${it.environment.values.get(prop).keySet()}">
                 ${posible_val}, 
             </j:forEach>

@@ -1,26 +1,27 @@
+
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <l:layout title="TCMS review report">
         <st:include it="${it.build}" page="sidepanel.jelly"/>
         <l:main-panel>
             
-<style>
-    .commandHeader { background-color: #DEDEDE; vertical-align: middle }
-    .commandTitle { background-color: #DEDEDE; vertical-align: middle; font-weight:bold }
-    .tdSmallCheckbox {width: 20px}
-    .tdSmallStatus {width: 40px; }
-    .tdSmall {width: 20px}
-    .status { font-weight:bold}
-    .statusMsg {}
-    .exception { color: red }
-</style>
+            <style>
+                .commandHeader { background-color: #DEDEDE; vertical-align: middle }
+                .commandTitle { background-color: #DEDEDE; vertical-align: middle; font-weight:bold }
+                .tdSmallCheckbox {width: 20px}
+                .tdSmallStatus {width: 40px; }
+                .tdSmall {width: 20px}
+                .status { font-weight:bold}
+                .statusMsg {}
+                .exception { color: red }
+            </style>
 
   
-<script><![CDATA[
+            <script><![CDATA[
 
 
 function updateIcons(elemName, param, type) {
-    var cmds = window.document.getElementsByTagName('img'), collapse, expand;
+    var cmds = window.document.getElementsByTagName('*'), collapse, expand;
     for (var cmdIndex in cmds) {
         cmd = cmds[cmdIndex];
         if (cmd.id && cmd.id == (type + 'Exp-' + elemName)) {
@@ -101,7 +102,8 @@ function toggleSubitems(prefix, code){
     }
 }
 
-]]></script>
+]]>
+            </script>
        
             <j:choose>
                 <j:when test="${it.gatherer.isEmpty()}">
@@ -117,7 +119,9 @@ function toggleSubitems(prefix, code){
                         </f:entry>
                         <f:entry>
                             <j:if test="${it.exceptionOccured()}">
-                                <span class="exception" style="font-weight: bold">Error:</span> ${it.exception} <br/><br/>
+                                <span class="exception" style="font-weight: bold">Error:</span> ${it.exception} 
+                                <br/>
+                                <br/>
                             </j:if>
                             <f:submit value="Gather report from test-files" />
                         </f:entry>
@@ -126,61 +130,71 @@ function toggleSubitems(prefix, code){
                 </j:when>
 
                 <j:otherwise>
-                 <table border="1">
-                     <tr>
-                         <td colspan="3">
-                             <h1>Re-Gather Report</h1>
-                         </td>
-                     </tr>
-                     <tr>
-                        <td style="vertical-align: top">
-                            <f:form method="post" action="updateSettings" name="updaetSettings" >
-                                <st:include page="settings.jelly"/>
-                                <br/>
-                                <f:entry>
-                                    <f:submit value="Update" />
-                                </f:entry>
-                            </f:form>
-                        </td>
-                        <td width="20px"></td>
-                         <td>
-                            <f:form method="post" action="gather" name="nitrateplugin-gather">
-                                <f:entry>
-                                    <f:submit value="Re-Gather report from test-files" />
-                                </f:entry>
-                            </f:form>
+                    <table border="1">
+                        <tr>
+                            <td colspan="3">
+                                <h1 style="display:inline">Manage settings </h1> 
+                                <a href="#" id="settings-Col-all" onclick="myHide('all','settings-')" style="visibility: visible" > Hide</a>
+                                <a href="#" id="settings-Exp-all" onclick="myShow('all','settings-')" style="visibility: hidden; display: none;">Show</a>
+                            </td>
+                        </tr>
+                        <tr id="settings-all">
+                            <td style="vertical-align: top">
+                                <f:form method="post" action="updateSettings" name="updaetSettings" >
+                                    <st:include page="settings.jelly"/>
+                                    <br/>
+                                    <f:entry>
+                                        <f:submit value="Update" />
+                                    </f:entry>
+                                </f:form>
+                            </td>
+                            <td width="20px"></td>
+                            <td>
+                                <f:form method="post" action="gather" name="nitrateplugin-gather">
+                                    <f:entry>
+                                        <f:submit value="Renew report" />
+                                    </f:entry>
+                                </f:form>
 
 
-                            <f:form method="post" action="checkSubmit" name="envCheck" >
-                                <f:entry>
+                                <f:form method="post" action="checkSubmit" name="envCheck" >
+                                    <f:entry>
 
-                                    <st:include page="envCheck.jelly"/>
+                                        <st:include page="envCheck.jelly"/>
 
-                                <f:submit value="Check enviromental vars" /><f:submit value="Change" />
-                                </f:entry>
-                            </f:form>
+                                        <f:submit value="Check environmental vars" />
+                                        <f:submit value="Change" />
+                                    </f:entry>
+                                </f:form>
 
-                        </td>
+                            </td>
                         
-                    </tr>
-                    <tr>
-                        <td>
+                        </tr>
+                        <tr>
+                            <td>
 
-                        </td>
-                    </tr>
-                 </table>
-                 
-                 <h1>Review Report</h1>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <br/><br/>
+                    <h1 style="display:inline">Review Report </h1>
+                    <a href="#" id="review-Col-report" onclick="myHide('report','review-')" style="visibility: visible" > Hide</a>
+                    <a href="#" id="review-Exp-report" onclick="myShow('report','review-')" style="visibility: hidden; display: none;"> Show</a>
+                         
 
-                 <br/><br/><br/>
-                    <f:form method="post" action="reportSubmit" name="dataUpload">
-                        <f:entry>
-                            <st:include page="report.jelly"/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <div id="review-report">
+                        <f:form method="post" action="reportSubmit" name="dataUpload">
+                            <f:entry>
+                                <st:include page="report.jelly"/>
 
-                            <f:submit value="Submit Report" />
-                        </f:entry>
-                    </f:form>
-
+                                <f:submit value="Submit Report" />
+                            </f:entry>
+                        </f:form>
+                    </div>
                 </j:otherwise>
 
             </j:choose>
