@@ -5,10 +5,7 @@
 package NitrateIntegration;
 
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.Auth;
-import com.redhat.nitrate.Build;
-import com.redhat.nitrate.TcmsConnection;
-import com.redhat.nitrate.TestRun;
+import com.redhat.nitrate.*;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.util.FormValidation;
@@ -32,9 +29,8 @@ public class TcmsReviewAction implements Action {
     private TcmsGatherer gatherer;
     private TcmsConnection connection;
     
-    String serverUrl;
-    String username;
-    String password;
+    private String serverUrl;
+    private TcmsAccessCredentials credentials;
     
     public TcmsProperties properties;
     public final TcmsEnvironment environment;
@@ -66,14 +62,13 @@ public class TcmsReviewAction implements Action {
     
     
     public String getUsername() {
-        return username;
+        return credentials.getUsername();
     }
 
     public String getPassword() {
-        return password;
+        return credentials.getPassword();
     }
 
-    
     
     public String getIconFileName() {
         return Definitions.__ICON_FILE_NAME;
@@ -115,7 +110,7 @@ public class TcmsReviewAction implements Action {
         return build;
     }
 
-    public TcmsReviewAction(AbstractBuild build, String serverUrl, String username, String password,
+    public TcmsReviewAction(AbstractBuild build, String serverUrl, 
             String plan,
             String product,
             String product_v,
@@ -126,8 +121,8 @@ public class TcmsReviewAction implements Action {
             String testPath) {
 
         this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-        this.username = username;
-        this.password = password;
+        this.credentials =  new TcmsAccessCredentials();
+        boolean a = credentials.isEmpty();
         this.serverUrl = serverUrl;
         this.environment = new TcmsEnvironment(env);
         this.build = build;
@@ -142,9 +137,11 @@ public class TcmsReviewAction implements Action {
 
         gatherer.clear();
         
+        credentials.setUsername(req.getParameter("_.username"));
+        credentials.setPassword(req.getParameter("_.password"));
         
         connection = new TcmsConnection(serverUrl);
-        connection.setUsernameAndPassword(username, password);
+        connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
         boolean test = connection.testTcmsConnection();
         if (test == false) {
@@ -208,8 +205,8 @@ public class TcmsReviewAction implements Action {
          String password = req.getParameter("_.password");
          
          if(this.serverUrl.contentEquals(serverUrl) &&
-             this.username.contentEquals(username)  &&
-             this.password.contentEquals(password)){
+             credentials.getUsername().contentEquals(username)  &&
+             credentials.getPassword().contentEquals(password)){
              //do nothing
          }else{
              TcmsConnection c = new TcmsConnection(serverUrl);
@@ -330,7 +327,7 @@ public class TcmsReviewAction implements Action {
         /*test*/
         try {
             connection = new TcmsConnection(serverUrl);
-            connection.setUsernameAndPassword(username, password);
+            connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
             boolean test = connection.testTcmsConnection();
             if (test == false) {
@@ -405,7 +402,7 @@ public class TcmsReviewAction implements Action {
         } else {
             try {
                 connection = new TcmsConnection(serverUrl);
-                connection.setUsernameAndPassword(username, password);
+                connection.setUsernameAndPassword(credentials.getUsername(),credentials.getPassword());
 
                 boolean test = connection.testTcmsConnection();
                 if (test == false) {

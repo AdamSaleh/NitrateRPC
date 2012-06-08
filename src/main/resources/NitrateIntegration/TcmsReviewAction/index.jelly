@@ -110,6 +110,12 @@ function toggleSubitems(prefix, code){
                     <h1>Gather Report</h1>
 
                     <f:form method="post" action="gather" name="nitrateplugin-gather">
+                        <f:entry title="Username" field="username">
+                            <f:textbox value="${it.username}"/>
+                        </f:entry>
+                        <f:entry title="Password" field="password">
+                            <f:password value="${it.password}"/>
+                        </f:entry>
                         <f:entry>
                             <f:submit value="Gather report from test-files" />
                         </f:entry>

@@ -56,8 +56,7 @@ import java.util.*;
 public class TcmsPublisher extends Recorder {
 
     public final String serverUrl;
-    public final String username;
-    public final String password;
+    private TcmsAccessCredentials credentials;
     public final String reportLocationPattern;
 
     public final String plan;
@@ -83,9 +82,6 @@ public class TcmsPublisher extends Recorder {
             String testPath) {
 
         this.serverUrl = serverUrl;
-        this.username = username;
-        this.password = password;
-        
         this.reportLocationPattern = testPath;     
         
         this.category = category;
@@ -113,7 +109,7 @@ public class TcmsPublisher extends Recorder {
         synchronized (lock){
             if (agregateBuild.getAction(TcmsReviewAction.class) == null) { 
                 agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild,
-                        serverUrl,  username,  password,
+                        serverUrl,
                             plan,
                             product,
                             product_v,
