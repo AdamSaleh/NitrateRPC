@@ -350,10 +350,15 @@ public abstract class CommandWrapper {
             f.category = comand.category;
             f.priority = comand.priority;
             f.plan = comand.plan;
-
+             if(comand.arguments!=null && comand.arguments.length()>0){
+                 f.arguments = comand.arguments;
+             }
+            
             CommandWrapper script = new CommandWrapper.Generic(f, TestCase.class, null, null);
             script.perform(connection);
-            return script.getResult(TestCase.class);
+            TestCase found = script.getResult(TestCase.class);
+           
+            return found;
         }
 
         @Override

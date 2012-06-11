@@ -54,6 +54,14 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
         if(result.getParent()!=null){
             create.summary += result.getParent().getName()+".";
         }
+        if(result.getParameters()!=null){
+            String args="";
+            for(String param:result.getParameters()){
+                args+=param+" ";
+            }
+            create.arguments=args;
+        }
+        
         create.summary += result.getDisplayName();
         create.plan = properties.getPlanID();
         create.is_automated = 1;
@@ -102,6 +110,9 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
             
         }
         
+        if(result.getParameters()!=null){
+            Object parameters = result.getParameters();
+        }
         return c;
     }
     
