@@ -151,13 +151,7 @@ function toggleSubitems(prefix, code){
                             </td>
                             <td width="20px"></td>
                             <td>
-                                <f:form method="post" action="gather" name="nitrateplugin-gather">
-                                    <f:entry>
-                                        <f:submit value="Renew report" />
-                                    </f:entry>
-                                </f:form>
-
-
+                                
                                 <f:form method="post" action="checkSubmit" name="envCheck" >
                                     <f:entry>
 
@@ -178,7 +172,8 @@ function toggleSubitems(prefix, code){
                         </tr>
                     </table>
                     
-                    <br/><br/>
+                    <br/>
+                    <br/>
                     <h1 style="display:inline">Review Report </h1>
                     <a href="#" id="review-Col-report" onclick="myHide('report','review-')" style="visibility: visible" > Hide</a>
                     <a href="#" id="review-Exp-report" onclick="myShow('report','review-')" style="visibility: hidden; display: none;"> Show</a>
@@ -188,6 +183,12 @@ function toggleSubitems(prefix, code){
                     <br/>
                     <br/>
                     <div id="review-report">
+                        <f:form method="post" action="gather" name="nitrateplugin-gather">
+                            <f:entry>
+                                <f:submit value="Renew report" />
+                            </f:entry>
+                        </f:form>
+                        <br/>
                         <f:form method="post" action="reportSubmit" name="dataUpload">
                             <f:entry>
                                 <st:include page="report.jelly"/>

@@ -37,6 +37,9 @@
     <f:entry title="Manager" field="manager">
         <f:textbox value="${it.properties.manager}"/>
     </f:entry>
+    <f:entry title="Environment group" field="environment">
+        <f:textbox value="${it.environment.env}"/>
+    </f:entry>
 
     <f:entry>
         <j:if test="${it.exceptionOccured()}">
