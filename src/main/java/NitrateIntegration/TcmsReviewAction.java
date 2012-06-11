@@ -8,6 +8,7 @@ import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.*;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -31,7 +32,7 @@ public class TcmsReviewAction implements Action {
     private String serverUrl;
     private TcmsAccessCredentials credentials;
     public TcmsProperties properties;
-    public final TcmsEnvironment environment;
+    public TcmsEnvironment environment;
     private LinkedHashMap<String, Hashtable<String, String>> env_status;
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
@@ -111,7 +112,9 @@ public class TcmsReviewAction implements Action {
     }
 
     public boolean exceptionOccured() {
-        if(exception == null) return false;
+        if (exception == null) {
+            return false;
+        }
         return !exception.isEmpty();
     }
 
@@ -142,14 +145,13 @@ public class TcmsReviewAction implements Action {
     }
 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
-
-        exception = "";        
+        exception = "";
         gatherer.clear();
         if (req.getParameter("Submit").equals("Gather report from test-files")) {
             credentials.setUsername(req.getParameter("_.username"));
             credentials.setPassword(req.getParameter("_.password"));
         }
-        
+
         try {
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
@@ -157,8 +159,8 @@ public class TcmsReviewAction implements Action {
             boolean test = connection.testTcmsConnection();
             if (test == false) {
                 throw new IOException("Couln't connect to tcms server");
-            } 
-            
+            }
+
             Auth.login_krbv auth = new Auth.login_krbv();
             String session;
             session = auth.invoke(connection);
@@ -189,7 +191,7 @@ public class TcmsReviewAction implements Action {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
-        
+
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
@@ -247,11 +249,10 @@ public class TcmsReviewAction implements Action {
                 rsp.sendRedirect("../" + Definitions.__URL_NAME);
                 return;
             }
-            
+
             credentials.setUsername(username);
             credentials.setPassword(password);
         }
-
 
         String plan = req.getParameter("_.plan");
         String product = req.getParameter("_.product");
@@ -261,15 +262,21 @@ public class TcmsReviewAction implements Action {
         String manager = req.getParameter("_.manager");
 
         TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+
+
+        String env = req.getParameter("_.environment");
+        TcmsEnvironment environment = new TcmsEnvironment(env);
         String session;
         Auth.login_krbv auth = new Auth.login_krbv();
 
         try {
             session = auth.invoke(connection);
 
-            if (session.length() > 0) {
+            if (session != null && session.length() > 0) {
                 connection.setSession(session);
             }
+            environment.setConnection(connection);
+            environment.reloadEnvId();
             properties.setConnection(connection);
             properties.reload();
 
@@ -306,8 +313,13 @@ public class TcmsReviewAction implements Action {
         if (properties.getManagerId() == null) {
             problems.add(properties.manager + " is possibly wrong manager's username");
         }
+        if (environment.getEnvId() == null) {
+            problems.add("Possibly wrong environment group: " + environment.env );
+        }
+        
         if (problems.isEmpty()) {
             this.properties = properties;
+            this.environment = environment;
         }
 
 
@@ -317,8 +329,8 @@ public class TcmsReviewAction implements Action {
 
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException {
-        HashSet<String> problems = new HashSet<String>();
 
+        HashSet<String> problems = new HashSet<String>();
 
         change_axis = false;
         if (req.getParameter("Submit").equals("Change")) {
