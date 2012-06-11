@@ -164,7 +164,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
 
     }
 
-    public synchronized void gather(TestResults results , AbstractBuild build, AbstractBuild run,Map<String,String> variables) throws IOException, InterruptedException {
+    public synchronized void gather(TestResults results , AbstractBuild build, AbstractBuild run,Map<String,String> variables) throws IOException {
 
         if (results == null) {
             return;

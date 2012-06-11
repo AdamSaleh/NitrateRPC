@@ -110,8 +110,8 @@ public class TcmsReviewAction implements Action {
         return build;
     }
 
-    // FIXME: null pointer exception
     public boolean exceptionOccured() {
+        if(exception == null) return false;
         return !exception.isEmpty();
     }
 
@@ -141,50 +141,55 @@ public class TcmsReviewAction implements Action {
         wrongProperty = false;
     }
 
-    public void doGather(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException, XmlRpcFault {
+    public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
 
+        exception = "";        
         gatherer.clear();
         if (req.getParameter("Submit").equals("Gather report from test-files")) {
             credentials.setUsername(req.getParameter("_.username"));
             credentials.setPassword(req.getParameter("_.password"));
         }
-        connection = new TcmsConnection(serverUrl);
-        connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
-
-
-        // FIXME
+        
         try {
+            connection = new TcmsConnection(serverUrl);
+            connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
+
             boolean test = connection.testTcmsConnection();
             if (test == false) {
                 throw new IOException("Couln't connect to tcms server");
+            } 
+            
+            Auth.login_krbv auth = new Auth.login_krbv();
+            String session;
+            session = auth.invoke(connection);
+            if (session.length() > 0) {
+                connection.setSession(session);
             }
-        } catch (IOException e) {
-            exception = e.toString();
+            environment.setConnection(connection);
+            environment.reloadEnvId();
+
+            properties.setConnection(connection);
+            properties.reload();
+
+            gatherer.setProperties(properties);
+
+            for (GatherFiles gatherfile : gatherFiles) {
+                gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
+            }
+        } catch (IOException ex) {
+            exception = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
+        } catch (XmlRpcException ex) {
+            exception = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
+        } catch (XmlRpcFault ex) {
+            exception = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
-
-
-        Auth.login_krbv auth = new Auth.login_krbv();
-        String session;
-        session = auth.invoke(connection);
-        if (session.length() > 0) {
-            connection.setSession(session);
-        }
-        environment.setConnection(connection);
-        environment.reloadEnvId();
-
-        properties.setConnection(connection);
-        properties.reload();
-
-
-        gatherer.setProperties(properties);
-
-        for (GatherFiles gatherfile : gatherFiles) {
-            gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
-        }
-
+        
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
@@ -218,6 +223,7 @@ public class TcmsReviewAction implements Action {
         String serverUrl = req.getParameter("_.serverUrl");
         String username = req.getParameter("_.username");
         String password = req.getParameter("_.password");
+        exception = "";
 
         /**
          * First try new URL, username and password, if unsuccessful, set
@@ -228,7 +234,7 @@ public class TcmsReviewAction implements Action {
                 && credentials.getPassword().contentEquals(password)) {
             //do nothing
         } else {
-            
+
             try {
                 TcmsConnection c = new TcmsConnection(serverUrl);
                 c.setUsernameAndPassword(username, password);
@@ -236,10 +242,11 @@ public class TcmsReviewAction implements Action {
                     connection = c;
                 }
             } catch (IOException ex) {
+                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
                 exception = ex.getMessage();
                 rsp.sendRedirect("../" + Definitions.__URL_NAME);
                 return;
-            } 
+            }
         }
 
 
@@ -265,10 +272,14 @@ public class TcmsReviewAction implements Action {
 
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            problems.add(ex.getMessage());
+            exception = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
         } catch (XmlRpcException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            problems.add(ex.getMessage());
+            exception = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
         }
 
 
@@ -295,6 +306,7 @@ public class TcmsReviewAction implements Action {
         if (problems.isEmpty()) {
             this.properties = properties;
         }
+
 
         this.update_problems = problems;
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
