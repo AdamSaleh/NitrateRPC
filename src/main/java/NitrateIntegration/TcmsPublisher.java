@@ -183,7 +183,7 @@ public class TcmsPublisher extends Recorder {
             } catch (MalformedURLException ex) {
                 return FormValidation.error("Url is malformed");
             } catch (IOException ex) {
-                return FormValidation.warning("Connection error");
+                return FormValidation.warning("Connection error: " + ex.getMessage());
             }
             return FormValidation.ok();
         }
