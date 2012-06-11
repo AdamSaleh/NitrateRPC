@@ -247,6 +247,9 @@ public class TcmsReviewAction implements Action {
                 rsp.sendRedirect("../" + Definitions.__URL_NAME);
                 return;
             }
+            
+            credentials.setUsername(username);
+            credentials.setPassword(password);
         }
 
 
