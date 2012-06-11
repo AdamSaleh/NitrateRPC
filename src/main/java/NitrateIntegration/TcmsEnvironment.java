@@ -127,4 +127,13 @@ public class TcmsEnvironment {
         }
         return values.get(property).containsKey(value);
     }
+    
+    
+    /*
+     * Returns true if environment is not initialized with any value
+     */
+    public boolean isEmpty(){
+        if(env != null) return env.isEmpty();
+        return true;
+    }
 }

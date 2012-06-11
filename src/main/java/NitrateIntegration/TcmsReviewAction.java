@@ -401,7 +401,6 @@ public class TcmsReviewAction implements Action {
                 String val = prop.getValue();
 
                 String result = "UNKNOWN";
-
                 if (environment.containsProperty(name)) {
                     if (environment.containsValue(name, val)) {
                         result = "CHECKED";
@@ -413,6 +412,7 @@ public class TcmsReviewAction implements Action {
                     result = "PROPERTY";
                     wrongProperty = true;
                 }
+                
 
                 if (env_status.containsKey(name) == false) {
                     env_status.put(name, new Hashtable<String, String>());

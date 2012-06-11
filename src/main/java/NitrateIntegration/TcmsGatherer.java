@@ -106,6 +106,11 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
     }
     
     private static TestRun.link_env_value tcmsLinkValue(TcmsEnvironment env,String property,String value) {
+        /**
+         * If environment is not set, return null, because we cannot link to it
+         */
+        if (env.isEmpty()) return null;
+        
         TestRun.link_env_value c = new TestRun.link_env_value();
         c.run_id = -1;
         Hashtable<String,Value> prop = env.getValues().get(property);
