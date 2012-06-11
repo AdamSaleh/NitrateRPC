@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import redstone.xmlrpc.XmlRpcException;
 import redstone.xmlrpc.XmlRpcFault;
 
 /**
@@ -109,6 +110,7 @@ public class TcmsReviewAction implements Action {
         return build;
     }
 
+    // FIXME: null pointer exception
     public boolean exceptionOccured() {
         return !exception.isEmpty();
     }
@@ -150,6 +152,8 @@ public class TcmsReviewAction implements Action {
         connection = new TcmsConnection(serverUrl);
         connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
+
+        // FIXME
         try {
             boolean test = connection.testTcmsConnection();
             if (test == false) {
@@ -208,72 +212,88 @@ public class TcmsReviewAction implements Action {
         }
     }
 
-    public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException {
+    public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
         List<String> problems = new LinkedList<String>();
 
         String serverUrl = req.getParameter("_.serverUrl");
         String username = req.getParameter("_.username");
         String password = req.getParameter("_.password");
 
+        /**
+         * First try new URL, username and password, if unsuccessful, set
+         * exception and end
+         */
         if (this.serverUrl.contentEquals(serverUrl)
                 && credentials.getUsername().contentEquals(username)
                 && credentials.getPassword().contentEquals(password)) {
             //do nothing
         } else {
-            TcmsConnection c = new TcmsConnection(serverUrl);
-            c.setUsernameAndPassword(username, password);
-            if (c.testTcmsConnection()) {
-                connection = c;
-            } else {
-                problems.add("Conection with new url,username and password failed.");
+            
+            try {
+                TcmsConnection c = new TcmsConnection(serverUrl);
+                c.setUsernameAndPassword(username, password);
+                if (c.testTcmsConnection()) {
+                    connection = c;
+                }
+            } catch (IOException ex) {
+                exception = ex.getMessage();
+                rsp.sendRedirect("../" + Definitions.__URL_NAME);
+                return;
+            } 
+        }
+
+
+        String plan = req.getParameter("_.plan");
+        String product = req.getParameter("_.product");
+        String product_v = req.getParameter("_.product_v");
+        String category = req.getParameter("_.category");
+        String priority = req.getParameter("_.priority");
+        String manager = req.getParameter("_.manager");
+
+        TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+        String session;
+        Auth.login_krbv auth = new Auth.login_krbv();
+
+        try {
+            session = auth.invoke(connection);
+
+            if (session.length() > 0) {
+                connection.setSession(session);
+            }
+            properties.setConnection(connection);
+            properties.reload();
+
+        } catch (XmlRpcFault ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            problems.add(ex.getMessage());
+        } catch (XmlRpcException ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            problems.add(ex.getMessage());
+        }
+
+
+        if (properties.getPlanID() == null) {
+            problems.add(properties.plan + " is possibly wrong plan id");
+        }
+        if (properties.getProductID() == null) {
+            problems.add(properties.product + " is possibly wrong product name (couldn't check product version and category)");
+        } else {
+            if (properties.getProduct_vID() == null) {
+                problems.add(properties.product_v + " is possibly wrong product version");
+            }
+            if (properties.getCategoryID() == null) {
+                problems.add(properties.category + " is possibly wrong category name");
             }
         }
+
+        if (properties.getPriorityID() == null) {
+            problems.add(properties.priority + " is possibly wrong priority name");
+        }
+        if (properties.getManagerId() == null) {
+            problems.add(properties.manager + " is possibly wrong manager's username");
+        }
         if (problems.isEmpty()) {
-            String plan = req.getParameter("_.plan");
-            String product = req.getParameter("_.product");
-            String product_v = req.getParameter("_.product_v");
-            String category = req.getParameter("_.category");
-            String priority = req.getParameter("_.priority");
-            String manager = req.getParameter("_.manager");
-
-            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-            String session;
-            Auth.login_krbv auth = new Auth.login_krbv();
-
-            try {
-                session = auth.invoke(connection);
-                if (session.length() > 0) {
-                    connection.setSession(session);
-                }
-                properties.setConnection(connection);
-                properties.reload();
-            } catch (XmlRpcFault ex) {
-                problems.add("Possibly wrong username/password");
-            }
-            if (properties.getPlanID() == null) {
-                problems.add(properties.plan + " is possibly wrong plan id");
-            }
-            if (properties.getProductID() == null) {
-                problems.add(properties.product + " is possibly wrong product name (couldn't check product version and category)");
-            } else {
-                if (properties.getProduct_vID() == null) {
-                    problems.add(properties.product_v + " is possibly wrong product version");
-                }
-                if (properties.getCategoryID() == null) {
-                    problems.add(properties.category + " is possibly wrong category name");
-                }
-            }
-
-            if (properties.getPriorityID() == null) {
-                problems.add(properties.priority + " is possibly wrong priority name");
-            }
-            if (properties.getManagerId() == null) {
-                problems.add(properties.manager + " is possibly wrong manager's username");
-            }
-            if (problems.isEmpty()) {
-                this.properties = properties;
-            }
+            this.properties = properties;
         }
 
         this.update_problems = problems;
@@ -412,7 +432,7 @@ public class TcmsReviewAction implements Action {
                     result = "PROPERTY";
                     wrongProperty = true;
                 }
-                
+
 
                 if (env_status.containsKey(name) == false) {
                     env_status.put(name, new Hashtable<String, String>());
