@@ -116,7 +116,7 @@
             </ul>
         </j:when>
         <j:otherwise>
-            Environment group is not set in project configuration. <br/><br/>
+            Environment group is not set. <br/><br/>
         </j:otherwise>
     </j:choose>   
     
