@@ -43,9 +43,11 @@ public class TcmsReviewAction implements Action {
 
     /*
      * Used to store exception, if occurs, and print it in reasonable format,
-     * not ugly long exception
+     * not ugly long exception. Shown under Update settings and Check
+     * Environmental vars
      */
-    private String exception;
+    private String updateException;
+    private String envCheckException;
 
     public boolean isChange_axis() {
         return change_axis;
@@ -111,15 +113,26 @@ public class TcmsReviewAction implements Action {
         return build;
     }
 
-    public boolean exceptionOccured() {
-        if (exception == null) {
+    public boolean updateExceptionOccured() {
+        if (updateException == null) {
             return false;
         }
-        return !exception.isEmpty();
+        return !updateException.isEmpty();
     }
 
-    public String getException() {
-        return exception;
+    public boolean envCheckExceptionOccured() {
+        if (envCheckException == null) {
+            return false;
+        }
+        return !envCheckException.isEmpty();
+    }
+
+    public String getUpdateException() {
+        return updateException;
+    }
+
+    public String getEnvCheckException() {
+        return envCheckException;
     }
 
     public TcmsReviewAction(AbstractBuild build, String serverUrl,
@@ -145,7 +158,7 @@ public class TcmsReviewAction implements Action {
     }
 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
-        exception = "";
+        updateException = "";
         gatherer.clear();
         if (req.getParameter("Submit").equals("Gather report from test-files")) {
             credentials.setUsername(req.getParameter("_.username"));
@@ -179,15 +192,15 @@ public class TcmsReviewAction implements Action {
                 gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
             }
         } catch (IOException ex) {
-            exception = ex.getMessage();
+            updateException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (XmlRpcException ex) {
-            exception = ex.getMessage();
+            updateException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (XmlRpcFault ex) {
-            exception = ex.getMessage();
+            updateException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
@@ -225,7 +238,7 @@ public class TcmsReviewAction implements Action {
         String serverUrl = req.getParameter("_.serverUrl");
         String username = req.getParameter("_.username");
         String password = req.getParameter("_.password");
-        exception = "";
+        updateException = "";
 
         /**
          * First try new URL, username and password, if unsuccessful, set
@@ -245,7 +258,7 @@ public class TcmsReviewAction implements Action {
                 }
             } catch (IOException ex) {
                 Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-                exception = ex.getMessage();
+                updateException = ex.getMessage();
                 rsp.sendRedirect("../" + Definitions.__URL_NAME);
                 return;
             }
@@ -282,12 +295,12 @@ public class TcmsReviewAction implements Action {
 
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            exception = ex.getMessage();
+            updateException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (XmlRpcException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            exception = ex.getMessage();
+            updateException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
@@ -314,9 +327,9 @@ public class TcmsReviewAction implements Action {
             problems.add(properties.manager + " is possibly wrong manager's username");
         }
         if (environment.getEnvId() == null) {
-            problems.add("Possibly wrong environment group: " + environment.env );
+            problems.add("Possibly wrong environment group: " + environment.env);
         }
-        
+
         if (problems.isEmpty()) {
             this.properties = properties;
             this.environment = environment;
@@ -327,10 +340,10 @@ public class TcmsReviewAction implements Action {
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
-    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException {
+    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException {
 
         HashSet<String> problems = new HashSet<String>();
+        envCheckException = "";
 
         change_axis = false;
         if (req.getParameter("Submit").equals("Change")) {
@@ -434,8 +447,35 @@ public class TcmsReviewAction implements Action {
 
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            envCheckException = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
+        } catch (XmlRpcException ex) {
+            /**
+             * This exception might happen if method
+             * connection.testTcmsConnection passes, but afterwards network
+             * fails and auth.invoke(connection) fails with exception "The
+             * response could not be parsed."
+             */
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            envCheckException = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
         } catch (MalformedURLException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            envCheckException = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
+        } catch (IOException ex) {
+            /**
+             * This exception is usually thrown by
+             * connection.testTcmsConnection, in case when network is down.
+             * Produces exception message that contains just URL
+             */
+            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+            envCheckException = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
         }
 
         env_status.clear();

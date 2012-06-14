@@ -42,8 +42,8 @@
     </f:entry>
 
     <f:entry>
-        <j:if test="${it.exceptionOccured()}">
-            <span class="exception" style="font-weight: bold">Error:</span> ${it.exception} 
+        <j:if test="${it.updateExceptionOccured()}">
+            <span class="exception" style="font-weight: bold">Error:</span> ${it.updateException} 
         </j:if>
         <ul>
             <j:forEach var="val" items="${it.update_problems}">

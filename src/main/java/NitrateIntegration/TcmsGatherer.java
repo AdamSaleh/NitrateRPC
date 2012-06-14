@@ -31,6 +31,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
 
     
     LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
+    // Uninitialized
     HashMap<String,LinkedList<CommandWrapper>> commands_sorted = new HashMap<String,LinkedList<CommandWrapper>>();
     
     
@@ -236,6 +237,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>, Serializable{
      */
     public LinkedList<CommandWrapper> getCommandList(String name, Integer hashCode){
         LinkedList<CommandWrapper> commandList = new LinkedList<CommandWrapper>();
+        // FIXME: null pointer when commandList is uninitialized
         for(CommandWrapper cw : commands_sorted.get(name)){
             if(cw.hasDependency(hashCode)) commandList.add(cw);
         }

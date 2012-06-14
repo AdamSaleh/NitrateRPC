@@ -119,8 +119,8 @@ function toggleSubitems(prefix, code){
                             <f:password value="${it.password}" style="width: 200px"/>
                         </f:entry>
                         <f:entry>
-                            <j:if test="${it.exceptionOccured()}">
-                                <span class="exception" style="font-weight: bold">Error:</span> ${it.exception} 
+                            <j:if test="${it.updateExceptionOccured()}">
+                                <span class="exception" style="font-weight: bold">Error:</span> ${it.updateException} 
                                 <br/>
                                 <br/>
                             </j:if>
