@@ -109,6 +109,11 @@
                 </j:forEach>
                 <br />
             </j:forEach>
+            <br/>
+            <j:if test="${it.envCheckExceptionOccured()}">
+                <span class="exception" style="font-weight: bold">Error:</span> ${it.envCheckException} 
+            </j:if>
+            <br/>
             <ul>
                 <j:forEach var="val" items="${it.env_check_problems}">
                     <li> ${val}</li>
