@@ -164,25 +164,8 @@ public class FunctionalTest extends SeleneseTestCase{
 		verifyTrue(selenium.isTextPresent("Available properties for group RTT:"));
 		selenium.type("name=property-asdf", "Arch");
 		selenium.click("css=form[name=\"envCheck\"] > table > tbody > tr > td.setting-main > input[name=\"Submit\"]");
-		selenium.waitForPageToLoad("30000");
-		selenium.click("link=Previous");
-		selenium.waitForPageToLoad("30000");
-		selenium.click("link=Previous");
-		selenium.waitForPageToLoad("30000");
-		selenium.click("css=img[alt=\"screenshot2010041014012.th.png\"]");
-		selenium.waitForPageToLoad("30000");
-		selenium.click("css=img[alt=\"screenshot2010041014010.th.png\"]");
-		selenium.click("css=img[alt=\"tNGFiaQ.jpg\"]");
-		selenium.click("css=img[alt=\"th_2010_04_27-155623.png\"]");
-		selenium.click("css=div.postlinksb > div.inbox.crumbsplus > div.pagepost > p.pagelink.conl > a");
-		selenium.waitForPageToLoad("30000");
-		selenium.click("id=main_image");
-		selenium.waitForPopUp("_blank", "30000");
-		selenium.waitForPageToLoad("30000");
-		selenium.selectWindow("null");
-		selenium.click("css=img[alt=\"thumb-20110511-08.53.02-xmonad-dzen-conky.png\"]");
-		selenium.selectWindow("null");
-		selenium.click("//table[@id='toc']/tbody/tr/td/ul/li[4]/ul/li[16]/a/span[2]");
+		
+	
 	}
         
 	@After
