@@ -351,6 +351,8 @@ public class TcmsReviewAction implements Action {
         change_axis = false;
         if (req.getParameter("Submit").equals("Change")) {
             change_axis = true;
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
         }
 
         Map params = req.getParameterMap();
