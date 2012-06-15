@@ -197,15 +197,15 @@ public class TcmsReviewAction implements Action {
                 gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
             }
         } catch (IOException ex) {
-            updateException = ex.getMessage();
+            updateException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (XmlRpcException ex) {
-            updateException = ex.getMessage();
+            updateException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (XmlRpcFault ex) {
-            updateException = ex.getMessage();
+            updateException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
@@ -264,7 +264,7 @@ public class TcmsReviewAction implements Action {
                 }
             } catch (IOException ex) {
                 Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-                updateException = ex.getMessage();
+                updateException = ex.toString();
                 rsp.sendRedirect("../" + Definitions.__URL_NAME);
                 return;
             }
@@ -301,12 +301,12 @@ public class TcmsReviewAction implements Action {
 
         } catch (XmlRpcFault ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.getMessage();
+            updateException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (XmlRpcException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.getMessage();
+            updateException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
@@ -332,7 +332,10 @@ public class TcmsReviewAction implements Action {
         if (properties.getManagerId() == null) {
             problems.add(properties.manager + " is possibly wrong manager's username");
         }
-        if (environment.getEnvId() == null) {
+        /**
+         * Check environment only if some identifier was submitted
+         */
+        if (!env.isEmpty() && environment.getEnvId() == null) {
             problems.add("Possibly wrong environment group: " + environment.env);
         }
 
@@ -355,6 +358,8 @@ public class TcmsReviewAction implements Action {
         change_axis = false;
         if (req.getParameter("Submit").equals("Change")) {
             change_axis = true;
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
         }
 
         Map params = req.getParameterMap();
@@ -465,12 +470,12 @@ public class TcmsReviewAction implements Action {
              * response could not be parsed."
              */
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.getMessage();
+            envCheckException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (MalformedURLException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.getMessage();
+            envCheckException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         } catch (IOException ex) {
@@ -480,7 +485,7 @@ public class TcmsReviewAction implements Action {
              * Produces exception message that contains just URL
              */
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.getMessage();
+            envCheckException = ex.toString();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
