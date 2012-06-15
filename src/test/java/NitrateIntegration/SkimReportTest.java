@@ -32,12 +32,12 @@ import java.util.regex.Pattern;
 *
 * @throws Exception
 */
-public class FunctionalTest{
+public class SkimReportTest extends SeleneseTestCase{
     
-    public FunctionalTest() {
+    public SkimReportTest() {
     }
 
-   /* 
+    
 	@Before
 	public void setUp() throws Exception {
 		selenium = new DefaultSelenium("localhost", 4444, "*chrome", "http://localhost:8080/");
@@ -65,113 +65,7 @@ public class FunctionalTest{
 		selenium.waitForPageToLoad("30000");
         }
         
-	/*@Test
-	public void testTest_manage_settings() throws Exception {
-                init();
-            
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Settings updated"));
-		selenium.type("name=_.username", "a");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Error: Server returned HTTP 401 Unauthorized. Please check username and password."));
-		selenium.type("name=_.plan", "asdf");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("asdf is possibly wrong plan id"));
-		selenium.type("name=_.product", "T");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("T is possibly wrong product name (couldn't check product version and category)"));
-		selenium.type("name=_.product_v", "eval");
-		selenium.type("name=_.product_v", "evfqwal");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("evfqwal is possibly wrong product version"));
-		selenium.type("name=_.category", "dewqd");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("dewqd is possibly wrong category name"));
-		selenium.type("name=_.priority", "freaafd");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("freaafd is possibly wrong priority name"));
-		selenium.type("name=_.manager", "sdfae");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("sdfae is possibly wrong manager's username"));
-		selenium.type("name=_.environment", "weftrs");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Possibly wrong environment group: weftrs"));
-		selenium.type("name=_.manager", "jrusnack");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Settings updated"));
-		selenium.type("name=_.priority", "P2");
-		selenium.type("name=_.manager", "asaleh");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Settings updated"));
-		selenium.type("name=_.product_v", "dsfaewwa");
-		selenium.type("name=_.category", "dsafrewef");
-		selenium.type("name=_.priority", "waefwqf");
-		selenium.type("name=_.manager", "ewfa");
-		selenium.type("name=_.environment", "wfasf");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("dsfaewwa is possibly wrong product version"));
-		verifyTrue(selenium.isTextPresent("dsafrewef is possibly wrong category name"));
-		verifyTrue(selenium.isTextPresent("waefwqf is possibly wrong priority name"));
-		verifyTrue(selenium.isTextPresent("ewfa is possibly wrong manager's username"));
-		verifyTrue(selenium.isTextPresent("Possibly wrong environment group: wfasf"));
-		selenium.type("name=_.product", "adsafwea");
-		selenium.type("name=_.product_v", "asfas");
-		selenium.type("name=_.category", "asfafdsa");
-		selenium.type("name=_.priority", "asfas");
-		selenium.type("name=_.manager", "sadfas");
-		selenium.type("name=_.environment", "sadffsa");
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("adsafwea is possibly wrong product name (couldn't check product version and category)"));
-		verifyTrue(selenium.isTextPresent("asfas is possibly wrong priority name"));
-		verifyTrue(selenium.isTextPresent("sadfas is possibly wrong manager's username"));
-		verifyTrue(selenium.isTextPresent("Possibly wrong environment group: sadffsa"));
-		selenium.click("name=Submit");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Settings updated"));
-	}
-
-        @Test
-	public void testTest_check_env() throws Exception {
-                            init();
-
-		selenium.click("css=form[name=\"envCheck\"] > table > tbody > tr > td.setting-main > input[name=\"Submit\"]");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("i386	Property checked"));
-		verifyTrue(selenium.isTextPresent("ia64	Property checked"));
-		selenium.click("xpath=(//input[@name='Submit'])[3]");
-		selenium.waitForPageToLoad("30000");
-		selenium.type("name=value-Arch=>i386", "iasd");
-		selenium.click("css=form[name=\"envCheck\"] > table > tbody > tr > td.setting-main > input[name=\"Submit\"]");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Value is not linked with Arch."));
-		verifyTrue(selenium.isTextPresent("Available values for property Arch:"));
-		selenium.type("name=value-Arch=>iasd", "i686");
-		selenium.click("xpath=(//input[@name='Submit'])[3]");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("i686	Property checked"));
-		selenium.type("name=property-Arch", "asdf");
-		selenium.click("css=form[name=\"envCheck\"] > table > tbody > tr > td.setting-main > input[name=\"Submit\"]");
-		selenium.waitForPageToLoad("30000");
-		verifyTrue(selenium.isTextPresent("Property is not linked to RTT."));
-		verifyTrue(selenium.isTextPresent("Available properties for group RTT:"));
-		selenium.type("name=property-asdf", "Arch");
-		selenium.click("css=form[name=\"envCheck\"] > table > tbody > tr > td.setting-main > input[name=\"Submit\"]");
-		
 	
-	}
         @Test
 	public void testSkim_report() throws Exception {
                             init();
@@ -208,5 +102,5 @@ public class FunctionalTest{
 	public void tearDown() throws Exception {
 		selenium.stop();
 	}
-*/
+
 }
