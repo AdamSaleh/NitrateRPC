@@ -50,6 +50,9 @@
                 <li> ${val}</li>
             </j:forEach>             
         </ul>
+        <j:if test="${it.isSetting_updated()}">
+            Settings updated
+        </j:if>
     </f:entry>
     
   

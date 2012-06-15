@@ -4,127 +4,128 @@
  */
 package NitrateIntegration;
 
+import com.thoughtworks.selenium.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import java.util.regex.Pattern;
-import java.util.concurrent.TimeUnit;
-import org.junit.*;
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
-import org.openqa.selenium.*;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.ui.Select;
 
 
 /**
  *
  * @author asaleh
  */
-public class FunctionalTest {
+public class FunctionalTest extends SeleneseTestCase{
     
     public FunctionalTest() {
     }
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
     
- 
-
-    
-    private WebDriver driver;
-	private String baseUrl;
-	private StringBuffer verificationErrors = new StringBuffer();
 	@Before
 	public void setUp() throws Exception {
-		driver = new FirefoxDriver();
-		baseUrl = "http://localhost:8080/";
-		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
-	}
+		selenium = new DefaultSelenium("localhost", 4444, "*chrome", "http://localhost:8080/");
+		selenium.start();
+                
+                selenium.open("job/selenium_test/");
+		selenium.click("link=Build Now");
+		selenium.waitForPageToLoad("30000");
+		selenium.type("name=file", PrivatePassword.testFile);
+		selenium.click("css=button[type=\"button\"]");
+		selenium.waitForPageToLoad("30000");
+                
+                selenium.open("job/selenium_test/lastBuild/");
+		
+		selenium.waitForPageToLoad("30000");
+		selenium.click("link=Nitrate Plugin");
+		selenium.waitForPageToLoad("30000");
+		selenium.type("name=_.username", PrivatePassword.name);
+		selenium.type("name=_.password", PrivatePassword.password);
+		selenium.click("css=button[type=\"button\"]");
+		selenium.waitForPageToLoad("30000");
+        }
 
+        
 	@Test
-	public void testJava() throws Exception {
-		driver.get(baseUrl + "job/selenium_test/");
-		driver.findElement(By.linkText("Build Now")).click();
-		driver.findElement(By.name("file")).sendKeys("/home/asaleh/Downloads/testng-report.xml");
-		driver.findElement(By.cssSelector("button[type=\"button\"]")).click();
-		driver.get(baseUrl + "job/selenium_test/lastBuild/");
-
-		driver.findElement(By.linkText("Nitrate Plugin")).click();
-		driver.findElement(By.name("_.username")).clear();
-		driver.findElement(By.name("_.username")).sendKeys(PrivatePassword.name);
-		driver.findElement(By.name("_.password")).clear();
-		driver.findElement(By.name("_.password")).sendKeys(PrivatePassword.password);
-		driver.findElement(By.cssSelector("button[type=\"button\"]")).click();
-		try {
-			assertEquals("https://tcms.engineering.redhat.com/xmlrpc/", driver.findElement(By.name("_.serverUrl")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("asaleh", driver.findElement(By.name("_.username")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("5866", driver.findElement(By.name("_.plan")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("TCMS", driver.findElement(By.name("_.product")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("Devel", driver.findElement(By.name("_.product_v")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("Functional", driver.findElement(By.name("_.category")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("P1", driver.findElement(By.name("_.priority")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("asaleh", driver.findElement(By.name("_.manager")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		try {
-			assertEquals("RTT", driver.findElement(By.name("_.environment")).getAttribute("value"));
-		} catch (Error e) {
-			verificationErrors.append(e.toString());
-		}
-		driver.findElement(By.cssSelector("form[name=\"envCheck\"] > table > tbody > tr > td.setting-main > input[name=\"Submit\"]")).click();
-		// ERROR: Caught exception [ERROR: Unsupported command [isTextPresent]]
+	public void testTest_manage_settings() throws Exception {
+            
+            
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("Settings updated"));
+		selenium.type("name=_.username", "a");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("Error: Server returned HTTP 401 Unauthorized. Please check username and password."));
+		selenium.type("name=_.plan", "asdf");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("asdf is possibly wrong plan id"));
+		selenium.type("name=_.product", "T");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("T is possibly wrong product name (couldn't check product version and category)"));
+		selenium.type("name=_.product_v", "eval");
+		selenium.type("name=_.product_v", "evfqwal");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("evfqwal is possibly wrong product version"));
+		selenium.type("name=_.category", "dewqd");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("dewqd is possibly wrong category name"));
+		selenium.type("name=_.priority", "freaafd");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("freaafd is possibly wrong priority name"));
+		selenium.type("name=_.manager", "sdfae");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("sdfae is possibly wrong manager's username"));
+		selenium.type("name=_.environment", "weftrs");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("Possibly wrong environment group: weftrs"));
+		selenium.type("name=_.manager", "jrusnack");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("Settings updated"));
+		selenium.type("name=_.priority", "P2");
+		selenium.type("name=_.manager", "asaleh");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("Settings updated"));
+		selenium.type("name=_.product_v", "dsfaewwa");
+		selenium.type("name=_.category", "dsafrewef");
+		selenium.type("name=_.priority", "waefwqf");
+		selenium.type("name=_.manager", "ewfa");
+		selenium.type("name=_.environment", "wfasf");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("dsfaewwa is possibly wrong product version"));
+		verifyTrue(selenium.isTextPresent("dsafrewef is possibly wrong category name"));
+		verifyTrue(selenium.isTextPresent("waefwqf is possibly wrong priority name"));
+		verifyTrue(selenium.isTextPresent("ewfa is possibly wrong manager's username"));
+		verifyTrue(selenium.isTextPresent("Possibly wrong environment group: wfasf"));
+		selenium.type("name=_.product", "adsafwea");
+		selenium.type("name=_.product_v", "asfas");
+		selenium.type("name=_.category", "asfafdsa");
+		selenium.type("name=_.priority", "asfas");
+		selenium.type("name=_.manager", "sadfas");
+		selenium.type("name=_.environment", "sadffsa");
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("adsafwea is possibly wrong product name (couldn't check product version and category)"));
+		verifyTrue(selenium.isTextPresent("asfas is possibly wrong priority name"));
+		verifyTrue(selenium.isTextPresent("sadfas is possibly wrong manager's username"));
+		verifyTrue(selenium.isTextPresent("Possibly wrong environment group: sadffsa"));
+		selenium.click("name=Submit");
+		selenium.waitForPageToLoad("30000");
+		verifyTrue(selenium.isTextPresent("Settings updated"));
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		driver.quit();
-		String verificationErrorString = verificationErrors.toString();
-		if (!"".equals(verificationErrorString)) {
-			fail(verificationErrorString);
-		}
+		selenium.stop();
 	}
 
-	private boolean isElementPresent(By by) {
-		try {
-			driver.findElement(by);
-			return true;
-		} catch (NoSuchElementException e) {
-			return false;
-		}
-	}
-    
 }

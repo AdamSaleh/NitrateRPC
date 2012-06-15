@@ -37,6 +37,7 @@ public class TcmsReviewAction implements Action {
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
+    boolean setting_updated = false;
     LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
     public List<String> update_problems = new LinkedList<String>();
     public HashSet<String> env_check_problems = new HashSet<String>();
@@ -55,6 +56,10 @@ public class TcmsReviewAction implements Action {
 
     public String getServerUrl() {
         return serverUrl;
+    }
+
+    public boolean isSetting_updated() {
+        return setting_updated;
     }
 
     public List<String> getUpdate_problems() {
@@ -233,6 +238,7 @@ public class TcmsReviewAction implements Action {
     }
 
     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
+        setting_updated = false;
         List<String> problems = new LinkedList<String>();
 
         String serverUrl = req.getParameter("_.serverUrl");
@@ -333,6 +339,7 @@ public class TcmsReviewAction implements Action {
         if (problems.isEmpty()) {
             this.properties = properties;
             this.environment = environment;
+            setting_updated = true;
         }
 
 
