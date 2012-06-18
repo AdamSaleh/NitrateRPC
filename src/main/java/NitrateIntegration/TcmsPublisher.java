@@ -118,8 +118,6 @@ public class TcmsPublisher extends Recorder {
             return true;
         }
 
-        //paths = Parser.checkReports(build, paths, listener.getLogger());
-
         boolean filesSaved = Parser.saveReports(Parser.getReportDir(build), paths, listener.getLogger(), "test-results");
         if (!filesSaved) {
             listener.getLogger().println("Failed to save TestNG XML reports");
@@ -129,6 +127,7 @@ public class TcmsPublisher extends Recorder {
         TestResults results = Parser.loadResults(build, null, "test-results");
 
         TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
+       
         Map<String, String> vars = new HashMap<String, String>();
         vars.putAll(build.getBuildVariables());
 
@@ -152,15 +151,6 @@ public class TcmsPublisher extends Recorder {
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<hudson.tasks.Publisher> {
 
-        /**
-         * To persist global configuration information, simply store it in a
-         * field and call save().
-         *
-         * <p> If you don't want fields to be persisted, use <tt>transient</tt>.
-         */
-        /**
-         * Do not instantiate DescriptorImpl.
-         */
         /**
          * Performs on-the-fly validation of the form field 'name'.
          *

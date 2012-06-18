@@ -31,8 +31,8 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
     private TcmsProperties properties;
     CommandWrapper build_s;
     private TcmsEnvironment environment;
+    
     LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
-    // Uninitialized
     HashMap<String, LinkedList<CommandWrapper>> commands_sorted = new HashMap<String, LinkedList<CommandWrapper>>();
 
     public TcmsGatherer(TcmsProperties properties, TcmsEnvironment env) {
@@ -44,6 +44,11 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
     public void setProperties(TcmsProperties properties) {
         this.properties = properties;
     }
+
+    public void setEnvironment(TcmsEnvironment environment) {
+        this.environment = environment;
+    }
+    
 
     private static TestCase.create tcmsCreateCase(MethodResult result, TcmsProperties properties) {
         TestCase.create create = new TestCase.create();
@@ -117,9 +122,6 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
     }
 
     private static TestRun.link_env_value tcmsLinkValue(TcmsEnvironment env, String property, String value) {
-        /**
-         * If environment is not set, return null, because we cannot link to it
-         */
         if (env.isEmpty()) {
             return null;
         }

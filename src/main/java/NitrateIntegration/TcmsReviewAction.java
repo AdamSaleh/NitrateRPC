@@ -15,6 +15,7 @@ import hudson.model.Action;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -31,17 +32,22 @@ public class TcmsReviewAction implements Action {
 
     public AbstractBuild<?, ?> build;
     private TcmsGatherer gatherer;
-    private TcmsConnection connection;
+
     private String serverUrl;
     private TcmsAccessCredentials credentials;
+    
     public TcmsProperties properties;
     public TcmsEnvironment environment;
+    
     private LinkedHashMap<String, Hashtable<String, String>> env_status;
+    
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
     boolean setting_updated = false;
+    
     LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
+    
     public List<String> update_problems = new LinkedList<String>();
     public HashSet<String> env_check_problems = new HashSet<String>();
 
@@ -165,6 +171,106 @@ public class TcmsReviewAction implements Action {
         wrongProperty = false;
     }
 
+    public static TcmsConnection connect(String serverUrl,TcmsAccessCredentials credentials)throws IOException, XmlRpcFault{
+        TcmsConnection connection = null;
+        connection = new TcmsConnection(serverUrl);
+        connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
+
+        Auth.login_krbv auth = new Auth.login_krbv();
+            String session;
+            session = auth.invoke(connection);
+            if (session.length() > 0) {
+                connection.setSession(session);
+            }else{
+                throw new IOException("Couln't connect to tcms server");
+            }
+            return connection;
+    }
+    
+    public final PropertyTransform property = new PropertyTransform();
+    
+    private class PropertyTransform{
+       
+    
+        private class Touple<K,V> implements Entry<K,V>{
+            private K key;
+            private V val;
+
+            public Touple(K key, V val) {
+                this.key = key;
+                this.val = val;
+            }
+
+            public K getKey() {
+                return key;
+            }
+
+            public V getValue() {
+                return val;
+            }
+
+            public Object setValue(Object v) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+            
+        }
+        
+    public void clearTransformations(){
+        propertyTransform.clear();
+    }
+    public void addTransformation(String oldprop,String oldval,String newprop,String newval){
+        propertyTransform.put(new Touple(oldprop,oldval),new Touple(newprop,newval));
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    private HashMap<Entry<String,String>,Entry<String,String>> propertyTransform;
+     
+    public Map<String, String> transformVariables(Map<String,String> old){
+        
+        HashMap<String,String> transformed = new HashMap<String,String>();
+        
+        for(Entry<String,String> prop_value: old.entrySet()){
+            
+            Entry<String,String> newprop_value = prop_value;
+            if(propertyTransform.containsKey(prop_value)){
+                newprop_value = propertyTransform.get(prop_value);
+            }
+        
+            
+            transformed.put(newprop_value.getKey(), newprop_value.getValue());
+        }
+        return transformed;
+    }
+    
+    
+    }
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
         updateException = "";
         gatherer.clear();
@@ -174,20 +280,9 @@ public class TcmsReviewAction implements Action {
         }
 
         try {
-            connection = new TcmsConnection(serverUrl);
-            connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
-
-            boolean test = connection.testTcmsConnection();
-            if (test == false) {
-                throw new IOException("Couln't connect to tcms server");
-            }
-
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            session = auth.invoke(connection);
-            if (session.length() > 0) {
-                connection.setSession(session);
-            }
+            TcmsConnection connection = null;
+            connection =connect(serverUrl, credentials);
+            
             environment.setConnection(connection);
             environment.reloadEnvId();
 
@@ -195,7 +290,8 @@ public class TcmsReviewAction implements Action {
             properties.reload();
 
             gatherer.setProperties(properties);
-
+            gatherer.setEnvironment(environment);
+            
             for (GatherFiles gatherfile : gatherFiles) {
                 gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
             }
@@ -234,7 +330,10 @@ public class TcmsReviewAction implements Action {
     }
 
     public void addGatherPath(TestResults results, AbstractBuild build, Map<String, String> variables) {
-        GatherFiles f = new GatherFiles(results, build, variables);
+        /*Preventing creation of un-initialized null-s, that would be added to gather-files*/
+        GatherFiles f = null;
+        f = new GatherFiles(results, build, variables);
+        
         if (f != null) {
             gatherFiles.add(f);
         }
@@ -263,7 +362,8 @@ public class TcmsReviewAction implements Action {
                 TcmsConnection c = new TcmsConnection(serverUrl);
                 c.setUsernameAndPassword(username, password);
                 if (c.testTcmsConnection()) {
-                    connection = c;
+                    this.serverUrl = serverUrl;
+                    this.credentials = new TcmsAccessCredentials(username,password);
                 }
             } catch (IOException ex) {
                 Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
@@ -292,6 +392,9 @@ public class TcmsReviewAction implements Action {
         Auth.login_krbv auth = new Auth.login_krbv();
 
         try {
+            TcmsConnection connection = null;
+            connection =connect(serverUrl, credentials);
+            
             session = auth.invoke(connection);
 
             if (session != null && session.length() > 0) {
@@ -388,8 +491,7 @@ public class TcmsReviewAction implements Action {
                      */
                     if (!value.equals(value_name)) {
                         /*
-                         * Assert that new value is not already present under
-                         * property
+                         * Assert that new value is not already present under property
                          */
                         if (!env_status.get(property_name).containsKey(value)) {
                             if (env.variables.containsKey(property_name)) {
@@ -443,6 +545,9 @@ public class TcmsReviewAction implements Action {
          * test
          */
         try {
+            TcmsConnection connection = null;
+            connection =connect(serverUrl, credentials);
+            
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
@@ -545,14 +650,6 @@ public class TcmsReviewAction implements Action {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
         } else {
             try {
-                connection = new TcmsConnection(serverUrl);
-                connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
-
-                boolean test = connection.testTcmsConnection();
-                if (test == false) {
-                    throw new IOException("Couln't connect to tcms server");
-                }
-
                 // parse 
                 String input;
                 for (CommandWrapper c : gatherer) {
@@ -567,17 +664,8 @@ public class TcmsReviewAction implements Action {
                     }
                 }
 
-
-                Auth.login_krbv auth = new Auth.login_krbv();
-                String session;
-                session = auth.invoke(connection);
-                if (session.length() > 0) {
-                    connection.setSession(session);
-                }
-                properties.setConnection(connection);
-                properties.reload();
-
-                upload(gatherer, connection);
+                connectAndUpload(gatherer,credentials,serverUrl);
+                
             } catch (XmlRpcFault ex) {
                 Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             } catch (MalformedURLException ex) {
@@ -588,7 +676,13 @@ public class TcmsReviewAction implements Action {
 
     }
 
-    public void upload(TcmsGatherer gathered, TcmsConnection connection)  {
+    public static void connectAndUpload(TcmsGatherer gathered,TcmsAccessCredentials credentials,String serverUrl) throws MalformedURLException, XmlRpcFault, IOException{
+               TcmsConnection connection = null;
+               connection =connect(serverUrl, credentials);
+               upload(gathered, connection);
+    }
+    
+    public static void upload(TcmsGatherer gathered, TcmsConnection connection)  {
         boolean at_least_one;
         boolean at_least_one_not_duplicate;
         do {
