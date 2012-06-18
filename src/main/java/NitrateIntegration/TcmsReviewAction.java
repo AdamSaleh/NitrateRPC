@@ -4,6 +4,7 @@
  */
 package NitrateIntegration;
 
+import NitrateIntegration.CommandWrapper.CommandWrapper;
 import com.redhat.nitrate.command.TestRun;
 import com.redhat.nitrate.command.Build;
 import com.redhat.nitrate.command.Auth;
@@ -11,7 +12,6 @@ import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.*;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
-import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -588,9 +588,7 @@ public class TcmsReviewAction implements Action {
 
     }
 
-    public void upload(TcmsGatherer gathered, TcmsConnection connection) /*
-     * throws XmlRpcFault
-     */ {
+    public void upload(TcmsGatherer gathered, TcmsConnection connection)  {
         boolean at_least_one;
         boolean at_least_one_not_duplicate;
         do {
