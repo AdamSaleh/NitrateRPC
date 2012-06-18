@@ -5,19 +5,16 @@
 package NitrateIntegration;
 
 import NitrateIntegration.CommandWrapper.CommandWrapper;
+import com.redhat.engineering.jenkins.testparser.results.MethodResult;
+import com.redhat.engineering.jenkins.testparser.results.TestResults;
+import com.redhat.nitrate.TcmsCommand;
+import com.redhat.nitrate.command.Build;
+import com.redhat.nitrate.command.Env.Value;
 import com.redhat.nitrate.command.TestCase;
 import com.redhat.nitrate.command.TestCaseRun;
 import com.redhat.nitrate.command.TestRun;
-import com.redhat.nitrate.command.Build;
-import com.redhat.engineering.jenkins.testparser.results.MethodResult;
-import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.command.Env.Value;
-import com.redhat.nitrate.*;
 import hudson.model.AbstractBuild;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.*;
 
 /**

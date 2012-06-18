@@ -2,12 +2,13 @@ package NitrateIntegration;
 
 import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.command.Auth;
 import com.redhat.nitrate.TcmsAccessCredentials;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.command.Auth;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -27,6 +28,7 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import redstone.xmlrpc.XmlRpcException;
 import redstone.xmlrpc.XmlRpcFault;
 
 /**
@@ -83,12 +85,16 @@ public class TcmsPublisher extends Recorder {
 
     }
 
-    @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-        listener.getLogger().println("Starting TCMS integration plugin");
-        listener.getLogger().println("Looking for TestNG results report in workspace using pattern: "
-                + reportLocationPattern);
-
+    /**
+     * Check whether TcmsReviewAction has been added to the build, if not, fix
+     * that. This method contains mutex, so that TcmsReviewAction is added only
+     * once.
+     *
+     * @param build
+     * @param listener
+     * @return Always true, so Jenkins may continue building.
+     */
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
         AbstractBuild agregateBuild = build;
         if (build instanceof MatrixRun) {
             MatrixRun mrun = (MatrixRun) build;
@@ -109,6 +115,27 @@ public class TcmsPublisher extends Recorder {
             }
         }
 
+        return true;
+    }
+
+    /**
+     * Locates, checks and saves reports after build finishes, and adds result
+     * to TcmsReviewAction corresponding to the build.
+     *
+     * @param build
+     * @param launcher
+     * @param listener
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Override
+    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        listener.getLogger().println("Starting TCMS integration plugin");
+        listener.getLogger().println("Looking for TestNG results report in workspace using pattern: "
+                + reportLocationPattern);
+
+
 
         FilePath[] paths = null;
         paths = Parser.locateReports(build.getWorkspace(), reportLocationPattern);
@@ -126,8 +153,10 @@ public class TcmsPublisher extends Recorder {
 
         TestResults results = Parser.loadResults(build, null, "test-results");
 
-        TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
-       
+        TcmsReviewAction action = build instanceof MatrixRun
+                ? ((MatrixRun) build).getParentBuild().getAction(TcmsReviewAction.class)
+                : ((MatrixBuild) build).getAction(TcmsReviewAction.class);
+
         Map<String, String> vars = new HashMap<String, String>();
         vars.putAll(build.getBuildVariables());
 
@@ -140,15 +169,7 @@ public class TcmsPublisher extends Recorder {
         return BuildStepMonitor.STEP;
     }
 
-    /**
-     * Descriptor for {@link HelloWorldBuilder}. Used as a singleton. The class
-     * is marked as public so that it can be accessed from views.
-     *
-     * <p> See
-     * <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt>
-     * for the actual HTML fragment for the configuration screen.
-     */
-    @Extension // This indicates to Jenkins that this is an implementation of an extension point.
+    @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<hudson.tasks.Publisher> {
 
         /**
@@ -242,17 +263,12 @@ public class TcmsPublisher extends Recorder {
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
                 @QueryParameter("env") final String env) {
-            FormValidation url_val = checkServerUrl(serverUrl, username, password);
-            if (url_val != FormValidation.ok()) {
-                return url_val;
-            }
 
             TcmsConnection c = null;
             try {
                 c = new TcmsConnection(serverUrl);
             } catch (MalformedURLException ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-                return FormValidation.error("Something weird happened");
+                return FormValidation.error("Possibly wrong server URL");
             }
 
 
@@ -269,7 +285,15 @@ public class TcmsPublisher extends Recorder {
                 environment.setConnection(c);
                 environment.reloadEnvId();
             } catch (XmlRpcFault ex) {
-                return FormValidation.error("Possibly wrong username/password");
+                return FormValidation.error(ex.getMessage());
+            } catch (XmlRpcException ex) {
+                if (ex.getMessage().equals("The response could not be parsed.")) {
+                    return FormValidation.error("Possibly wrong username/password");
+                }
+                if (ex.getMessage().equals("A network error occurred.")) {
+                    return FormValidation.error("Cannot connect to server. Check URL or try reloading this page");
+                }
+                return FormValidation.error(ex.getMessage());
             }
 
             if (environment.getEnvId() == null) {

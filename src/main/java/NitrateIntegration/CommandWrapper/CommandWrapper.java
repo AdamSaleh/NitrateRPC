@@ -6,19 +6,11 @@ package NitrateIntegration.CommandWrapper;
 
 import NitrateIntegration.TcmsEnvironment;
 import NitrateIntegration.TcmsProperties;
-import NitrateIntegration.TcmsReviewAction;
-import com.redhat.nitrate.command.TestCase;
-import com.redhat.nitrate.command.TestCaseRun;
-import com.redhat.nitrate.command.TestRun;
-import com.redhat.nitrate.command.Env;
-import com.redhat.nitrate.command.Build;
-import com.redhat.nitrate.*;
+import com.redhat.nitrate.TcmsCommand;
+import com.redhat.nitrate.TcmsConnection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import redstone.xmlrpc.XmlRpcArray;
 import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
 
