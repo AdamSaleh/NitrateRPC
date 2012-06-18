@@ -4,6 +4,11 @@
  */
 package NitrateIntegration;
 
+import com.redhat.nitrate.command.TestCase;
+import com.redhat.nitrate.command.TestCaseRun;
+import com.redhat.nitrate.command.TestRun;
+import com.redhat.nitrate.command.Env;
+import com.redhat.nitrate.command.Build;
 import com.redhat.nitrate.*;
 import java.util.Hashtable;
 import java.util.LinkedList;

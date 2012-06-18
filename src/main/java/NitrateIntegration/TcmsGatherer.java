@@ -4,9 +4,13 @@
  */
 package NitrateIntegration;
 
+import com.redhat.nitrate.command.TestCase;
+import com.redhat.nitrate.command.TestCaseRun;
+import com.redhat.nitrate.command.TestRun;
+import com.redhat.nitrate.command.Build;
 import com.redhat.engineering.jenkins.testparser.results.MethodResult;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.Env.Value;
+import com.redhat.nitrate.command.Env.Value;
 import com.redhat.nitrate.*;
 import hudson.model.AbstractBuild;
 import java.io.IOException;

@@ -2,7 +2,7 @@ package NitrateIntegration;
 
 import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.Auth;
+import com.redhat.nitrate.command.Auth;
 import com.redhat.nitrate.TcmsAccessCredentials;
 import com.redhat.nitrate.TcmsConnection;
 import hudson.Extension;
@@ -303,11 +303,6 @@ public class TcmsPublisher extends Recorder {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            // To persist global configuration information,
-            // set that to properties and call save().
-            //formData.getBoolean("useFrench");
-            // ^Can also use req.bindJSON(this, formData);
-            //  (easier when there are many fields; need set* methods for this, like setUseFrench)
             save();
             return super.configure(req, formData);
         }

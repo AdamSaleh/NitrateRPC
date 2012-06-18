@@ -4,6 +4,9 @@
  */
 package NitrateIntegration;
 
+import com.redhat.nitrate.command.TestRun;
+import com.redhat.nitrate.command.Build;
+import com.redhat.nitrate.command.Auth;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.*;
 import hudson.model.AbstractBuild;

@@ -4,8 +4,8 @@
  */
 package NitrateIntegration;
 
-import com.redhat.nitrate.Env;
-import com.redhat.nitrate.Env.Value;
+import com.redhat.nitrate.command.Env;
+import com.redhat.nitrate.command.Env.Value;
 import com.redhat.nitrate.TcmsConnection;
 import java.util.Hashtable;
 import redstone.xmlrpc.XmlRpcArray;

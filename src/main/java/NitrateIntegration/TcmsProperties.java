@@ -4,6 +4,10 @@
  */
 package NitrateIntegration;
 
+import com.redhat.nitrate.command.TestCase;
+import com.redhat.nitrate.command.TestPlan;
+import com.redhat.nitrate.command.User;
+import com.redhat.nitrate.command.Product;
 import com.redhat.nitrate.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
