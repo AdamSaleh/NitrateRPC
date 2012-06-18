@@ -113,8 +113,8 @@
                                             <td style="width:150px; vertical-align: middle">
                                                 ${field.getKey()}
                                             </td>
-                                            <td>
-                                                <f:textbox name="testRunSummary" clazz="required" style="width: 200px" value="${field.getValue()}" />
+                                            <td><!--clazz="required"--> 
+                                                <f:textbox name="testRunSummary"  style="width: 200px" value="${field.getValue()}" />
                                                 <f:submit value="update" />
                                             </td>
                                         </tr>
