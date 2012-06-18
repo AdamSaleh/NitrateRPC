@@ -118,7 +118,7 @@ function toggleSubitems(prefix, code){
                         <f:entry title="Password" field="password">
                             <f:password value="${it.password}" style="width: 200px"/>
                         </f:entry>
-                        <f:entry>
+                        <f:entry help="help-gather">
                             <j:if test="${it.updateExceptionOccured()}">
                                 <span class="exception" style="font-weight: bold">Error:</span> ${it.updateException} 
                                 <br/>
@@ -144,7 +144,7 @@ function toggleSubitems(prefix, code){
                                 <f:form method="post" action="updateSettings" name="updaetSettings" >
                                     <st:include page="settings.jelly"/>
                                     <br/>
-                                    <f:entry>
+                                    <f:entry help="help-update">
                                         <f:submit value="Update" />
                                     </f:entry>
                                 </f:form>
@@ -153,10 +153,9 @@ function toggleSubitems(prefix, code){
                             <td>
                                 
                                 <f:form method="post" action="checkSubmit" name="envCheck" >
-                                    <f:entry>
+                                    <f:entry help="help-checkSubmit">
 
                                         <st:include page="envCheck.jelly"/>
-
                                         <f:submit value="Check environmental vars" />
                                         <f:submit value="Change" />
                                     </f:entry>
@@ -192,7 +191,9 @@ function toggleSubitems(prefix, code){
                         <f:form method="post" action="reportSubmit" name="dataUpload">
                             <f:entry>
                                 <st:include page="report.jelly"/>
-
+                            </f:entry>
+                                
+                            <f:entry help="help-submit">
                                 <f:submit value="Submit Report" />
                             </f:entry>
                         </f:form>

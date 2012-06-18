@@ -1,0 +1,10 @@
+<j:jelly trim="false" xmlns:j="jelly:core">
+    <div>
+        TODO
+        
+        After you succesfuly check environmental variables, commnads that link
+        Jenkins`s axes to envirnment variables will be added to report (under 
+        Create Test Run). 
+        
+    </div>
+</j:jelly>
