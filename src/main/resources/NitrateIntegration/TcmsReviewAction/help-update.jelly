@@ -1,0 +1,10 @@
+<j:jelly trim="false" xmlns:j="jelly:core">
+    <div>
+        TODO
+        
+        Environment group is not mandatory, but without it you can`t link
+        Jenkins`s axes to env. vars in TCMS. Fill in the field and check 
+        env. vars.
+        
+    </div>
+</j:jelly>
