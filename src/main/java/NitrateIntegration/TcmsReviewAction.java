@@ -324,6 +324,7 @@ public class TcmsReviewAction implements Action {
         try {
             TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
+            // FIXME: optimize, we don`t have to reload every time
             environment.setConnection(connection);
             environment.reloadEnvId();
 

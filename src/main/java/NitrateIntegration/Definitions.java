@@ -3,9 +3,7 @@ package NitrateIntegration;
 
 /**
 *
-* TODO: check serializable and other interfaces that might be implemented by our classes
 * TODO: check private/public permissions of methods 
-* TODO: optimize filtering - filter added to each action => ineffective
 * 
 * @author Jan Rusnacko (jrusnack at redhat.com)
 */

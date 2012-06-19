@@ -5,7 +5,6 @@ import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.TcmsAccessCredentials;
 import com.redhat.nitrate.TcmsConnection;
 import com.redhat.nitrate.TcmsException;
-import com.redhat.nitrate.command.Auth;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -20,19 +19,14 @@ import hudson.tasks.Builder;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import redstone.xmlrpc.XmlRpcException;
-import redstone.xmlrpc.XmlRpcFault;
 
 /**
  * Sample {@link Builder}.
@@ -174,34 +168,8 @@ public class TcmsPublisher extends Recorder {
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<hudson.tasks.Publisher> {
 
-        /**
-         * Performs on-the-fly validation of the form field 'name'.
-         *
-         * @param value This parameter receives the value that the user has
-         * typed.
-         * @return Indicates the outcome of the validation. This is sent to the
-         * browser.
-         */
-        public FormValidation checkServerUrl(String value, String username, String password) {
-            if (value.length() == 0) {
-                return FormValidation.error("Please set an url");
-            }
-            try {
-                TcmsConnection testCon = new TcmsConnection(value);
-                testCon.setUsernameAndPassword(username, password);
-                boolean testTcmsConnection = testCon.testTcmsConnection();
-                if (testTcmsConnection == false) {
-                    return FormValidation.warning("XML-RPC Service not found");
-                }
-            } catch (TcmsException ex) {
-                return FormValidation.error(ex.getMessage());
-            } catch (IOException ex) {
-                return FormValidation.warning("Connection error: " + ex.getMessage());
-            }
-            return FormValidation.ok();
-        }
-
-        public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
+       
+       public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
                 @QueryParameter("plan") final String plan,
@@ -210,6 +178,7 @@ public class TcmsPublisher extends Recorder {
                 @QueryParameter("category") final String category,
                 @QueryParameter("priority") final String priority,
                 @QueryParameter("manager") final String manager) {
+           
             List<String> problems = new LinkedList();
             
             try {
@@ -219,7 +188,7 @@ public class TcmsPublisher extends Recorder {
                 boolean test = connection.testTcmsConnection();
 
                 properties.setConnection(connection);
-                properties.reload();                
+                properties.reload();
                 problems = TcmsProperties.checkUsersetProperties(properties);
 
             } catch (TcmsException ex) {
@@ -235,95 +204,28 @@ public class TcmsPublisher extends Recorder {
             return FormValidation.ok();
         }
 
-        
-        // FIXME: optimize
-//        public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
-//                @QueryParameter("username") final String username,
-//                @QueryParameter("password") final String password,
-//                @QueryParameter("plan") final String plan,
-//                @QueryParameter("product") final String product,
-//                @QueryParameter("product_v") final String product_v,
-//                @QueryParameter("category") final String category,
-//                @QueryParameter("priority") final String priority,
-//                @QueryParameter("manager") final String manager) {
-//            
-//            FormValidation url_val = checkServerUrl(serverUrl, username, password);
-//            if (url_val != FormValidation.ok()) {
-//                return url_val;
-//            }
-//
-//            TcmsConnection c = null;
-//            try {
-//                c = new TcmsConnection(serverUrl);
-//            } catch (MalformedURLException ex) {
-//                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-//                return FormValidation.error("Something weird happened");
-//            }
-//
-//            c.setUsernameAndPassword(username, password);
-//            Auth.login_krbv auth = new Auth.login_krbv();
-//            String session;
-//            
-//            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-//            List<String> problems = new LinkedList();
-//            
-//            try {
-//                session = auth.invoke(c);
-//                if (session.length() > 0) {
-//                    c.setSession(session);
-//                }
-//                properties.setConnection(c);
-//                properties.reload();
-//                problems = TcmsProperties.checkUsersetProperties(properties);
-//                
-//            } catch (TcmsException ex) {
-//                // FIXME: check if really only username or password can go wrong (network down, timeout, conn. refused...)
-//                return FormValidation.error("Possibly wrong username/password");
-//            }
-//            
-//            if(!problems.isEmpty()){
-//                return FormValidation.error(problems.toString().replace("[", "").replace("]", ""));
-//            }
-//
-//            return FormValidation.ok();
-//
-//        }
-
-        // FIXME: optimize
         public FormValidation doTestEnv(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
-                @QueryParameter("env") final String env) throws TcmsException {
-
-            TcmsConnection c = null;
-            try {
-                c = new TcmsConnection(serverUrl);
-            } catch (MalformedURLException ex) {
-                return FormValidation.error("Possibly wrong server URL");
-            }
-
-
-            c.setUsernameAndPassword(username, password);
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
+                @QueryParameter("env") final String env) {
+            
+            TcmsAccessCredentials credentials = new TcmsAccessCredentials(serverUrl, username, password);
             TcmsEnvironment environment = new TcmsEnvironment(env);
-
+            
             try {
-                session = auth.invoke(c);
-                if (session.length() > 0) {
-                    c.setSession(session);
-                }
-                environment.setConnection(c);
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+
+                environment.setConnection(connection);
                 environment.reloadEnvId();
+
+                if (!environment.env.isEmpty() && environment.getEnvId() == null) {
+                    throw new TcmsException("Possibly wrong environment group: \"" + environment.env + "\"");
+                }
+
             } catch (TcmsException ex) {
                 return FormValidation.error(ex.getMessage());
             }
-
-            if (environment.getEnvId() == null) {
-                return FormValidation.error("Possibly wrong environment group");
-            }
             return FormValidation.ok();
-
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {

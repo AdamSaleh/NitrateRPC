@@ -10,7 +10,6 @@ import com.redhat.nitrate.command.Env;
 import com.redhat.nitrate.command.Env.Value;
 import java.util.Hashtable;
 import redstone.xmlrpc.XmlRpcArray;
-import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
 
 /**
@@ -43,6 +42,7 @@ public class TcmsEnvironment {
         this.connection = connection;
     }
 
+    // FIXME :optimize
     public void reloadEnvId() throws TcmsException  {
         envId = null;
         Env.filter_groups get = new Env.filter_groups();
@@ -63,6 +63,7 @@ public class TcmsEnvironment {
         reloadValues();
     }
 
+    // FIXME :optimize
     private void reloadProperties() throws TcmsException  {
         if (env_obj != null) {
             Env.get_properties get = new Env.get_properties();
@@ -84,6 +85,7 @@ public class TcmsEnvironment {
         }
     }
 
+    // FIXME :optimize
     private void reloadValues() throws TcmsException {
         values = new Hashtable<String, Hashtable<String, Value>>();
         values_by_id = new Hashtable<Integer, Env.Value>();
