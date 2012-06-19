@@ -5,11 +5,12 @@
 package NitrateIntegration;
 
 import NitrateIntegration.CommandWrapper.CommandWrapper;
-import com.redhat.nitrate.command.TestRun;
-import com.redhat.nitrate.command.Build;
-import com.redhat.nitrate.command.Auth;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.*;
+import com.redhat.nitrate.TcmsAccessCredentials;
+import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.command.Auth;
+import com.redhat.nitrate.command.Build;
+import com.redhat.nitrate.command.TestRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import java.io.IOException;
@@ -27,29 +28,29 @@ import redstone.xmlrpc.XmlRpcFault;
 /**
  *
  * @author asaleh
+ * @author jrusnack
  */
 public class TcmsReviewAction implements Action {
 
     public AbstractBuild<?, ?> build;
-    private TcmsGatherer gatherer;
-
-    private String serverUrl;
-    private TcmsAccessCredentials credentials;
-    
     public TcmsProperties properties;
     public TcmsEnvironment environment;
-    
+    public List<String> update_problems = new LinkedList<String>();
+    public HashSet<String> env_check_problems = new HashSet<String>();
+    /**
+     * Stores mapping from old properties/Jenkins axes(names and values) to new
+     * names and values possibly changed by user
+     */
+    public final PropertyTransform property = new PropertyTransform();
+    private TcmsGatherer gatherer;
+    private String serverUrl;
+    private TcmsAccessCredentials credentials;
     private LinkedHashMap<String, Hashtable<String, String>> env_status;
-    
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
     boolean setting_updated = false;
-    
     LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
-    
-    public List<String> update_problems = new LinkedList<String>();
-    public HashSet<String> env_check_problems = new HashSet<String>();
 
     /*
      * Used to store exception, if occurs, and print it in reasonable format,
@@ -58,6 +59,98 @@ public class TcmsReviewAction implements Action {
      */
     private String updateException;
     private String envCheckException;
+
+    /**
+     * Class that defines transformations (key, value) -> (key, value). This is
+     * used in case when user renames Jenkins`s axes to some new names - new
+     * transformation from original names and values to new ones is added.
+     */
+    private class PropertyTransform {
+
+        private class Touple<K, V> implements Entry<K, V> {
+
+            private K key;
+            private V val;
+
+            public Touple(K key, V val) {
+                this.key = key;
+                this.val = val;
+            }
+
+            public K getKey() {
+                return key;
+            }
+
+            public V getValue() {
+                return val;
+            }
+
+            public Object setValue(Object v) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+
+        public void clearTransformations() {
+            propertyTransform.clear();
+        }
+
+        public void addTransformation(String oldprop, String oldval, String newprop, String newval) {
+            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
+        }
+        private HashMap<Entry<String, String>, Entry<String, String>> propertyTransform;
+
+        public Map<String, String> transformVariables(Map<String, String> old) {
+
+            HashMap<String, String> transformed = new HashMap<String, String>();
+
+            for (Entry<String, String> prop_value : old.entrySet()) {
+
+                Entry<String, String> newprop_value = prop_value;
+                if (propertyTransform.containsKey(prop_value)) {
+                    newprop_value = propertyTransform.get(prop_value);
+                }
+
+
+                transformed.put(newprop_value.getKey(), newprop_value.getValue());
+            }
+            return transformed;
+        }
+    }
+
+    public static class GatherFiles {
+
+        public TestResults results;
+        public AbstractBuild build;
+        public Map<String, String> variables;
+
+        public GatherFiles(TestResults results, AbstractBuild build, Map<String, String> variables) {
+            this.results = results;
+            this.build = build;
+            this.variables = variables;
+        }
+    }
+
+    public TcmsReviewAction(AbstractBuild build, String serverUrl,
+            String plan,
+            String product,
+            String product_v,
+            String category,
+            String priority,
+            String manager,
+            String env,
+            String testPath) {
+
+        this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+        this.credentials = new TcmsAccessCredentials();
+
+        this.serverUrl = serverUrl;
+        this.environment = new TcmsEnvironment(env);
+        this.build = build;
+        gatherer = new TcmsGatherer(properties, environment);
+        env_status = new LinkedHashMap<String, Hashtable<String, String>>();
+        propertyWWrongValue = new HashSet<String>();
+        wrongProperty = false;
+    }
 
     public boolean isChange_axis() {
         return change_axis;
@@ -149,128 +242,39 @@ public class TcmsReviewAction implements Action {
         return envCheckException;
     }
 
-    public TcmsReviewAction(AbstractBuild build, String serverUrl,
-            String plan,
-            String product,
-            String product_v,
-            String category,
-            String priority,
-            String manager,
-            String env,
-            String testPath) {
-
-        this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-        this.credentials = new TcmsAccessCredentials();
-
-        this.serverUrl = serverUrl;
-        this.environment = new TcmsEnvironment(env);
-        this.build = build;
-        gatherer = new TcmsGatherer(properties, environment);
-        env_status = new LinkedHashMap<String, Hashtable<String, String>>();
-        propertyWWrongValue = new HashSet<String>();
-        wrongProperty = false;
+    public void clearGatherPaths() {
+        gatherFiles.clear();
     }
 
-    public static TcmsConnection connect(String serverUrl,TcmsAccessCredentials credentials)throws IOException, XmlRpcFault{
+    public void addGatherPath(TestResults results, AbstractBuild build, Map<String, String> variables) {
+        /*
+         * Preventing creation of un-initialized null-s, that would be added to
+         * gather-files
+         */
+        GatherFiles f = null;
+        f = new GatherFiles(results, build, variables);
+
+        if (f != null) {
+            gatherFiles.add(f);
+        }
+    }
+
+    public static TcmsConnection connect(String serverUrl, TcmsAccessCredentials credentials) throws IOException, XmlRpcFault {
         TcmsConnection connection = null;
         connection = new TcmsConnection(serverUrl);
         connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
         Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            session = auth.invoke(connection);
-            if (session.length() > 0) {
-                connection.setSession(session);
-            }else{
-                throw new IOException("Couln't connect to tcms server");
-            }
-            return connection;
-    }
-    
-    public final PropertyTransform property = new PropertyTransform();
-    
-    private class PropertyTransform{
-       
-    
-        private class Touple<K,V> implements Entry<K,V>{
-            private K key;
-            private V val;
-
-            public Touple(K key, V val) {
-                this.key = key;
-                this.val = val;
-            }
-
-            public K getKey() {
-                return key;
-            }
-
-            public V getValue() {
-                return val;
-            }
-
-            public Object setValue(Object v) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-            
+        String session;
+        session = auth.invoke(connection);
+        if (session.length() > 0) {
+            connection.setSession(session);
+        } else {
+            throw new IOException("Couln't connect to tcms server");
         }
-        
-    public void clearTransformations(){
-        propertyTransform.clear();
+        return connection;
     }
-    public void addTransformation(String oldprop,String oldval,String newprop,String newval){
-        propertyTransform.put(new Touple(oldprop,oldval),new Touple(newprop,newval));
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    private HashMap<Entry<String,String>,Entry<String,String>> propertyTransform;
-     
-    public Map<String, String> transformVariables(Map<String,String> old){
-        
-        HashMap<String,String> transformed = new HashMap<String,String>();
-        
-        for(Entry<String,String> prop_value: old.entrySet()){
-            
-            Entry<String,String> newprop_value = prop_value;
-            if(propertyTransform.containsKey(prop_value)){
-                newprop_value = propertyTransform.get(prop_value);
-            }
-        
-            
-            transformed.put(newprop_value.getKey(), newprop_value.getValue());
-        }
-        return transformed;
-    }
-    
-    
-    }
-    
-   
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
         updateException = "";
         gatherer.clear();
@@ -281,8 +285,8 @@ public class TcmsReviewAction implements Action {
 
         try {
             TcmsConnection connection = null;
-            connection =connect(serverUrl, credentials);
-            
+            connection = connect(serverUrl, credentials);
+
             environment.setConnection(connection);
             environment.reloadEnvId();
 
@@ -291,7 +295,7 @@ public class TcmsReviewAction implements Action {
 
             gatherer.setProperties(properties);
             gatherer.setEnvironment(environment);
-            
+
             for (GatherFiles gatherfile : gatherFiles) {
                 gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
             }
@@ -310,33 +314,6 @@ public class TcmsReviewAction implements Action {
         }
 
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
-    }
-
-    public static class GatherFiles {
-
-        public TestResults results;
-        public AbstractBuild build;
-        public Map<String, String> variables;
-
-        public GatherFiles(TestResults results, AbstractBuild build, Map<String, String> variables) {
-            this.results = results;
-            this.build = build;
-            this.variables = variables;
-        }
-    }
-
-    public void clearGatherPaths() {
-        gatherFiles.clear();
-    }
-
-    public void addGatherPath(TestResults results, AbstractBuild build, Map<String, String> variables) {
-        /*Preventing creation of un-initialized null-s, that would be added to gather-files*/
-        GatherFiles f = null;
-        f = new GatherFiles(results, build, variables);
-        
-        if (f != null) {
-            gatherFiles.add(f);
-        }
     }
 
     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
@@ -363,7 +340,7 @@ public class TcmsReviewAction implements Action {
                 c.setUsernameAndPassword(username, password);
                 if (c.testTcmsConnection()) {
                     this.serverUrl = serverUrl;
-                    this.credentials = new TcmsAccessCredentials(username,password);
+                    this.credentials = new TcmsAccessCredentials(username, password);
                 }
             } catch (IOException ex) {
                 Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
@@ -393,8 +370,8 @@ public class TcmsReviewAction implements Action {
 
         try {
             TcmsConnection connection = null;
-            connection =connect(serverUrl, credentials);
-            
+            connection = connect(serverUrl, credentials);
+
             session = auth.invoke(connection);
 
             if (session != null && session.length() > 0) {
@@ -417,27 +394,8 @@ public class TcmsReviewAction implements Action {
             return;
         }
 
-
-        if (properties.getPlanID() == null) {
-            problems.add(properties.plan + " is possibly wrong plan id");
-        }
-        if (properties.getProductID() == null) {
-            problems.add(properties.product + " is possibly wrong product name (couldn't check product version and category)");
-        } else {
-            if (properties.getProduct_vID() == null) {
-                problems.add(properties.product_v + " is possibly wrong product version");
-            }
-            if (properties.getCategoryID() == null) {
-                problems.add(properties.category + " is possibly wrong category name");
-            }
-        }
-
-        if (properties.getPriorityID() == null) {
-            problems.add(properties.priority + " is possibly wrong priority name");
-        }
-        if (properties.getManagerId() == null) {
-            problems.add(properties.manager + " is possibly wrong manager's username");
-        }
+        problems = TcmsProperties.checkUsersetProperties(properties);
+        
         /**
          * Check environment only if some identifier was submitted
          */
@@ -451,10 +409,10 @@ public class TcmsReviewAction implements Action {
             setting_updated = true;
         }
 
-
         this.update_problems = problems;
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
+
 
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException {
 
@@ -491,7 +449,8 @@ public class TcmsReviewAction implements Action {
                      */
                     if (!value.equals(value_name)) {
                         /*
-                         * Assert that new value is not already present under property
+                         * Assert that new value is not already present under
+                         * property
                          */
                         if (!env_status.get(property_name).containsKey(value)) {
                             if (env.variables.containsKey(property_name)) {
@@ -525,10 +484,6 @@ public class TcmsReviewAction implements Action {
                 for (GatherFiles env : gatherFiles) {
                     if (env.variables.containsKey(property_name) && !property_name.equals(new_property_name)) {
                         if (env.variables.containsKey(new_property_name)) {
-                            /*
-                             * FIXME: this will print even when value is not
-                             * changed, because
-                             */
                             problems.add("Duplicit property name error.");
                         } else {
                             String val = env.variables.get(property_name);
@@ -546,8 +501,8 @@ public class TcmsReviewAction implements Action {
          */
         try {
             TcmsConnection connection = null;
-            connection =connect(serverUrl, credentials);
-            
+            connection = connect(serverUrl, credentials);
+
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
@@ -664,8 +619,8 @@ public class TcmsReviewAction implements Action {
                     }
                 }
 
-                connectAndUpload(gatherer,credentials,serverUrl);
-                
+                connectAndUpload(gatherer, credentials, serverUrl);
+
             } catch (XmlRpcFault ex) {
                 Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             } catch (MalformedURLException ex) {
@@ -676,13 +631,13 @@ public class TcmsReviewAction implements Action {
 
     }
 
-    public static void connectAndUpload(TcmsGatherer gathered,TcmsAccessCredentials credentials,String serverUrl) throws MalformedURLException, XmlRpcFault, IOException{
-               TcmsConnection connection = null;
-               connection =connect(serverUrl, credentials);
-               upload(gathered, connection);
+    public static void connectAndUpload(TcmsGatherer gathered, TcmsAccessCredentials credentials, String serverUrl) throws MalformedURLException, XmlRpcFault, IOException {
+        TcmsConnection connection = null;
+        connection = connect(serverUrl, credentials);
+        upload(gathered, connection);
     }
-    
-    public static void upload(TcmsGatherer gathered, TcmsConnection connection)  {
+
+    public static void upload(TcmsGatherer gathered, TcmsConnection connection) {
         boolean at_least_one;
         boolean at_least_one_not_duplicate;
         do {

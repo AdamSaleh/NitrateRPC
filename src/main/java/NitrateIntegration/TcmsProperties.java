@@ -9,6 +9,8 @@ import com.redhat.nitrate.command.TestPlan;
 import com.redhat.nitrate.command.User;
 import com.redhat.nitrate.command.Product;
 import com.redhat.nitrate.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import redstone.xmlrpc.XmlRpcArray;
@@ -33,6 +35,7 @@ public class TcmsProperties {
     private Integer category_id = null;
     private Integer priority_id = null;
     private Integer manager_id = null;
+    TcmsConnection connection;
 
     public TcmsProperties(String plan, String product, String product_v, String category, String priority, String manager) {
         this.plan = plan;
@@ -42,8 +45,56 @@ public class TcmsProperties {
         this.priority = priority;
         this.manager = manager;
     }
-    TcmsConnection connection;
+    
+    
+    public Integer getCategoryID() {
+        return category_id;
+    }
+        
+    public Integer getPriorityID() {
+        return priority_id;
+    }
+    
+    public Integer getPlanID() {
+        return plan_id;
+    }
+    
+    public Integer getProductID() {
+        return product_id;
+    }
+    
+    public Integer getProduct_vID() {
+        return product_v_id;
+    }
+    
+    public Integer getManagerId() {
+        return manager_id;
+    }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public String getManager() {
+        return manager;
+    }
+
+    public String getPlan() {
+        return plan;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public String getProduct() {
+        return product;
+    }
+
+    public String getProduct_v() {
+        return product_v;
+    }
+    
     public void setConnection(TcmsConnection connection) {
         this.connection = connection;
     }
@@ -80,10 +131,45 @@ public class TcmsProperties {
             Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    
+    /**
+     * Checks all fields of <code>properties</code>. If a field is not set, 
+     * string describing problem is added to the list, that is returned
+     *
+     * @param checkEnvironmentGroup Check also environment group, if true
+     *      (generally environment group is optional, so may not be checked)
+     * @return List of error messages
+     */
+    public static List<String> checkUsersetProperties(TcmsProperties properties) {
+        List problems = new LinkedList();
 
-    public Integer getPlanID() {
-        return plan_id;
+        if (properties.getPlanID() == null) {
+            problems.add(properties.plan + " is possibly wrong plan id");
+        }
+
+        if (properties.getProductID() == null) {
+            problems.add(properties.product + " is possibly wrong product name (couldn't check product version and category)");
+        } else {
+            if (properties.getProduct_vID() == null) {
+                problems.add(properties.product_v + " is possibly wrong product version");
+            }
+            if (properties.getCategoryID() == null) {
+                problems.add(properties.category + " is possibly wrong category name");
+            }
+        }
+
+        if (properties.getPriorityID() == null) {
+            problems.add(properties.priority + " is possibly wrong priority name");
+        }
+
+        if (properties.getManagerId() == null) {
+            problems.add(properties.manager + " is possibly wrong manager's username");
+        }
+
+        return problems;
     }
+
 
     public void reloadPlanId() throws XmlRpcFault {
         plan_id = null;
@@ -101,11 +187,8 @@ public class TcmsProperties {
             plan_id = result.plan_id;
         }
 
-    }
+    }  
 
-    public Integer getProductID() {
-        return product_id;
-    }
 
     public void reloadProductId() throws XmlRpcFault {
         product_id = null;
@@ -139,9 +222,6 @@ public class TcmsProperties {
 
     }
 
-    public Integer getProduct_vID() {
-        return product_v_id;
-    }
 
     public void reloadCategoryId() throws XmlRpcFault {
         category_id = null;
@@ -153,14 +233,8 @@ public class TcmsProperties {
             Product.Category result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Product.Category.class);
             category_id = result.id;
         }
-
-
     }
 
-    public Integer getCategoryID() {
-
-        return category_id;
-    }
 
     public void reloadPriorityId() throws XmlRpcFault {
         priority_id = null;
@@ -171,13 +245,8 @@ public class TcmsProperties {
             TestCase.Priority result = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, TestCase.Priority.class);
             priority_id = result.id;
         }
-
     }
 
-    public Integer getPriorityID() {
-
-        return priority_id;
-    }
 
     public void reloadManagerId() throws XmlRpcFault {
         manager_id = null;
@@ -198,31 +267,4 @@ public class TcmsProperties {
 
     }
 
-    public Integer getManagerId() {
-        return manager_id;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public String getManager() {
-        return manager;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public String getProduct() {
-        return product;
-    }
-
-    public String getProduct_v() {
-        return product_v;
-    }
 }

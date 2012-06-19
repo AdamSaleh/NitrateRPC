@@ -21,6 +21,8 @@ import hudson.util.FormValidation;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -208,6 +210,7 @@ public class TcmsPublisher extends Recorder {
                 @QueryParameter("category") final String category,
                 @QueryParameter("priority") final String priority,
                 @QueryParameter("manager") final String manager) {
+            
             FormValidation url_val = checkServerUrl(serverUrl, username, password);
             if (url_val != FormValidation.ok()) {
                 return url_val;
@@ -224,8 +227,10 @@ public class TcmsPublisher extends Recorder {
             c.setUsernameAndPassword(username, password);
             Auth.login_krbv auth = new Auth.login_krbv();
             String session;
+            
             TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-
+            List<String> problems = new LinkedList();
+            
             try {
                 session = auth.invoke(c);
                 if (session.length() > 0) {
@@ -233,28 +238,17 @@ public class TcmsPublisher extends Recorder {
                 }
                 properties.setConnection(c);
                 properties.reload();
+                problems = TcmsProperties.checkUsersetProperties(properties);
+                
             } catch (XmlRpcFault ex) {
+                // FIXME: check if really only username or password can go wrong (network down, timeout, conn. refused...)
                 return FormValidation.error("Possibly wrong username/password");
             }
+            
+            if(!problems.isEmpty()){
+                return FormValidation.error(problems.toString().replace("[", "").replace("]", ""));
+            }
 
-            if (properties.getPlanID() == null) {
-                return FormValidation.error("Possibly wrong plan id");
-            }
-            if (properties.getProductID() == null) {
-                return FormValidation.error("Possibly wrong product name");
-            }
-            if (properties.getProduct_vID() == null) {
-                return FormValidation.error("Possibly wrong product version");
-            }
-            if (properties.getCategoryID() == null) {
-                return FormValidation.error("Possibly wrong category name");
-            }
-            if (properties.getPriorityID() == null) {
-                return FormValidation.error("Possibly wrong priority name");
-            }
-            if (properties.getManagerId() == null) {
-                return FormValidation.error("Possibly wrong manager's username");
-            }
             return FormValidation.ok();
 
         }
