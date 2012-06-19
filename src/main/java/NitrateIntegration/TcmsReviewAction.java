@@ -61,6 +61,11 @@ public class TcmsReviewAction implements Action {
     private String updateException;
     private String envCheckException;
 
+    enum TcmsDescriptor {
+
+        PROPERTIES, CREDENTIALS, ENVIRONMENT
+    }
+
     /**
      * Class that defines transformations (key, value) -> (key, value). This is
      * used in case when user renames Jenkins`s axes to some new names - new
@@ -260,13 +265,12 @@ public class TcmsReviewAction implements Action {
         }
     }
 
-    
     // FIXME: javadoc
     // already refactored 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
         updateException = "";
         gatherer.clear();
-        
+
         if (req.getParameter("Submit").equals("Gather report from test-files")) {
             credentials.setUsername(req.getParameter("_.username"));
             credentials.setPassword(req.getParameter("_.password"));
@@ -287,10 +291,10 @@ public class TcmsReviewAction implements Action {
             for (GatherFiles gatherfile : gatherFiles) {
                 gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
             }
-            
+
         } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.toString();
+            updateException = ex.getMessage();
         } finally {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
@@ -301,37 +305,27 @@ public class TcmsReviewAction implements Action {
     // FIXME: javadoc
     // refactored
     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
+        this.update_problems.clear();
         setting_updated = false;
         List<String> problems = new LinkedList<String>();
         updateException = "";
 
-        String plan = req.getParameter("_.plan");
-        String product = req.getParameter("_.product");
-        String product_v = req.getParameter("_.product_v");
-        String category = req.getParameter("_.category");
-        String priority = req.getParameter("_.priority");
-        String manager = req.getParameter("_.manager");
-        TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+        credentials = (TcmsAccessCredentials) parseRequest(req, TcmsDescriptor.CREDENTIALS);
+        TcmsEnvironment environment = (TcmsEnvironment) parseRequest(req, TcmsDescriptor.ENVIRONMENT);
+        TcmsProperties properties = (TcmsProperties) parseRequest(req, TcmsDescriptor.PROPERTIES);
 
-        String env = req.getParameter("_.environment");
-        TcmsEnvironment environment = new TcmsEnvironment(env);
-
-        String serverUrl = req.getParameter("_.serverUrl");
-        String username = req.getParameter("_.username");
-        String password = req.getParameter("_.password");
-        TcmsAccessCredentials cred = new TcmsAccessCredentials(username,password);
-       
         try {
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, cred);
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
             environment.setConnection(connection);
             environment.reloadEnvId();
+
             properties.setConnection(connection);
             properties.reload();
 
             problems = TcmsProperties.checkUsersetProperties(properties);
-           
-            if (!env.isEmpty() && environment.getEnvId() == null) {
+
+            if (!environment.env.isEmpty() && environment.getEnvId() == null) {
                 problems.add("Possibly wrong environment group: " + environment.env);
             }
 
@@ -342,18 +336,17 @@ public class TcmsReviewAction implements Action {
             }
 
             this.update_problems = problems;
-            
+
         } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.toString();        
+            updateException = ex.getMessage();
         } finally {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
-        }        
-        
+        }
+
     }
 
-    
 //    public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
 //        setting_updated = false;
 //        List<String> problems = new LinkedList<String>();
@@ -450,8 +443,9 @@ public class TcmsReviewAction implements Action {
 //        this.update_problems = problems;
 //        rsp.sendRedirect("../" + Definitions.__URL_NAME);
 //    }
-
-
+    
+    
+    
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException, TcmsException {
 
         HashSet<String> problems = new HashSet<String>();
@@ -538,7 +532,7 @@ public class TcmsReviewAction implements Action {
          * test
          */
         try {
-            
+
             // FIXME: mess
             TcmsConnection connection = null;
             connection = TcmsConnection.connect(serverUrl, credentials);
@@ -704,5 +698,29 @@ public class TcmsReviewAction implements Action {
 
             }
         } while (at_least_one && at_least_one_not_duplicate);
+    }
+
+    private Object parseRequest(StaplerRequest req, TcmsDescriptor desc) {
+
+        switch (desc) {
+            case PROPERTIES:
+                String plan = req.getParameter("_.plan");
+                String product = req.getParameter("_.product");
+                String product_v = req.getParameter("_.product_v");
+                String category = req.getParameter("_.category");
+                String priority = req.getParameter("_.priority");
+                String manager = req.getParameter("_.manager");
+                return new TcmsProperties(plan, product, product_v, category, priority, manager);
+            case CREDENTIALS:
+                String username = req.getParameter("_.username");
+                String password = req.getParameter("_.password");
+                String serverUrl = req.getParameter("_.serverUrl");
+                return new TcmsAccessCredentials(serverUrl, username, password);
+            case ENVIRONMENT:
+                String env = req.getParameter("_.environment");
+                return new TcmsEnvironment(env);
+            default:
+                return null;
+        }
     }
 }

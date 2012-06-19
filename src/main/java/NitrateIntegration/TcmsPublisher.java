@@ -51,7 +51,6 @@ import redstone.xmlrpc.XmlRpcFault;
 public class TcmsPublisher extends Recorder {
 
     public final String serverUrl;
-    private TcmsAccessCredentials credentials;
     public final String reportLocationPattern;
     public final String plan;
     public final String product;
@@ -202,6 +201,7 @@ public class TcmsPublisher extends Recorder {
             return FormValidation.ok();
         }
 
+        // FIXME: optimize
         public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
@@ -254,6 +254,7 @@ public class TcmsPublisher extends Recorder {
 
         }
 
+        // FIXME: optimize
         public FormValidation doTestEnv(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
