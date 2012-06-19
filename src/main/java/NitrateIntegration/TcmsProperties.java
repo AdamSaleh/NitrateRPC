@@ -145,26 +145,26 @@ public class TcmsProperties {
         List problems = new LinkedList();
 
         if (properties.getPlanID() == null) {
-            problems.add(properties.plan + " is possibly wrong plan id");
+            problems.add("\"" + properties.plan + "\" is possibly wrong plan id");
         }
 
         if (properties.getProductID() == null) {
-            problems.add(properties.product + " is possibly wrong product name (couldn't check product version and category)");
+            problems.add("\"" +properties.product + "\" is possibly wrong product name (couldn't check product version and category)");
         } else {
             if (properties.getProduct_vID() == null) {
-                problems.add(properties.product_v + " is possibly wrong product version");
+                problems.add("\"" +properties.product_v + "\" is possibly wrong product version");
             }
             if (properties.getCategoryID() == null) {
-                problems.add(properties.category + " is possibly wrong category name");
+                problems.add("\"" +properties.category + "\" is possibly wrong category name");
             }
         }
 
         if (properties.getPriorityID() == null) {
-            problems.add(properties.priority + " is possibly wrong priority name");
+            problems.add("\"" + properties.priority + "\" is possibly wrong priority name");
         }
 
         if (properties.getManagerId() == null) {
-            problems.add(properties.manager + " is possibly wrong manager's username");
+            problems.add("\"" + properties.manager + "\" is possibly wrong manager's username");
         }
 
         return problems;

@@ -61,10 +61,6 @@ public class TcmsReviewAction implements Action {
     private String updateException;
     private String envCheckException;
 
-    enum TcmsDescriptor {
-
-        PROPERTIES, CREDENTIALS, ENVIRONMENT
-    }
 
     /**
      * Class that defines transformations (key, value) -> (key, value). This is
@@ -266,17 +262,26 @@ public class TcmsReviewAction implements Action {
     }
 
     // FIXME: javadoc
-    // already refactored 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
         updateException = "";
         gatherer.clear();
-
-        if (req.getParameter("Submit").equals("Gather report from test-files")) {
-            credentials.setUsername(req.getParameter("_.username"));
-            credentials.setPassword(req.getParameter("_.password"));
-        }
-
+        
         try {
+            if (req.getParameter("Submit").equals("Gather report from test-files")) {
+                credentials.setUsername(req.getParameter("_.username"));
+                credentials.setPassword(req.getParameter("_.password"));
+                
+                /*
+                 * This part may be omitted, because bad credentials would still
+                 * generate exception (see TcmsConnection.invoke), but testTcmsConnection
+                 * can precisely identify HTTP 401, while TcmsConnection.invoke 
+                 * just guesses (in case of HTTP 401 XmlRpcException "The 
+                 * response could not be parsed." is thrown)
+                 */
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+                boolean test = connection.testTcmsConnection();
+            }
+            
             TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
             environment.setConnection(connection);
@@ -295,6 +300,9 @@ public class TcmsReviewAction implements Action {
         } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             updateException = ex.getMessage();
+        } catch (IOException ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            updateException = ex.toString();
         } finally {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
@@ -303,16 +311,15 @@ public class TcmsReviewAction implements Action {
     }
 
     // FIXME: javadoc
-    // refactored
     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
         this.update_problems.clear();
         setting_updated = false;
         List<String> problems = new LinkedList<String>();
         updateException = "";
 
-        credentials = (TcmsAccessCredentials) parseRequest(req, TcmsDescriptor.CREDENTIALS);
-        TcmsEnvironment environment = (TcmsEnvironment) parseRequest(req, TcmsDescriptor.ENVIRONMENT);
-        TcmsProperties properties = (TcmsProperties) parseRequest(req, TcmsDescriptor.PROPERTIES);
+        credentials = parseCredentialsFromRequest(req);
+        TcmsEnvironment environment = parseEnvironmentFromRequest(req);
+        TcmsProperties properties = parsePropertiesFromRequest(req);
 
         try {
             TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
@@ -346,106 +353,8 @@ public class TcmsReviewAction implements Action {
         }
 
     }
-
-//    public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
-//        setting_updated = false;
-//        List<String> problems = new LinkedList<String>();
-//
-//        String serverUrl = req.getParameter("_.serverUrl");
-//        String username = req.getParameter("_.username");
-//        String password = req.getParameter("_.password");
-//        updateException = "";
-//
-//        /**
-//         * First try new URL, username and password, if unsuccessful, set
-//         * exception and end
-//         */
-//        if (this.serverUrl.contentEquals(serverUrl)
-//                && credentials.getUsername().contentEquals(username)
-//                && credentials.getPassword().contentEquals(password)) {
-//            //do nothing
-//        } else {
-//
-//            try {
-//                TcmsConnection c = new TcmsConnection(serverUrl);
-//                c.setUsernameAndPassword(username, password);
-//                if (c.testTcmsConnection()) {
-//                    this.serverUrl = serverUrl;
-//                    this.credentials = new TcmsAccessCredentials(username, password);
-//                }
-//            } catch (IOException ex) {
-//                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-//                updateException = ex.toString();
-//                rsp.sendRedirect("../" + Definitions.__URL_NAME);
-//                return;
-//            }
-//
-//            credentials.setUsername(username);
-//            credentials.setPassword(password);
-//        }
-//
-//        String plan = req.getParameter("_.plan");
-//        String product = req.getParameter("_.product");
-//        String product_v = req.getParameter("_.product_v");
-//        String category = req.getParameter("_.category");
-//        String priority = req.getParameter("_.priority");
-//        String manager = req.getParameter("_.manager");
-//
-//        TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-//
-//
-//        String env = req.getParameter("_.environment");
-//        TcmsEnvironment environment = new TcmsEnvironment(env);
-//        String session;
-//        Auth.login_krbv auth = new Auth.login_krbv();
-//
-//        try {
-//            TcmsConnection connection = null;
-//            connection = TcmsConnection.connect(serverUrl, credentials);
-//
-//            session = auth.invoke(connection);
-//
-//            if (session != null && session.length() > 0) {
-//                connection.setSession(session);
-//            }
-//            environment.setConnection(connection);
-//            environment.reloadEnvId();
-//            properties.setConnection(connection);
-//            properties.reload();
-//
-//        } catch (XmlRpcFault ex) {
-//            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-//            updateException = ex.toString();
-//            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-//            return;
-//        } catch (XmlRpcException ex) {
-//            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-//            updateException = ex.toString();
-//            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-//            return;
-//        }
-//
-//        problems = TcmsProperties.checkUsersetProperties(properties);
-//        
-//        /**
-//         * Check environment only if some identifier was submitted
-//         */
-//        if (!env.isEmpty() && environment.getEnvId() == null) {
-//            problems.add("Possibly wrong environment group: " + environment.env);
-//        }
-//
-//        if (problems.isEmpty()) {
-//            this.properties = properties;
-//            this.environment = environment;
-//            setting_updated = true;
-//        }
-//
-//        this.update_problems = problems;
-//        rsp.sendRedirect("../" + Definitions.__URL_NAME);
-//    }
     
-    
-    
+    // FIXME: refactor
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException, TcmsException {
 
         HashSet<String> problems = new HashSet<String>();
@@ -536,9 +445,6 @@ public class TcmsReviewAction implements Action {
             // FIXME: mess
             TcmsConnection connection = null;
             connection = TcmsConnection.connect(serverUrl, credentials);
-
-            connection = new TcmsConnection(serverUrl);
-            connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
 
             boolean test = connection.testTcmsConnection();
             if (test == false) {
@@ -700,27 +606,26 @@ public class TcmsReviewAction implements Action {
         } while (at_least_one && at_least_one_not_duplicate);
     }
 
-    private Object parseRequest(StaplerRequest req, TcmsDescriptor desc) {
-
-        switch (desc) {
-            case PROPERTIES:
-                String plan = req.getParameter("_.plan");
-                String product = req.getParameter("_.product");
-                String product_v = req.getParameter("_.product_v");
-                String category = req.getParameter("_.category");
-                String priority = req.getParameter("_.priority");
-                String manager = req.getParameter("_.manager");
-                return new TcmsProperties(plan, product, product_v, category, priority, manager);
-            case CREDENTIALS:
-                String username = req.getParameter("_.username");
-                String password = req.getParameter("_.password");
-                String serverUrl = req.getParameter("_.serverUrl");
-                return new TcmsAccessCredentials(serverUrl, username, password);
-            case ENVIRONMENT:
-                String env = req.getParameter("_.environment");
-                return new TcmsEnvironment(env);
-            default:
-                return null;
-        }
+    
+    private static TcmsAccessCredentials parseCredentialsFromRequest(StaplerRequest req){
+        String username = req.getParameter("_.username");
+        String password = req.getParameter("_.password");
+        String serverUrl = req.getParameter("_.serverUrl");
+        return new TcmsAccessCredentials(serverUrl, username, password);
+    }
+    
+    private static TcmsProperties parsePropertiesFromRequest(StaplerRequest req){
+        String plan = req.getParameter("_.plan");
+        String product = req.getParameter("_.product");
+        String product_v = req.getParameter("_.product_v");
+        String category = req.getParameter("_.category");
+        String priority = req.getParameter("_.priority");
+        String manager = req.getParameter("_.manager");
+        return new TcmsProperties(plan, product, product_v, category, priority, manager);
+    }
+    
+    private static TcmsEnvironment parseEnvironmentFromRequest(StaplerRequest req){
+        String env = req.getParameter("_.environment");
+        return new TcmsEnvironment(env);    
     }
 }

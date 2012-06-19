@@ -193,15 +193,14 @@ public class TcmsPublisher extends Recorder {
                 if (testTcmsConnection == false) {
                     return FormValidation.warning("XML-RPC Service not found");
                 }
-            } catch (MalformedURLException ex) {
-                return FormValidation.error("Url is malformed");
+            } catch (TcmsException ex) {
+                return FormValidation.error(ex.getMessage());
             } catch (IOException ex) {
                 return FormValidation.warning("Connection error: " + ex.getMessage());
             }
             return FormValidation.ok();
         }
 
-        // FIXME: optimize
         public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
@@ -211,39 +210,22 @@ public class TcmsPublisher extends Recorder {
                 @QueryParameter("category") final String category,
                 @QueryParameter("priority") final String priority,
                 @QueryParameter("manager") final String manager) {
-            
-            FormValidation url_val = checkServerUrl(serverUrl, username, password);
-            if (url_val != FormValidation.ok()) {
-                return url_val;
-            }
-
-            TcmsConnection c = null;
-            try {
-                c = new TcmsConnection(serverUrl);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-                return FormValidation.error("Something weird happened");
-            }
-
-            c.setUsernameAndPassword(username, password);
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            
-            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
             List<String> problems = new LinkedList();
             
             try {
-                session = auth.invoke(c);
-                if (session.length() > 0) {
-                    c.setSession(session);
-                }
-                properties.setConnection(c);
-                properties.reload();
+                TcmsAccessCredentials credentials = new TcmsAccessCredentials(serverUrl, username, password);
+                TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+                boolean test = connection.testTcmsConnection();
+
+                properties.setConnection(connection);
+                properties.reload();                
                 problems = TcmsProperties.checkUsersetProperties(properties);
-                
+
             } catch (TcmsException ex) {
-                // FIXME: check if really only username or password can go wrong (network down, timeout, conn. refused...)
-                return FormValidation.error("Possibly wrong username/password");
+                return FormValidation.error(ex.getMessage());
+            } catch (IOException ex) {
+                return FormValidation.error(ex.toString());
             }
             
             if(!problems.isEmpty()){
@@ -251,8 +233,61 @@ public class TcmsPublisher extends Recorder {
             }
 
             return FormValidation.ok();
-
         }
+
+        
+        // FIXME: optimize
+//        public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
+//                @QueryParameter("username") final String username,
+//                @QueryParameter("password") final String password,
+//                @QueryParameter("plan") final String plan,
+//                @QueryParameter("product") final String product,
+//                @QueryParameter("product_v") final String product_v,
+//                @QueryParameter("category") final String category,
+//                @QueryParameter("priority") final String priority,
+//                @QueryParameter("manager") final String manager) {
+//            
+//            FormValidation url_val = checkServerUrl(serverUrl, username, password);
+//            if (url_val != FormValidation.ok()) {
+//                return url_val;
+//            }
+//
+//            TcmsConnection c = null;
+//            try {
+//                c = new TcmsConnection(serverUrl);
+//            } catch (MalformedURLException ex) {
+//                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
+//                return FormValidation.error("Something weird happened");
+//            }
+//
+//            c.setUsernameAndPassword(username, password);
+//            Auth.login_krbv auth = new Auth.login_krbv();
+//            String session;
+//            
+//            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+//            List<String> problems = new LinkedList();
+//            
+//            try {
+//                session = auth.invoke(c);
+//                if (session.length() > 0) {
+//                    c.setSession(session);
+//                }
+//                properties.setConnection(c);
+//                properties.reload();
+//                problems = TcmsProperties.checkUsersetProperties(properties);
+//                
+//            } catch (TcmsException ex) {
+//                // FIXME: check if really only username or password can go wrong (network down, timeout, conn. refused...)
+//                return FormValidation.error("Possibly wrong username/password");
+//            }
+//            
+//            if(!problems.isEmpty()){
+//                return FormValidation.error(problems.toString().replace("[", "").replace("]", ""));
+//            }
+//
+//            return FormValidation.ok();
+//
+//        }
 
         // FIXME: optimize
         public FormValidation doTestEnv(@QueryParameter("serverUrl") final String serverUrl,
