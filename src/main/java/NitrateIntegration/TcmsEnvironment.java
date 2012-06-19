@@ -5,6 +5,7 @@
 package NitrateIntegration;
 
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import com.redhat.nitrate.command.Env;
 import com.redhat.nitrate.command.Env.Value;
 import java.util.Hashtable;
@@ -42,7 +43,7 @@ public class TcmsEnvironment {
         this.connection = connection;
     }
 
-    public void reloadEnvId() throws XmlRpcFault {
+    public void reloadEnvId() throws TcmsException  {
         envId = null;
         Env.filter_groups get = new Env.filter_groups();
         get.name = env;
@@ -62,7 +63,7 @@ public class TcmsEnvironment {
         reloadValues();
     }
 
-    private void reloadProperties() throws XmlRpcFault {
+    private void reloadProperties() throws TcmsException  {
         if (env_obj != null) {
             Env.get_properties get = new Env.get_properties();
             get.env_group_id = env_obj.id;
@@ -83,7 +84,7 @@ public class TcmsEnvironment {
         }
     }
 
-    private void reloadValues() throws XmlRpcFault {
+    private void reloadValues() throws TcmsException {
         values = new Hashtable<String, Hashtable<String, Value>>();
         values_by_id = new Hashtable<Integer, Env.Value>();
         for (Env.Property property : properties.values()) {

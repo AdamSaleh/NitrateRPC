@@ -4,6 +4,7 @@ import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.TcmsAccessCredentials;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import com.redhat.nitrate.command.Auth;
 import hudson.Extension;
 import hudson.FilePath;
@@ -240,7 +241,7 @@ public class TcmsPublisher extends Recorder {
                 properties.reload();
                 problems = TcmsProperties.checkUsersetProperties(properties);
                 
-            } catch (XmlRpcFault ex) {
+            } catch (TcmsException ex) {
                 // FIXME: check if really only username or password can go wrong (network down, timeout, conn. refused...)
                 return FormValidation.error("Possibly wrong username/password");
             }
@@ -256,7 +257,7 @@ public class TcmsPublisher extends Recorder {
         public FormValidation doTestEnv(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
-                @QueryParameter("env") final String env) {
+                @QueryParameter("env") final String env) throws TcmsException {
 
             TcmsConnection c = null;
             try {
@@ -278,15 +279,7 @@ public class TcmsPublisher extends Recorder {
                 }
                 environment.setConnection(c);
                 environment.reloadEnvId();
-            } catch (XmlRpcFault ex) {
-                return FormValidation.error(ex.getMessage());
-            } catch (XmlRpcException ex) {
-                if (ex.getMessage().equals("The response could not be parsed.")) {
-                    return FormValidation.error("Possibly wrong username/password");
-                }
-                if (ex.getMessage().equals("A network error occurred.")) {
-                    return FormValidation.error("Cannot connect to server. Check URL or try reloading this page");
-                }
+            } catch (TcmsException ex) {
                 return FormValidation.error(ex.getMessage());
             }
 

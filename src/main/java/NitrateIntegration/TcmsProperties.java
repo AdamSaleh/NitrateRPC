@@ -102,32 +102,32 @@ public class TcmsProperties {
     public void reload() {
         try {
             reloadPlanId();
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             reloadProductId();
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             reloadProduct_vId();
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             reloadPriorityId();
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             reloadCategoryId();
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             reloadManagerId();
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsProperties.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -171,7 +171,7 @@ public class TcmsProperties {
     }
 
 
-    public void reloadPlanId() throws XmlRpcFault {
+    public void reloadPlanId() throws TcmsException {
         plan_id = null;
         TestPlan.get get = new TestPlan.get();
         try {
@@ -190,7 +190,7 @@ public class TcmsProperties {
     }  
 
 
-    public void reloadProductId() throws XmlRpcFault {
+    public void reloadProductId() throws TcmsException {
         product_id = null;
         Product.check_product get = new Product.check_product();
         get.name = product;
@@ -202,7 +202,7 @@ public class TcmsProperties {
 
     }
 
-    public void reloadProduct_vId() throws XmlRpcFault {
+    public void reloadProduct_vId() throws TcmsException {
         product_v_id = null;
         Product.get_versions get = new Product.get_versions();
         get.id_str = product;
@@ -223,7 +223,7 @@ public class TcmsProperties {
     }
 
 
-    public void reloadCategoryId() throws XmlRpcFault {
+    public void reloadCategoryId() throws TcmsException  {
         category_id = null;
         Product.check_category get = new Product.check_category();
         get.name = category;
@@ -236,7 +236,7 @@ public class TcmsProperties {
     }
 
 
-    public void reloadPriorityId() throws XmlRpcFault {
+    public void reloadPriorityId() throws TcmsException  {
         priority_id = null;
         TestCase.check_priority get = new TestCase.check_priority();
         get.value = priority;
@@ -248,7 +248,7 @@ public class TcmsProperties {
     }
 
 
-    public void reloadManagerId() throws XmlRpcFault {
+    public void reloadManagerId() throws TcmsException  {
         manager_id = null;
         User.filter get = new User.filter();
         get.username__startswith = manager;

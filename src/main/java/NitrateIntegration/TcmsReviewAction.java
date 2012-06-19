@@ -8,6 +8,7 @@ import NitrateIntegration.CommandWrapper.CommandWrapper;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.TcmsAccessCredentials;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import com.redhat.nitrate.command.Auth;
 import com.redhat.nitrate.command.Build;
 import com.redhat.nitrate.command.TestRun;
@@ -259,33 +260,20 @@ public class TcmsReviewAction implements Action {
         }
     }
 
-    public static TcmsConnection connect(String serverUrl, TcmsAccessCredentials credentials) throws IOException, XmlRpcFault {
-        TcmsConnection connection = null;
-        connection = new TcmsConnection(serverUrl);
-        connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
-
-        Auth.login_krbv auth = new Auth.login_krbv();
-        String session;
-        session = auth.invoke(connection);
-        if (session.length() > 0) {
-            connection.setSession(session);
-        } else {
-            throw new IOException("Couln't connect to tcms server");
-        }
-        return connection;
-    }
-
+    
+    // FIXME: javadoc
+    // already refactored 
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
         updateException = "";
         gatherer.clear();
+        
         if (req.getParameter("Submit").equals("Gather report from test-files")) {
             credentials.setUsername(req.getParameter("_.username"));
             credentials.setPassword(req.getParameter("_.password"));
         }
 
         try {
-            TcmsConnection connection = null;
-            connection = connect(serverUrl, credentials);
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
             environment.setConnection(connection);
             environment.reloadEnvId();
@@ -299,59 +287,23 @@ public class TcmsReviewAction implements Action {
             for (GatherFiles gatherfile : gatherFiles) {
                 gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
             }
-        } catch (IOException ex) {
+            
+        } catch (TcmsException ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             updateException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (XmlRpcException ex) {
-            updateException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (XmlRpcFault ex) {
-            updateException = ex.toString();
+        } finally {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
 
-        rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
+    // FIXME: javadoc
+    // refactored
     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
         setting_updated = false;
         List<String> problems = new LinkedList<String>();
-
-        String serverUrl = req.getParameter("_.serverUrl");
-        String username = req.getParameter("_.username");
-        String password = req.getParameter("_.password");
         updateException = "";
-
-        /**
-         * First try new URL, username and password, if unsuccessful, set
-         * exception and end
-         */
-        if (this.serverUrl.contentEquals(serverUrl)
-                && credentials.getUsername().contentEquals(username)
-                && credentials.getPassword().contentEquals(password)) {
-            //do nothing
-        } else {
-
-            try {
-                TcmsConnection c = new TcmsConnection(serverUrl);
-                c.setUsernameAndPassword(username, password);
-                if (c.testTcmsConnection()) {
-                    this.serverUrl = serverUrl;
-                    this.credentials = new TcmsAccessCredentials(username, password);
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-                updateException = ex.toString();
-                rsp.sendRedirect("../" + Definitions.__URL_NAME);
-                return;
-            }
-
-            credentials.setUsername(username);
-            credentials.setPassword(password);
-        }
 
         String plan = req.getParameter("_.plan");
         String product = req.getParameter("_.product");
@@ -359,62 +311,148 @@ public class TcmsReviewAction implements Action {
         String category = req.getParameter("_.category");
         String priority = req.getParameter("_.priority");
         String manager = req.getParameter("_.manager");
-
         TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-
 
         String env = req.getParameter("_.environment");
         TcmsEnvironment environment = new TcmsEnvironment(env);
-        String session;
-        Auth.login_krbv auth = new Auth.login_krbv();
 
+        String serverUrl = req.getParameter("_.serverUrl");
+        String username = req.getParameter("_.username");
+        String password = req.getParameter("_.password");
+        TcmsAccessCredentials cred = new TcmsAccessCredentials(username,password);
+       
         try {
-            TcmsConnection connection = null;
-            connection = connect(serverUrl, credentials);
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, cred);
 
-            session = auth.invoke(connection);
-
-            if (session != null && session.length() > 0) {
-                connection.setSession(session);
-            }
             environment.setConnection(connection);
             environment.reloadEnvId();
             properties.setConnection(connection);
             properties.reload();
 
-        } catch (XmlRpcFault ex) {
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (XmlRpcException ex) {
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        }
+            problems = TcmsProperties.checkUsersetProperties(properties);
+           
+            if (!env.isEmpty() && environment.getEnvId() == null) {
+                problems.add("Possibly wrong environment group: " + environment.env);
+            }
 
-        problems = TcmsProperties.checkUsersetProperties(properties);
+            if (problems.isEmpty()) {
+                this.properties = properties;
+                this.environment = environment;
+                setting_updated = true;
+            }
+
+            this.update_problems = problems;
+            
+        } catch (TcmsException ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            updateException = ex.toString();        
+        } finally {
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
+        }        
         
-        /**
-         * Check environment only if some identifier was submitted
-         */
-        if (!env.isEmpty() && environment.getEnvId() == null) {
-            problems.add("Possibly wrong environment group: " + environment.env);
-        }
-
-        if (problems.isEmpty()) {
-            this.properties = properties;
-            this.environment = environment;
-            setting_updated = true;
-        }
-
-        this.update_problems = problems;
-        rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
+    
+//    public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
+//        setting_updated = false;
+//        List<String> problems = new LinkedList<String>();
+//
+//        String serverUrl = req.getParameter("_.serverUrl");
+//        String username = req.getParameter("_.username");
+//        String password = req.getParameter("_.password");
+//        updateException = "";
+//
+//        /**
+//         * First try new URL, username and password, if unsuccessful, set
+//         * exception and end
+//         */
+//        if (this.serverUrl.contentEquals(serverUrl)
+//                && credentials.getUsername().contentEquals(username)
+//                && credentials.getPassword().contentEquals(password)) {
+//            //do nothing
+//        } else {
+//
+//            try {
+//                TcmsConnection c = new TcmsConnection(serverUrl);
+//                c.setUsernameAndPassword(username, password);
+//                if (c.testTcmsConnection()) {
+//                    this.serverUrl = serverUrl;
+//                    this.credentials = new TcmsAccessCredentials(username, password);
+//                }
+//            } catch (IOException ex) {
+//                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+//                updateException = ex.toString();
+//                rsp.sendRedirect("../" + Definitions.__URL_NAME);
+//                return;
+//            }
+//
+//            credentials.setUsername(username);
+//            credentials.setPassword(password);
+//        }
+//
+//        String plan = req.getParameter("_.plan");
+//        String product = req.getParameter("_.product");
+//        String product_v = req.getParameter("_.product_v");
+//        String category = req.getParameter("_.category");
+//        String priority = req.getParameter("_.priority");
+//        String manager = req.getParameter("_.manager");
+//
+//        TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+//
+//
+//        String env = req.getParameter("_.environment");
+//        TcmsEnvironment environment = new TcmsEnvironment(env);
+//        String session;
+//        Auth.login_krbv auth = new Auth.login_krbv();
+//
+//        try {
+//            TcmsConnection connection = null;
+//            connection = TcmsConnection.connect(serverUrl, credentials);
+//
+//            session = auth.invoke(connection);
+//
+//            if (session != null && session.length() > 0) {
+//                connection.setSession(session);
+//            }
+//            environment.setConnection(connection);
+//            environment.reloadEnvId();
+//            properties.setConnection(connection);
+//            properties.reload();
+//
+//        } catch (XmlRpcFault ex) {
+//            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+//            updateException = ex.toString();
+//            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+//            return;
+//        } catch (XmlRpcException ex) {
+//            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+//            updateException = ex.toString();
+//            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+//            return;
+//        }
+//
+//        problems = TcmsProperties.checkUsersetProperties(properties);
+//        
+//        /**
+//         * Check environment only if some identifier was submitted
+//         */
+//        if (!env.isEmpty() && environment.getEnvId() == null) {
+//            problems.add("Possibly wrong environment group: " + environment.env);
+//        }
+//
+//        if (problems.isEmpty()) {
+//            this.properties = properties;
+//            this.environment = environment;
+//            setting_updated = true;
+//        }
+//
+//        this.update_problems = problems;
+//        rsp.sendRedirect("../" + Definitions.__URL_NAME);
+//    }
 
-    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException {
+
+    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException, TcmsException {
 
         HashSet<String> problems = new HashSet<String>();
         envCheckException = "";
@@ -500,8 +538,10 @@ public class TcmsReviewAction implements Action {
          * test
          */
         try {
+            
+            // FIXME: mess
             TcmsConnection connection = null;
-            connection = connect(serverUrl, credentials);
+            connection = TcmsConnection.connect(serverUrl, credentials);
 
             connection = new TcmsConnection(serverUrl);
             connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
@@ -520,7 +560,7 @@ public class TcmsReviewAction implements Action {
             environment.setConnection(connection);
             environment.reloadEnvId();
 
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             envCheckException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
@@ -591,7 +631,7 @@ public class TcmsReviewAction implements Action {
     }
 
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException {
+            IOException, InterruptedException, TcmsException {
 
         if (req.getParameter("Submit").equals("update")) {
             // update build name
@@ -631,9 +671,9 @@ public class TcmsReviewAction implements Action {
 
     }
 
-    public static void connectAndUpload(TcmsGatherer gathered, TcmsAccessCredentials credentials, String serverUrl) throws MalformedURLException, XmlRpcFault, IOException {
+    public static void connectAndUpload(TcmsGatherer gathered, TcmsAccessCredentials credentials, String serverUrl) throws MalformedURLException, XmlRpcFault, IOException, TcmsException {
         TcmsConnection connection = null;
-        connection = connect(serverUrl, credentials);
+        connection = TcmsConnection.connect(serverUrl, credentials);
         upload(gathered, connection);
     }
 

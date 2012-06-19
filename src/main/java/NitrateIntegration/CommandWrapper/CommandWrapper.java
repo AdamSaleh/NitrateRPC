@@ -8,6 +8,7 @@ import NitrateIntegration.TcmsEnvironment;
 import NitrateIntegration.TcmsProperties;
 import com.redhat.nitrate.TcmsCommand;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -194,7 +195,7 @@ public abstract class CommandWrapper {
             if (o == null) {
                 try {
                     o = connection.invoke(current());
-                } catch (XmlRpcFault ex) {
+                } catch (TcmsException ex) {
                     setResult(ex);
                 }
                 setResult(o);
