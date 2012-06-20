@@ -188,6 +188,7 @@ public abstract class CommandWrapper {
         }
     }
 
+    // FIXME: not sure what is going on here
     public boolean perform(TcmsConnection connection) {
         if (processDependecies()) {
             setPerforming();
