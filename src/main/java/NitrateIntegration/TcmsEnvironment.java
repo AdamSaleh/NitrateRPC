@@ -57,7 +57,9 @@ public class TcmsEnvironment {
     }
 
     /**
-     * Gets EnvID of <code>env</code> from tcms server.
+     * Gets EnvID of <code>env</code> from tcms server. Call this if you need to 
+     * check whether <code>env</code> is present on server - don`t do 
+     * <code>reload</code>.
      * 
      * @throws TcmsException 
      */

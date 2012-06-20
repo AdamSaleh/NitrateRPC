@@ -284,10 +284,9 @@ public class TcmsReviewAction implements Action {
             
             TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
-            // FIXME: why are we reloading this ?
-            environment.setConnection(connection);            
-            //Fixme
-            environment.reloadEnvId();
+            // FIXME: why are we reloading environment ?
+            environment.setConnection(connection); 
+            environment.reload();
 
             properties.setConnection(connection);
             properties.reload();
@@ -372,20 +371,6 @@ public class TcmsReviewAction implements Action {
         }
 
         problems = updateGatherFilesFromReq(req);
-
-        /* FIXME: Can this be skipped ??? Not sure if we want to reload or leave
-         * it to update settings
-         *
-          
-        try {
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
-
-            environment.setConnection(connection);
-            environment.reloadEnvId();
-        } catch (TcmsException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.getMessage();
-        } */        
         
         env_status.clear();
         wrongProperty = false;
