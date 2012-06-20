@@ -44,6 +44,7 @@ public class TcmsReviewAction implements Action {
     private TcmsAccessCredentials credentials;
     private LinkedHashMap<String, Hashtable<String, String>> env_status;
     private boolean wrongProperty;
+    private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
     boolean setting_updated = false;
     LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
@@ -146,6 +147,7 @@ public class TcmsReviewAction implements Action {
         gatherer = new TcmsGatherer(properties, environment);
         env_status = new LinkedHashMap<String, Hashtable<String, String>>();
         wrongProperty = false;
+        propertyWWrongValue = new HashSet<String>();
     }
 
     public boolean isChange_axis() {
@@ -174,6 +176,10 @@ public class TcmsReviewAction implements Action {
 
     public String getPassword() {
         return credentials.getPassword();
+    }
+    
+    public HashSet<String> getPropertyWWrongValue() {
+        return propertyWWrongValue;
     }
 
     public String getIconFileName() {
@@ -278,7 +284,9 @@ public class TcmsReviewAction implements Action {
             
             TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
-            environment.setConnection(connection);
+            // FIXME: why are we reloading this ?
+            environment.setConnection(connection);            
+            //Fixme
             environment.reloadEnvId();
 
             properties.setConnection(connection);
@@ -367,7 +375,7 @@ public class TcmsReviewAction implements Action {
 
         /* FIXME: Can this be skipped ??? Not sure if we want to reload or leave
          * it to update settings
-         * 
+         *
           
         try {
             TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
@@ -377,24 +385,42 @@ public class TcmsReviewAction implements Action {
         } catch (TcmsException ex) {
             Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
             envCheckException = ex.getMessage();
-        } 
-        
-        */
+        } */        
         
         env_status.clear();
         wrongProperty = false;
+        TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+        environment.setConnection(connection);
+        
+        try {
+            environment.fetchAvailableProperties();
+        } catch (TcmsException ex){
+            envCheckException = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
+        }
+        
         for (GatherFiles gatherFile : gatherFiles) {
             for (Map.Entry<String, String> prop : gatherFile.variables.entrySet()) {
                 // check value
                 String name = prop.getKey();
                 String val = prop.getValue();
-
                 String result = "UNKNOWN";
+                
+                // FIXME: bad iteration (iterates 4 times over the same prop)
                 if (environment.containsProperty(name)) {
-                    if (environment.containsValue(name, val)) {
-                        result = "CHECKED";
-                    } else {
-                        result = "VALUE";
+                    try {
+                        environment.reloadProperty(name);
+                        if (environment.containsValue(name, val)) {
+                            result = "CHECKED";
+                        } else {
+                            result = "VALUE";
+                            propertyWWrongValue.add(name);
+                        }
+                    } catch (TcmsException ex) {
+                        envCheckException = ex.getMessage();
+                        rsp.sendRedirect("../" + Definitions.__URL_NAME);
+                        return;
                     }
                 } else {
                     result = "PROPERTY";
