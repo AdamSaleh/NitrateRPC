@@ -156,7 +156,7 @@ public class TcmsPublisher extends Recorder {
         Map<String, String> vars = new HashMap<String, String>();
         vars.putAll(build.getBuildVariables());
 
-        action.addGatherPath(results, build, vars);
+        action.report.addTestRun(results, build, vars);
 
         return true;
     }

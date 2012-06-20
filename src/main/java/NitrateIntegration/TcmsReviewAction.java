@@ -32,6 +32,7 @@ public class TcmsReviewAction implements Action {
     public AbstractBuild<?, ?> build;
     public TcmsProperties properties;
     public TcmsEnvironment environment;
+    public TcmsReport report;
     public List<String> update_problems = new LinkedList<String>();
     public HashSet<String> envCheckProblems = new HashSet<String>();
     /**
@@ -47,7 +48,7 @@ public class TcmsReviewAction implements Action {
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
     boolean setting_updated = false;
-    LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
+    
 
     /*
      * Used to store exception, if occurs, and print it in reasonable format,
@@ -115,18 +116,6 @@ public class TcmsReviewAction implements Action {
         }
     }
 
-    public static class GatherFiles {
-
-        public TestResults results;
-        public AbstractBuild build;
-        public Map<String, String> variables;
-
-        public GatherFiles(TestResults results, AbstractBuild build, Map<String, String> variables) {
-            this.results = results;
-            this.build = build;
-            this.variables = variables;
-        }
-    }
 
     public TcmsReviewAction(AbstractBuild build, String serverUrl,
             String plan,
@@ -140,6 +129,7 @@ public class TcmsReviewAction implements Action {
 
         this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
         this.credentials = new TcmsAccessCredentials();
+        this.report = new TcmsReport();
 
         this.serverUrl = serverUrl;
         this.environment = new TcmsEnvironment(env);
@@ -166,7 +156,7 @@ public class TcmsReviewAction implements Action {
         return update_problems;
     }
 
-    public HashSet<String> getEnv_check_problems() {
+    public HashSet<String> getEnvCheckProblems() {
         return envCheckProblems;
     }
 
@@ -244,23 +234,6 @@ public class TcmsReviewAction implements Action {
         return envCheckException;
     }
 
-    public void clearGatherPaths() {
-        gatherFiles.clear();
-    }
-
-    public void addGatherPath(TestResults results, AbstractBuild build, Map<String, String> variables) {
-        /*
-         * Preventing creation of un-initialized null-s, that would be added to
-         * gather-files
-         */
-        GatherFiles f = null;
-        f = new GatherFiles(results, build, variables);
-
-        if (f != null) {
-            gatherFiles.add(f);
-        }
-    }
-
     // FIXME: javadoc
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
         updateException = "";
@@ -294,8 +267,8 @@ public class TcmsReviewAction implements Action {
             gatherer.setProperties(properties);
             gatherer.setEnvironment(environment);
 
-            for (GatherFiles gatherfile : gatherFiles) {
-                gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
+            for (TcmsReport.TestRunResults r : report.getTestRuns()) {
+                gatherer.gather(r.results, build, r.build, r.variables);
             }
 
         } catch (TcmsException ex) {
@@ -355,11 +328,9 @@ public class TcmsReviewAction implements Action {
             return;
         }
 
-    }
+    }    
     
-    // FIXME: refactor
-    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException, TcmsException {
-
+    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException  {
         HashSet<String> problems = new HashSet<String>();
         envCheckException = "";
         change_axis = false;
@@ -370,53 +341,16 @@ public class TcmsReviewAction implements Action {
             return;
         }
 
-        problems = updateGatherFilesFromReq(req);
-        
-        env_status.clear();
-        wrongProperty = false;
-        TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
-        environment.setConnection(connection);
+        problems = updateReportFromReq(req);
         
         try {
-            environment.fetchAvailableProperties();
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+            environment.setConnection(connection);
+            report.checkEnvironmentMapping(environment);
         } catch (TcmsException ex){
             envCheckException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
-        }
-        
-        for (GatherFiles gatherFile : gatherFiles) {
-            for (Map.Entry<String, String> prop : gatherFile.variables.entrySet()) {
-                // check value
-                String name = prop.getKey();
-                String val = prop.getValue();
-                String result = "UNKNOWN";
-                
-                // FIXME: bad iteration (iterates 4 times over the same prop)
-                if (environment.containsProperty(name)) {
-                    try {
-                        environment.reloadProperty(name);
-                        if (environment.containsValue(name, val)) {
-                            result = "CHECKED";
-                        } else {
-                            result = "VALUE";
-                            propertyWWrongValue.add(name);
-                        }
-                    } catch (TcmsException ex) {
-                        envCheckException = ex.getMessage();
-                        rsp.sendRedirect("../" + Definitions.__URL_NAME);
-                        return;
-                    }
-                } else {
-                    result = "PROPERTY";
-                    wrongProperty = true;
-                }
-
-                if (env_status.containsKey(name) == false) {
-                    env_status.put(name, new Hashtable<String, String>());
-                }
-                env_status.get(name).put(val, result);
-            }
         }
 
         this.envCheckProblems = problems;
@@ -425,7 +359,7 @@ public class TcmsReviewAction implements Action {
     }
     
     
-    private HashSet<String> updateGatherFilesFromReq(StaplerRequest req){
+    private HashSet<String> updateReportFromReq(StaplerRequest req){
         Map params = req.getParameterMap();
         HashSet<String> problems = new HashSet<String>();
         
@@ -434,64 +368,34 @@ public class TcmsReviewAction implements Action {
          */
         for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
             Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
+            
             if (entry.getKey().startsWith("value-")) {
-                String value = ((String[]) entry.getValue())[0];
+                String newValue = ((String[]) entry.getValue())[0];
+                String property = entry.getKey().replaceFirst("value-", "");
+                String oldValue = property.split("=>")[1];
+                property = property.split("=>")[0];
 
-                String property_name = entry.getKey().replaceFirst("value-", "");
-                String value_name = property_name.split("=>")[1];
-                property_name = property_name.split("=>")[0];
-
-
-                for (GatherFiles env : gatherFiles) {
-
-                    /*
-                     * Assert that we are trying to assing new value
-                     */
-                    if (!value.equals(value_name)) {
-                        /*
-                         * Assert that new value is not already present under
-                         * property
-                         */
-                        if (!env_status.get(property_name).containsKey(value)) {
-                            if (env.variables.containsKey(property_name)) {
-                                if (env.variables.get(property_name).equals(value_name)) {
-                                    env.variables.remove(property_name);
-                                    env.variables.put(property_name, value);
-                                }
-                            }
-                        } else {
-                            /*
-                             * If new value is already present, print error
-                             */
-                            problems.add(property_name + " already contained value " + value);
-                        }
-                    }
+                try {
+                    report.changeEnvValue(property, oldValue, newValue);
+                } catch (IllegalArgumentException ex) {
+                    problems.add(ex.getMessage());
                 }
-            }
+            }            
         }
-
-
+        
         /*
          * change property-names second
          */
         for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
             Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
+            
             if (entry.getKey().startsWith("property-")) {
-                String new_property_name = ((String[]) entry.getValue())[0];
-
-                String property_name = entry.getKey().replaceFirst("property-", "");
-
-                for (GatherFiles env : gatherFiles) {
-                    if (env.variables.containsKey(property_name) && !property_name.equals(new_property_name)) {
-                        if (env.variables.containsKey(new_property_name)) {
-                            problems.add("Duplicit property name error.");
-                        } else {
-                            String val = env.variables.get(property_name);
-                            env.variables.remove(property_name);
-                            env.variables.put(new_property_name, val);
-                        }
-
-                    }
+                String newProperty = ((String[]) entry.getValue())[0];
+                String oldProperty = entry.getKey().replaceFirst("property-", "");
+                try {
+                    report.changeEnvProperty(oldProperty, newProperty);
+                } catch (IllegalArgumentException ex) {
+                    problems.add(ex.getMessage());
                 }
             }
         }
@@ -499,6 +403,7 @@ public class TcmsReviewAction implements Action {
         return problems;
     }
 
+    // refactor
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException, TcmsException {
 
