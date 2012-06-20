@@ -54,7 +54,7 @@ public class TcmsReport {
         environmentMapping = new HashMap<String, Set<String>>();
         wrongEnvProperties = new HashSet<String>();
         wrongEnvValues = new HashSet<String>();
-        envPropertiesWithWrongValues = new HashSet<String>();        
+        envPropertiesWithWrongValues = new HashSet<String>();
     }
     
     public Set<String> getEnvProperties(){
@@ -127,7 +127,7 @@ public class TcmsReport {
         }
     }    
    
-    public void checkEnvironmentMapping(TcmsEnvironment environment) throws TcmsException{        
+    public void checkEnvironmentMapping(TcmsEnvironment environment) throws TcmsException{          
         environment.fetchAvailableProperties();
         
         for(String envProperty : environmentMapping.keySet()){
@@ -157,6 +157,7 @@ public class TcmsReport {
     public boolean isWrongEnvProperty(String envProperty){
         return wrongEnvProperties.contains(envProperty);
     }
+    
     
     public boolean isWrongEnvValue(String envProperty){
         return wrongEnvValues.contains(envProperty);

@@ -48,7 +48,7 @@ public class TcmsReviewAction implements Action {
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
     boolean setting_updated = false;
-    
+    boolean envVarsChecked = false;
 
     /*
      * Used to store exception, if occurs, and print it in reasonable format,
@@ -236,10 +236,11 @@ public class TcmsReviewAction implements Action {
 
     // FIXME: javadoc
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
-        updateException = "";
+         updateException = "";
         gatherer.clear();
         
         try {
+            
             if (req.getParameter("Submit").equals("Gather report from test-files")) {
                 credentials.setUsername(req.getParameter("_.username"));
                 credentials.setPassword(req.getParameter("_.password"));
@@ -251,15 +252,18 @@ public class TcmsReviewAction implements Action {
                  * just guesses (in case of HTTP 401 XmlRpcException "The 
                  * response could not be parsed." is thrown)
                  */
+                // FIXME: doesn`t work, connect throws exception sooner than textTcmsConnection
                 TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
                 boolean test = connection.testTcmsConnection();
-            }
-            
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+            } 
 
-            // FIXME: why are we reloading environment ?
-            environment.setConnection(connection); 
-            environment.reload();
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+            if(!environment.isEmpty()){
+                environment.setConnection(connection);
+                environment.reloadEnvId();
+                environment.fetchAvailableProperties();
+                report.checkEnvironmentMapping(environment);
+            }
 
             properties.setConnection(connection);
             properties.reload();
@@ -301,6 +305,10 @@ public class TcmsReviewAction implements Action {
             if (!this.environment.env.equals(environment.env)) {
                 environment.setConnection(connection);
                 environment.reloadEnvId();
+            }
+            
+            if(!environment.isEmpty()){
+                report.checkEnvironmentMapping(environment);
             }
 
             properties.setConnection(connection);
@@ -354,6 +362,7 @@ public class TcmsReviewAction implements Action {
         }
 
         this.envCheckProblems = problems;
+        envVarsChecked = true;
 
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
@@ -375,12 +384,14 @@ public class TcmsReviewAction implements Action {
                 String oldValue = property.split("=>")[1];
                 property = property.split("=>")[0];
 
-                try {
-                    report.changeEnvValue(property, oldValue, newValue);
-                } catch (IllegalArgumentException ex) {
-                    problems.add(ex.getMessage());
+                if (!oldValue.equals(newValue)) {
+                    try {
+                        report.changeEnvValue(property, oldValue, newValue);
+                    } catch (IllegalArgumentException ex) {
+                        problems.add(ex.getMessage());
+                    }
                 }
-            }            
+            }
         }
         
         /*
@@ -392,10 +403,13 @@ public class TcmsReviewAction implements Action {
             if (entry.getKey().startsWith("property-")) {
                 String newProperty = ((String[]) entry.getValue())[0];
                 String oldProperty = entry.getKey().replaceFirst("property-", "");
-                try {
-                    report.changeEnvProperty(oldProperty, newProperty);
-                } catch (IllegalArgumentException ex) {
-                    problems.add(ex.getMessage());
+                
+                if (!oldProperty.equals(newProperty)) {
+                    try {
+                        report.changeEnvProperty(oldProperty, newProperty);
+                    } catch (IllegalArgumentException ex) {
+                        problems.add(ex.getMessage());
+                    }
                 }
             }
         }
