@@ -9,6 +9,7 @@ import NitrateIntegration.TcmsProperties;
 import com.redhat.nitrate.TcmsCommand;
 import com.redhat.nitrate.TcmsConnection;
 import com.redhat.nitrate.TcmsException;
+import com.redhat.nitrate.command.*;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
