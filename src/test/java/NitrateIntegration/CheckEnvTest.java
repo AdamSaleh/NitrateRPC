@@ -4,7 +4,6 @@
  */
 package NitrateIntegration;
 
-import com.thoughtworks.selenium.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,12 +31,12 @@ import java.util.regex.Pattern;
 *
 * @throws Exception
 */
-public class CheckEnvTest extends SeleneseTestCase{
+public class CheckEnvTest {
     
     public CheckEnvTest() {
     }
 
-    
+    /*
 	@Before
 	public void setUp() throws Exception {
 		selenium = new DefaultSelenium("localhost", 4444, "*chrome", "http://localhost:8080/");
@@ -99,5 +98,11 @@ public class CheckEnvTest extends SeleneseTestCase{
 	public void tearDown() throws Exception {
 		selenium.stop();
 	}
+        * 
+        */
+     @Test
+	public void test(){
+            
+        }
 
 }

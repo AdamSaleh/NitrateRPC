@@ -20,7 +20,7 @@ import java.util.Hashtable;
  */
 public class TestCaseRunCreate extends CommandWrapper {
 
-    {
+     static{
         CommandWrapper.enlistWrapper(TestCaseRun.create.class, new WrapperConstructor() {
 
             public CommandWrapper create(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {

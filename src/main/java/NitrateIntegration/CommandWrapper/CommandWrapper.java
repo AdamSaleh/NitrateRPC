@@ -254,12 +254,19 @@ public abstract class CommandWrapper {
         return current.name();
     }
 
-    public static CommandWrapper wrap(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
-        if (wrapperMap.containsKey(current)) {
-            WrapperConstructor c = wrapperMap.get(current);
-            return c.create(current, result_type, properties, env);
-      
-        } 
+     public static CommandWrapper wrap(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
+        if (current instanceof TestCase.create) {
+            return new TestCaseCreate(current, result_type, properties, env);
+        } else if (current instanceof TestCaseRun.create) {
+            return new TestCaseRunCreate(current, result_type, properties, env);
+        } else if (current instanceof TestRun.create) {
+            return new TestRunCreate(current, result_type, properties, env);
+        } else if (current instanceof Build.create) {
+            return new BuildCreate(current, result_type, properties, env);
+        } else if (current instanceof TestRun.link_env_value) {
+            return new LinkRunToVarCreate(current, result_type, properties, env);
+        }
+
         return new Generic(current, result_type, properties, env);
     }
 }

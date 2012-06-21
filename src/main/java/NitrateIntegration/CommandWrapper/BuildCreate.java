@@ -17,7 +17,7 @@ import java.util.Hashtable;
  */
 public class BuildCreate extends CommandWrapper {
 
-    {
+    static{
         CommandWrapper.enlistWrapper(Build.create.class, new WrapperConstructor() {
 
             public CommandWrapper create(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {

@@ -24,7 +24,7 @@ import redstone.xmlrpc.XmlRpcStruct;
  */
 public class LinkRunToVarCreate extends CommandWrapper {
 
-    {
+     static{
         CommandWrapper.enlistWrapper(TestRun.link_env_value.class, new WrapperConstructor() {
 
             public CommandWrapper create(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
