@@ -4,12 +4,12 @@
  */
 package NitrateIntegration;
 
+import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import com.redhat.nitrate.command.Env;
 import com.redhat.nitrate.command.Env.Value;
-import com.redhat.nitrate.TcmsConnection;
 import java.util.Hashtable;
 import redstone.xmlrpc.XmlRpcArray;
-import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
 
 /**
@@ -26,6 +26,9 @@ public class TcmsEnvironment {
     private Hashtable<String, Hashtable<String, Env.Value>> values;
 
     public TcmsEnvironment(String env) {
+        properties = new Hashtable<String, Env.Property>();
+        values = new Hashtable<String, Hashtable<String, Value>>();
+        values_by_id = new Hashtable<Integer, Env.Value>();
         this.env = env;
     }
 
@@ -41,8 +44,26 @@ public class TcmsEnvironment {
     public void setConnection(TcmsConnection connection) {
         this.connection = connection;
     }
+    
+    /**
+     * Performs full reload of Environment - be sure to setConnection first. 
+     * 
+     * @throws TcmsException 
+     */
+    public void reload() throws TcmsException{
+        reloadEnvId();
+        fetchAvailableProperties();
+        reloadAllProperties();
+    }
 
-    public void reloadEnvId() throws XmlRpcFault {
+    /**
+     * Gets EnvID of <code>env</code> from tcms server. Call this if you need to 
+     * check whether <code>env</code> is present on server - don`t do 
+     * <code>reload</code>.
+     * 
+     * @throws TcmsException 
+     */
+    public void reloadEnvId() throws TcmsException  {
         envId = null;
         Env.filter_groups get = new Env.filter_groups();
         get.name = env;
@@ -58,16 +79,20 @@ public class TcmsEnvironment {
             env_obj = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Env.Group.class);
             envId = env_obj.id;
         }
-        reloadProperties();
-        reloadValues();
     }
+    
+    
 
-    private void reloadProperties() throws XmlRpcFault {
+    /**
+     * Gets all availables properties of <code>env</code> from server.
+     * 
+     * @throws TcmsException 
+     */
+    public void fetchAvailableProperties() throws TcmsException  {
         if (env_obj != null) {
             Env.get_properties get = new Env.get_properties();
             get.env_group_id = env_obj.id;
             Object o = connection.invoke(get);
-            properties = new Hashtable<String, Env.Property>();
             if (o instanceof XmlRpcArray) {
                 XmlRpcArray rpcArray = (XmlRpcArray) o;
                 for (Object pr : rpcArray) {
@@ -75,7 +100,6 @@ public class TcmsEnvironment {
                         XmlRpcStruct pr_str = (XmlRpcStruct) pr;
                         Env.Property pr_obj = TcmsConnection.rpcStructToFields(pr_str, Env.Property.class);
                         properties.put(pr_obj.name, pr_obj);
-
                     }
                 }
             }
@@ -83,9 +107,13 @@ public class TcmsEnvironment {
         }
     }
 
-    private void reloadValues() throws XmlRpcFault {
-        values = new Hashtable<String, Hashtable<String, Value>>();
-        values_by_id = new Hashtable<Integer, Env.Value>();
+    /**
+     * Gets all values of all properties of <code>env</code> from server. 
+     * Might be inefficient - consider using <code>reloadProperty</code> instead.
+     * 
+     * @throws TcmsException 
+     */
+    public void reloadAllProperties() throws TcmsException {
         for (Env.Property property : properties.values()) {
             Env.get_values get = new Env.get_values();
             get.env_property_id = property.id;
@@ -105,9 +133,43 @@ public class TcmsEnvironment {
             values.put(property.name, value_set);
         }
     }
+    
+    
+    /**
+     * Gets all values available for property specified. 
+     * 
+     * @param property
+     * @throws TcmsException 
+     */
+    public void reloadProperty(String property) throws TcmsException { 
+        if(!properties.containsKey(property)){
+            throw new IllegalArgumentException("No such property");
+        }
+        
+        Env.get_values get = new Env.get_values();
+        get.env_property_id = properties.get(property).id;
+        Object o = connection.invoke(get);
+        Hashtable<String, Env.Value> value_set = new Hashtable<String, Env.Value>();
+        if (o instanceof XmlRpcArray) {
+            XmlRpcArray rpcArray = (XmlRpcArray) o;
+            for (Object vl : rpcArray) {
+                if (vl instanceof XmlRpcStruct) {
+                    XmlRpcStruct vl_str = (XmlRpcStruct) vl;
+                    Env.Value vl_obj = TcmsConnection.rpcStructToFields(vl_str, Env.Value.class);
+                    value_set.put(vl_obj.value, vl_obj);
+                    values_by_id.put(vl_obj.id, vl_obj);
+                }
+            }
+        }
+        values.put(properties.get(property).name, value_set);
+    }
 
     public Hashtable<String, Hashtable<String, Value>> getValues() {
         return values;
+    }
+    
+    public Hashtable<String, Env.Property> getProperties(){
+        return properties;
     }
 
     public Env.Value getValueById(Integer i) {

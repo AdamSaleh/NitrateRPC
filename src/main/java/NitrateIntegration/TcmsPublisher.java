@@ -2,12 +2,13 @@ package NitrateIntegration;
 
 import com.redhat.engineering.jenkins.testparser.Parser;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.command.Auth;
 import com.redhat.nitrate.TcmsAccessCredentials;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -18,16 +19,14 @@ import hudson.tasks.Builder;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import redstone.xmlrpc.XmlRpcFault;
 
 /**
  * Sample {@link Builder}.
@@ -46,7 +45,6 @@ import redstone.xmlrpc.XmlRpcFault;
 public class TcmsPublisher extends Recorder {
 
     public final String serverUrl;
-    private TcmsAccessCredentials credentials;
     public final String reportLocationPattern;
     public final String plan;
     public final String product;
@@ -83,12 +81,16 @@ public class TcmsPublisher extends Recorder {
 
     }
 
-    @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-        listener.getLogger().println("Starting TCMS integration plugin");
-        listener.getLogger().println("Looking for TestNG results report in workspace using pattern: "
-                + reportLocationPattern);
-
+    /**
+     * Check whether TcmsReviewAction has been added to the build, if not, fix
+     * that. This method contains mutex, so that TcmsReviewAction is added only
+     * once.
+     *
+     * @param build
+     * @param listener
+     * @return Always true, so Jenkins may continue building.
+     */
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
         AbstractBuild agregateBuild = build;
         if (build instanceof MatrixRun) {
             MatrixRun mrun = (MatrixRun) build;
@@ -109,6 +111,27 @@ public class TcmsPublisher extends Recorder {
             }
         }
 
+        return true;
+    }
+
+    /**
+     * Locates, checks and saves reports after build finishes, and adds result
+     * to TcmsReviewAction corresponding to the build.
+     *
+     * @param build
+     * @param launcher
+     * @param listener
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Override
+    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        listener.getLogger().println("Starting TCMS integration plugin");
+        listener.getLogger().println("Looking for TestNG results report in workspace using pattern: "
+                + reportLocationPattern);
+
+
 
         FilePath[] paths = null;
         paths = Parser.locateReports(build.getWorkspace(), reportLocationPattern);
@@ -126,12 +149,14 @@ public class TcmsPublisher extends Recorder {
 
         TestResults results = Parser.loadResults(build, null, "test-results");
 
-        TcmsReviewAction action = agregateBuild.getAction(TcmsReviewAction.class);
-       
+        TcmsReviewAction action = build instanceof MatrixRun
+                ? ((MatrixRun) build).getParentBuild().getAction(TcmsReviewAction.class)
+                : ((MatrixBuild) build).getAction(TcmsReviewAction.class);
+
         Map<String, String> vars = new HashMap<String, String>();
         vars.putAll(build.getBuildVariables());
 
-        action.addGatherPath(results, build, vars);
+        action.report.addTestRun(results, build, vars);
 
         return true;
     }
@@ -140,45 +165,11 @@ public class TcmsPublisher extends Recorder {
         return BuildStepMonitor.STEP;
     }
 
-    /**
-     * Descriptor for {@link HelloWorldBuilder}. Used as a singleton. The class
-     * is marked as public so that it can be accessed from views.
-     *
-     * <p> See
-     * <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt>
-     * for the actual HTML fragment for the configuration screen.
-     */
-    @Extension // This indicates to Jenkins that this is an implementation of an extension point.
+    @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<hudson.tasks.Publisher> {
 
-        /**
-         * Performs on-the-fly validation of the form field 'name'.
-         *
-         * @param value This parameter receives the value that the user has
-         * typed.
-         * @return Indicates the outcome of the validation. This is sent to the
-         * browser.
-         */
-        public FormValidation checkServerUrl(String value, String username, String password) {
-            if (value.length() == 0) {
-                return FormValidation.error("Please set an url");
-            }
-            try {
-                TcmsConnection testCon = new TcmsConnection(value);
-                testCon.setUsernameAndPassword(username, password);
-                boolean testTcmsConnection = testCon.testTcmsConnection();
-                if (testTcmsConnection == false) {
-                    return FormValidation.warning("XML-RPC Service not found");
-                }
-            } catch (MalformedURLException ex) {
-                return FormValidation.error("Url is malformed");
-            } catch (IOException ex) {
-                return FormValidation.warning("Connection error: " + ex.getMessage());
-            }
-            return FormValidation.ok();
-        }
-
-        public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
+       
+       public FormValidation doTestConnection(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
                 @QueryParameter("plan") final String plan,
@@ -187,96 +178,54 @@ public class TcmsPublisher extends Recorder {
                 @QueryParameter("category") final String category,
                 @QueryParameter("priority") final String priority,
                 @QueryParameter("manager") final String manager) {
-            FormValidation url_val = checkServerUrl(serverUrl, username, password);
-            if (url_val != FormValidation.ok()) {
-                return url_val;
-            }
-
-            TcmsConnection c = null;
+           
+            List<String> problems = new LinkedList();
+            
             try {
-                c = new TcmsConnection(serverUrl);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-                return FormValidation.error("Something weird happened");
-            }
+                TcmsAccessCredentials credentials = new TcmsAccessCredentials(serverUrl, username, password);
+                TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+                boolean test = connection.testTcmsConnection();
 
-            c.setUsernameAndPassword(username, password);
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-
-            try {
-                session = auth.invoke(c);
-                if (session.length() > 0) {
-                    c.setSession(session);
-                }
-                properties.setConnection(c);
+                properties.setConnection(connection);
                 properties.reload();
-            } catch (XmlRpcFault ex) {
-                return FormValidation.error("Possibly wrong username/password");
+                problems = TcmsProperties.checkUsersetProperties(properties);
+
+            } catch (TcmsException ex) {
+                return FormValidation.error(ex.getMessage());
+            } catch (IOException ex) {
+                return FormValidation.error(ex.toString());
+            }
+            
+            if(!problems.isEmpty()){
+                return FormValidation.error(problems.toString().replace("[", "").replace("]", ""));
             }
 
-            if (properties.getPlanID() == null) {
-                return FormValidation.error("Possibly wrong plan id");
-            }
-            if (properties.getProductID() == null) {
-                return FormValidation.error("Possibly wrong product name");
-            }
-            if (properties.getProduct_vID() == null) {
-                return FormValidation.error("Possibly wrong product version");
-            }
-            if (properties.getCategoryID() == null) {
-                return FormValidation.error("Possibly wrong category name");
-            }
-            if (properties.getPriorityID() == null) {
-                return FormValidation.error("Possibly wrong priority name");
-            }
-            if (properties.getManagerId() == null) {
-                return FormValidation.error("Possibly wrong manager's username");
-            }
             return FormValidation.ok();
-
         }
 
         public FormValidation doTestEnv(@QueryParameter("serverUrl") final String serverUrl,
                 @QueryParameter("username") final String username,
                 @QueryParameter("password") final String password,
                 @QueryParameter("env") final String env) {
-            FormValidation url_val = checkServerUrl(serverUrl, username, password);
-            if (url_val != FormValidation.ok()) {
-                return url_val;
-            }
-
-            TcmsConnection c = null;
-            try {
-                c = new TcmsConnection(serverUrl);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-                return FormValidation.error("Something weird happened");
-            }
-
-
-            c.setUsernameAndPassword(username, password);
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
+            
+            TcmsAccessCredentials credentials = new TcmsAccessCredentials(serverUrl, username, password);
             TcmsEnvironment environment = new TcmsEnvironment(env);
-
+            
             try {
-                session = auth.invoke(c);
-                if (session.length() > 0) {
-                    c.setSession(session);
-                }
-                environment.setConnection(c);
-                environment.reloadEnvId();
-            } catch (XmlRpcFault ex) {
-                return FormValidation.error("Possibly wrong username/password");
-            }
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
-            if (environment.getEnvId() == null) {
-                return FormValidation.error("Possibly wrong environment group");
+                environment.setConnection(connection);
+                environment.reloadEnvId();
+
+                if (!environment.env.isEmpty() && environment.getEnvId() == null) {
+                    throw new TcmsException("Possibly wrong environment group: \"" + environment.env + "\"");
+                }
+
+            } catch (TcmsException ex) {
+                return FormValidation.error(ex.getMessage());
             }
             return FormValidation.ok();
-
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {

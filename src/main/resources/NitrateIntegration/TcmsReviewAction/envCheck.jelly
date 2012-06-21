@@ -7,18 +7,18 @@
         <j:when test="${!it.environment.isEmpty()}">
             <table >                       
                         
-                <j:forEach var="env" items="${it.env_status.entrySet()}">
+                <j:forEach var="envProperty" items="${it.report.envProperties}">
                     <tr>
                         <td colspan="2">
-                            <strong>${env.getKey()}</strong>
+                            <strong>${envProperty}</strong>
                         </td>
                         <td>
                             <j:choose>
-                                <j:when test="${env.getValue().values().iterator().next()=='PROPERTY'}">
-                                    <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
+                                <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
+                                    <f:textbox name="property-${envProperty}" clazz="required" style="width: 100px" value="${envProperty}" /> 
                                 </j:when>
                                 <j:when test="${it.change_axis}">
-                                    <f:textbox name="property-${env.getKey()}" clazz="required" style="width: 100px" value="${env.getKey()}" /> 
+                                    <f:textbox name="property-${envProperty}" clazz="required" style="width: 100px" value="${envProperty}" /> 
                                 </j:when>
                                 <j:otherwise>
                                 </j:otherwise>
@@ -27,7 +27,7 @@
                 
                         <td>
                             <j:choose>
-                                <j:when test="${env.getValue().containsValue('PROPERTY')}">
+                                <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
                                     Property is not linked to 
                                     <strong>${it.environment.env}</strong>. 
                                 </j:when>
@@ -36,42 +36,41 @@
                         </td>
                     </tr>
                     
-                    
-                    
-                    <j:forEach var="val" items="${env.getValue().entrySet()}">
+                    <j:forEach var="envValue" items="${it.report.getEnvValues(envProperty)}">
                         <tr>    
                             <td class="tdSmall"></td>
                             <td>
-                                ${val.getKey()}
+                                ${envValue}
                             </td>
                             <td>
                                 <j:choose>
-                                    <j:when test="${val.getValue()=='CHECKED'}">
-                                        <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
-                                     alt="${%Property checked}" tooltip="${%Property checked}"
-                                     style="visibility: visible" width="16" height="16" align="center" />
-                                        <j:choose>
-                                            <j:when test="${it.change_axis}">
-                                                <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
-                                            </j:when>
-                                        </j:choose>
-                                    </j:when>
-                                    <j:when test="${val.getValue()=='VALUE'}">
-                                        <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" /> 
-                                    </j:when>
-                                    <j:when test="${val.getValue()=='PROPERTY'}">
-                                        <f:textbox name="value-${env.getKey()}=>${val.getKey()}" clazz="required" style="width: 100px" value="${val.getKey()}" />                                 
+                                    <!-- If envProperty is wrong, we also want to display textbox for values -->
+                                    <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
+                                        <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
                                     </j:when>
                                     <j:otherwise>
-                                        ${val.getValue()}
+                                        <j:choose>
+                                            <j:when test="${it.report.isWrongEnvValue(envValue)}">
+                                                <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
+                                            </j:when>
+                                            <otherwise>
+                                                <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
+                                                    alt="${%Property checked}" tooltip="${%Property checked}"
+                                                    style="visibility: visible" width="16" height="16" align="center" />
+                                                <j:if test="${it.change_axis}">
+                                                    <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
+                                                </j:if>
+                                            </otherwise>
+                                        </j:choose>
                                     </j:otherwise>
                                 </j:choose>
+                                
 
                             </td>
                             <td>
-                                <j:if test="${val.getValue()=='VALUE'}">
+                                <j:if test="${it.report.isWrongEnvValue(envValue)}">
                                     Value is not linked with 
-                                    <strong> ${env.getKey()}</strong>.
+                                    <strong> ${envProperty}</strong>.
                                 </j:if>
                             </td>
                         </tr>
@@ -83,13 +82,13 @@
                     </tr>
                 </j:forEach>
             </table> 
-            <br />
+            <br/>
             <j:choose>
-                <j:when test="${it.existsWrongProperty()}">
+                <j:when test="${it.report.existsWrongEnvProperty()}">
                     Available properties for group 
                     <strong>${it.environment.env}</strong>: 
                     <br/>                      
-                    <j:forEach var="posible_val" items="${it.environment.values.keySet()}">
+                    <j:forEach var="posible_val" items="${it.environment.properties.keySet()}">
                         ${posible_val},
                         <st:nbsp/> 
                     </j:forEach>
@@ -98,7 +97,7 @@
             </j:choose>
 
     
-            <j:forEach var="prop" items="${it.getPropertyWWrongValue()}">
+            <j:forEach var="prop" items="${it.report.envPropertiesWithWrongValues}">
                 <br/>
                 Available values for property 
                 <strong>${prop}:</strong> 
@@ -115,7 +114,7 @@
             </j:if>
             <br/>
             <ul>
-                <j:forEach var="val" items="${it.env_check_problems}">
+                <j:forEach var="val" items="${it.envCheckProblems}">
                     <li> ${val}</li>
                 </j:forEach>             
             </ul>

@@ -5,15 +5,15 @@
 package NitrateIntegration;
 
 import NitrateIntegration.CommandWrapper.CommandWrapper;
-import com.redhat.nitrate.command.TestRun;
-import com.redhat.nitrate.command.Build;
-import com.redhat.nitrate.command.Auth;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
-import com.redhat.nitrate.*;
+import com.redhat.nitrate.TcmsAccessCredentials;
+import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
+import com.redhat.nitrate.command.Build;
+import com.redhat.nitrate.command.TestRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -21,35 +21,34 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-import redstone.xmlrpc.XmlRpcException;
-import redstone.xmlrpc.XmlRpcFault;
 
 /**
  *
  * @author asaleh
+ * @author jrusnack
  */
 public class TcmsReviewAction implements Action {
 
     public AbstractBuild<?, ?> build;
-    private TcmsGatherer gatherer;
-
-    private String serverUrl;
-    private TcmsAccessCredentials credentials;
-    
     public TcmsProperties properties;
     public TcmsEnvironment environment;
-    
+    public TcmsReport report;
+    public List<String> update_problems = new LinkedList<String>();
+    public HashSet<String> envCheckProblems = new HashSet<String>();
+    /**
+     * Stores mapping from old properties/Jenkins axes(names and values) to new
+     * names and values possibly changed by user
+     */
+    public final PropertyTransform property = new PropertyTransform();
+    private TcmsGatherer gatherer;
+    private String serverUrl;
+    private TcmsAccessCredentials credentials;
     private LinkedHashMap<String, Hashtable<String, String>> env_status;
-    
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
     boolean setting_updated = false;
-    
-    LinkedList<GatherFiles> gatherFiles = new LinkedList<GatherFiles>();
-    
-    public List<String> update_problems = new LinkedList<String>();
-    public HashSet<String> env_check_problems = new HashSet<String>();
+    boolean envVarsChecked = false;
 
     /*
      * Used to store exception, if occurs, and print it in reasonable format,
@@ -58,6 +57,88 @@ public class TcmsReviewAction implements Action {
      */
     private String updateException;
     private String envCheckException;
+
+
+    /**
+     * Class that defines transformations (key, value) -> (key, value). This is
+     * used in case when user renames Jenkins`s axes to some new names - new
+     * transformation from original names and values to new ones is added.
+     */
+    private class PropertyTransform {
+
+        private class Touple<K, V> implements Entry<K, V> {
+
+            private K key;
+            private V val;
+
+            public Touple(K key, V val) {
+                this.key = key;
+                this.val = val;
+            }
+
+            public K getKey() {
+                return key;
+            }
+
+            public V getValue() {
+                return val;
+            }
+
+            public Object setValue(Object v) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+
+        public void clearTransformations() {
+            propertyTransform.clear();
+        }
+
+        public void addTransformation(String oldprop, String oldval, String newprop, String newval) {
+            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
+        }
+        private HashMap<Entry<String, String>, Entry<String, String>> propertyTransform;
+
+        public Map<String, String> transformVariables(Map<String, String> old) {
+
+            HashMap<String, String> transformed = new HashMap<String, String>();
+
+            for (Entry<String, String> prop_value : old.entrySet()) {
+
+                Entry<String, String> newprop_value = prop_value;
+                if (propertyTransform.containsKey(prop_value)) {
+                    newprop_value = propertyTransform.get(prop_value);
+                }
+
+
+                transformed.put(newprop_value.getKey(), newprop_value.getValue());
+            }
+            return transformed;
+        }
+    }
+
+
+    public TcmsReviewAction(AbstractBuild build, String serverUrl,
+            String plan,
+            String product,
+            String product_v,
+            String category,
+            String priority,
+            String manager,
+            String env,
+            String testPath) {
+
+        this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
+        this.credentials = new TcmsAccessCredentials();
+        this.report = new TcmsReport();
+
+        this.serverUrl = serverUrl;
+        this.environment = new TcmsEnvironment(env);
+        this.build = build;
+        gatherer = new TcmsGatherer(properties, environment);
+        env_status = new LinkedHashMap<String, Hashtable<String, String>>();
+        wrongProperty = false;
+        propertyWWrongValue = new HashSet<String>();
+    }
 
     public boolean isChange_axis() {
         return change_axis;
@@ -75,8 +156,8 @@ public class TcmsReviewAction implements Action {
         return update_problems;
     }
 
-    public HashSet<String> getEnv_check_problems() {
-        return env_check_problems;
+    public HashSet<String> getEnvCheckProblems() {
+        return envCheckProblems;
     }
 
     public String getUsername() {
@@ -85,6 +166,10 @@ public class TcmsReviewAction implements Action {
 
     public String getPassword() {
         return credentials.getPassword();
+    }
+    
+    public HashSet<String> getPropertyWWrongValue() {
+        return propertyWWrongValue;
     }
 
     public String getIconFileName() {
@@ -115,9 +200,9 @@ public class TcmsReviewAction implements Action {
         return wrongProperty;
     }
 
-    public HashSet<String> getPropertyWWrongValue() {
-        return propertyWWrongValue;
-    }
+//    public HashSet<String> getPropertyWWrongValue() {
+//        return propertyWWrongValue;
+//    }
 
     public TcmsEnvironment getEnvironment() {
         return environment;
@@ -149,494 +234,192 @@ public class TcmsReviewAction implements Action {
         return envCheckException;
     }
 
-    public TcmsReviewAction(AbstractBuild build, String serverUrl,
-            String plan,
-            String product,
-            String product_v,
-            String category,
-            String priority,
-            String manager,
-            String env,
-            String testPath) {
-
-        this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-        this.credentials = new TcmsAccessCredentials();
-
-        this.serverUrl = serverUrl;
-        this.environment = new TcmsEnvironment(env);
-        this.build = build;
-        gatherer = new TcmsGatherer(properties, environment);
-        env_status = new LinkedHashMap<String, Hashtable<String, String>>();
-        propertyWWrongValue = new HashSet<String>();
-        wrongProperty = false;
-    }
-
-    public static TcmsConnection connect(String serverUrl,TcmsAccessCredentials credentials)throws IOException, XmlRpcFault{
-        TcmsConnection connection = null;
-        connection = new TcmsConnection(serverUrl);
-        connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
-
-        Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            session = auth.invoke(connection);
-            if (session.length() > 0) {
-                connection.setSession(session);
-            }else{
-                throw new IOException("Couln't connect to tcms server");
-            }
-            return connection;
-    }
-    
-    public final PropertyTransform property = new PropertyTransform();
-    
-    private class PropertyTransform{
-       
-    
-        private class Touple<K,V> implements Entry<K,V>{
-            private K key;
-            private V val;
-
-            public Touple(K key, V val) {
-                this.key = key;
-                this.val = val;
-            }
-
-            public K getKey() {
-                return key;
-            }
-
-            public V getValue() {
-                return val;
-            }
-
-            public Object setValue(Object v) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-            
-        }
-        
-    public void clearTransformations(){
-        propertyTransform.clear();
-    }
-    public void addTransformation(String oldprop,String oldval,String newprop,String newval){
-        propertyTransform.put(new Touple(oldprop,oldval),new Touple(newprop,newval));
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    private HashMap<Entry<String,String>,Entry<String,String>> propertyTransform;
-     
-    public Map<String, String> transformVariables(Map<String,String> old){
-        
-        HashMap<String,String> transformed = new HashMap<String,String>();
-        
-        for(Entry<String,String> prop_value: old.entrySet()){
-            
-            Entry<String,String> newprop_value = prop_value;
-            if(propertyTransform.containsKey(prop_value)){
-                newprop_value = propertyTransform.get(prop_value);
-            }
-        
-            
-            transformed.put(newprop_value.getKey(), newprop_value.getValue());
-        }
-        return transformed;
-    }
-    
-    
-    }
-    
-   
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    // FIXME: javadoc
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
-        updateException = "";
+         updateException = "";
         gatherer.clear();
-        if (req.getParameter("Submit").equals("Gather report from test-files")) {
-            credentials.setUsername(req.getParameter("_.username"));
-            credentials.setPassword(req.getParameter("_.password"));
-        }
-
+        
         try {
-            TcmsConnection connection = null;
-            connection =connect(serverUrl, credentials);
             
-            environment.setConnection(connection);
-            environment.reloadEnvId();
+            if (req.getParameter("Submit").equals("Gather report from test-files")) {
+                credentials.setUsername(req.getParameter("_.username"));
+                credentials.setPassword(req.getParameter("_.password"));
+                
+                /*
+                 * This part may be omitted, because bad credentials would still
+                 * generate exception (see TcmsConnection.invoke), but testTcmsConnection
+                 * can precisely identify HTTP 401, while TcmsConnection.invoke 
+                 * just guesses (in case of HTTP 401 XmlRpcException "The 
+                 * response could not be parsed." is thrown)
+                 */
+                // FIXME: doesn`t work, connect throws exception sooner than textTcmsConnection
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+                boolean test = connection.testTcmsConnection();
+            } 
+
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+            if(!environment.isEmpty()){
+                environment.setConnection(connection);
+                environment.reloadEnvId();
+                environment.fetchAvailableProperties();
+                report.checkEnvironmentMapping(environment);
+            }
 
             properties.setConnection(connection);
             properties.reload();
 
             gatherer.setProperties(properties);
             gatherer.setEnvironment(environment);
-            
-            for (GatherFiles gatherfile : gatherFiles) {
-                gatherer.gather(gatherfile.results, build, gatherfile.build, gatherfile.variables);
+
+            for (TcmsReport.TestRunResults r : report.getTestRuns()) {
+                gatherer.gather(r.results, build, r.build, r.variables);
             }
+
+        } catch (TcmsException ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
+            updateException = ex.getMessage();
         } catch (IOException ex) {
+            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             updateException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (XmlRpcException ex) {
-            updateException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (XmlRpcFault ex) {
-            updateException = ex.toString();
+        } finally {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
 
-        rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
 
-    public static class GatherFiles {
-
-        public TestResults results;
-        public AbstractBuild build;
-        public Map<String, String> variables;
-
-        public GatherFiles(TestResults results, AbstractBuild build, Map<String, String> variables) {
-            this.results = results;
-            this.build = build;
-            this.variables = variables;
-        }
-    }
-
-    public void clearGatherPaths() {
-        gatherFiles.clear();
-    }
-
-    public void addGatherPath(TestResults results, AbstractBuild build, Map<String, String> variables) {
-        /*Preventing creation of un-initialized null-s, that would be added to gather-files*/
-        GatherFiles f = null;
-        f = new GatherFiles(results, build, variables);
-        
-        if (f != null) {
-            gatherFiles.add(f);
-        }
-    }
-
+    // FIXME: javadoc
     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
+        this.update_problems.clear();
         setting_updated = false;
         List<String> problems = new LinkedList<String>();
-
-        String serverUrl = req.getParameter("_.serverUrl");
-        String username = req.getParameter("_.username");
-        String password = req.getParameter("_.password");
         updateException = "";
 
-        /**
-         * First try new URL, username and password, if unsuccessful, set
-         * exception and end
-         */
-        if (this.serverUrl.contentEquals(serverUrl)
-                && credentials.getUsername().contentEquals(username)
-                && credentials.getPassword().contentEquals(password)) {
-            //do nothing
-        } else {
-
-            try {
-                TcmsConnection c = new TcmsConnection(serverUrl);
-                c.setUsernameAndPassword(username, password);
-                if (c.testTcmsConnection()) {
-                    this.serverUrl = serverUrl;
-                    this.credentials = new TcmsAccessCredentials(username,password);
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-                updateException = ex.toString();
-                rsp.sendRedirect("../" + Definitions.__URL_NAME);
-                return;
-            }
-
-            credentials.setUsername(username);
-            credentials.setPassword(password);
-        }
-
-        String plan = req.getParameter("_.plan");
-        String product = req.getParameter("_.product");
-        String product_v = req.getParameter("_.product_v");
-        String category = req.getParameter("_.category");
-        String priority = req.getParameter("_.priority");
-        String manager = req.getParameter("_.manager");
-
-        TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-
-
-        String env = req.getParameter("_.environment");
-        TcmsEnvironment environment = new TcmsEnvironment(env);
-        String session;
-        Auth.login_krbv auth = new Auth.login_krbv();
+        credentials = parseCredentialsFromRequest(req);
+        TcmsEnvironment environment = parseEnvironmentFromRequest(req);
+        TcmsProperties properties = parsePropertiesFromRequest(req);
 
         try {
-            TcmsConnection connection = null;
-            connection =connect(serverUrl, credentials);
-            
-            session = auth.invoke(connection);
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
-            if (session != null && session.length() > 0) {
-                connection.setSession(session);
+            if (!this.environment.env.equals(environment.env)) {
+                environment.setConnection(connection);
+                environment.reloadEnvId();
             }
-            environment.setConnection(connection);
-            environment.reloadEnvId();
+            
+            if(!environment.isEmpty()){
+                report.checkEnvironmentMapping(environment);
+            }
+
             properties.setConnection(connection);
             properties.reload();
 
-        } catch (XmlRpcFault ex) {
+            problems = TcmsProperties.checkUsersetProperties(properties);
+
+            if (!environment.env.isEmpty() && environment.getEnvId() == null) {
+                problems.add("Possibly wrong environment group: " + environment.env);
+            }
+
+            if (problems.isEmpty()) {
+                this.properties = properties;
+                this.environment = environment;
+                setting_updated = true;
+            }
+
+            this.update_problems = problems;
+
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.toString();
+            updateException = ex.getMessage();
+        } finally {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
-        } catch (XmlRpcException ex) {
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
         }
 
-
-        if (properties.getPlanID() == null) {
-            problems.add(properties.plan + " is possibly wrong plan id");
-        }
-        if (properties.getProductID() == null) {
-            problems.add(properties.product + " is possibly wrong product name (couldn't check product version and category)");
-        } else {
-            if (properties.getProduct_vID() == null) {
-                problems.add(properties.product_v + " is possibly wrong product version");
-            }
-            if (properties.getCategoryID() == null) {
-                problems.add(properties.category + " is possibly wrong category name");
-            }
-        }
-
-        if (properties.getPriorityID() == null) {
-            problems.add(properties.priority + " is possibly wrong priority name");
-        }
-        if (properties.getManagerId() == null) {
-            problems.add(properties.manager + " is possibly wrong manager's username");
-        }
-        /**
-         * Check environment only if some identifier was submitted
-         */
-        if (!env.isEmpty() && environment.getEnvId() == null) {
-            problems.add("Possibly wrong environment group: " + environment.env);
-        }
-
-        if (problems.isEmpty()) {
-            this.properties = properties;
-            this.environment = environment;
-            setting_updated = true;
-        }
-
-
-        this.update_problems = problems;
-        rsp.sendRedirect("../" + Definitions.__URL_NAME);
-    }
-
-    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException {
-
+    }    
+    
+    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException  {
         HashSet<String> problems = new HashSet<String>();
         envCheckException = "";
-
         change_axis = false;
+        
         if (req.getParameter("Submit").equals("Change")) {
             change_axis = true;
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
 
-        Map params = req.getParameterMap();
+        problems = updateReportFromReq(req);
+        
+        try {
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+            environment.setConnection(connection);
+            report.checkEnvironmentMapping(environment);
+        } catch (TcmsException ex){
+            envCheckException = ex.getMessage();
+            rsp.sendRedirect("../" + Definitions.__URL_NAME);
+            return;
+        }
 
+        this.envCheckProblems = problems;
+        envVarsChecked = true;
+
+        rsp.sendRedirect("../" + Definitions.__URL_NAME);
+    }
+    
+    
+    private HashSet<String> updateReportFromReq(StaplerRequest req){
+        Map params = req.getParameterMap();
+        HashSet<String> problems = new HashSet<String>();
+        
         /*
          * update values first
          */
         for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
             Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
+            
             if (entry.getKey().startsWith("value-")) {
-                String value = ((String[]) entry.getValue())[0];
+                String newValue = ((String[]) entry.getValue())[0];
+                String property = entry.getKey().replaceFirst("value-", "");
+                String oldValue = property.split("=>")[1];
+                property = property.split("=>")[0];
 
-                String property_name = entry.getKey().replaceFirst("value-", "");
-                String value_name = property_name.split("=>")[1];
-                property_name = property_name.split("=>")[0];
-
-
-
-                for (GatherFiles env : gatherFiles) {
-
-                    /*
-                     * Assert that we are trying to assing new value
-                     */
-                    if (!value.equals(value_name)) {
-                        /*
-                         * Assert that new value is not already present under property
-                         */
-                        if (!env_status.get(property_name).containsKey(value)) {
-                            if (env.variables.containsKey(property_name)) {
-                                if (env.variables.get(property_name).equals(value_name)) {
-                                    env.variables.remove(property_name);
-                                    env.variables.put(property_name, value);
-                                }
-                            }
-                        } else {
-                            /*
-                             * If new value is already present, print error
-                             */
-                            problems.add(property_name + " already contained value " + value);
-                        }
+                if (!oldValue.equals(newValue)) {
+                    try {
+                        report.changeEnvValue(property, oldValue, newValue);
+                    } catch (IllegalArgumentException ex) {
+                        problems.add(ex.getMessage());
                     }
                 }
             }
         }
-
-
+        
         /*
          * change property-names second
          */
         for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
             Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
-            if (entry.getKey().startsWith("property-")) {
-                String new_property_name = ((String[]) entry.getValue())[0];
-
-                String property_name = entry.getKey().replaceFirst("property-", "");
-
-                for (GatherFiles env : gatherFiles) {
-                    if (env.variables.containsKey(property_name) && !property_name.equals(new_property_name)) {
-                        if (env.variables.containsKey(new_property_name)) {
-                            /*
-                             * FIXME: this will print even when value is not
-                             * changed, because
-                             */
-                            problems.add("Duplicit property name error.");
-                        } else {
-                            String val = env.variables.get(property_name);
-                            env.variables.remove(property_name);
-                            env.variables.put(new_property_name, val);
-                        }
-
-                    }
-                }
-            }
-        }
-
-        /*
-         * test
-         */
-        try {
-            TcmsConnection connection = null;
-            connection =connect(serverUrl, credentials);
             
-            connection = new TcmsConnection(serverUrl);
-            connection.setUsernameAndPassword(credentials.getUsername(), credentials.getPassword());
-
-            boolean test = connection.testTcmsConnection();
-            if (test == false) {
-                throw new IOException("Couln't connect to tcms server");
-            }
-
-            Auth.login_krbv auth = new Auth.login_krbv();
-            String session;
-            session = auth.invoke(connection);
-            if (session.length() > 0) {
-                connection.setSession(session);
-            }
-            environment.setConnection(connection);
-            environment.reloadEnvId();
-
-        } catch (XmlRpcFault ex) {
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.getMessage();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (XmlRpcException ex) {
-            /**
-             * This exception might happen if method
-             * connection.testTcmsConnection passes, but afterwards network
-             * fails and auth.invoke(connection) fails with exception "The
-             * response could not be parsed."
-             */
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        } catch (IOException ex) {
-            /**
-             * This exception is usually thrown by
-             * connection.testTcmsConnection, in case when network is down.
-             * Produces exception message that contains just URL
-             */
-            Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
-            envCheckException = ex.toString();
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        }
-
-        env_status.clear();
-        propertyWWrongValue.clear();
-        wrongProperty = false;
-        for (GatherFiles env : gatherFiles) {
-            for (Map.Entry<String, String> prop : env.variables.entrySet()) {
-                // check value
-                String name = prop.getKey();
-                String val = prop.getValue();
-
-                String result = "UNKNOWN";
-                if (environment.containsProperty(name)) {
-                    if (environment.containsValue(name, val)) {
-                        result = "CHECKED";
-                    } else {
-                        result = "VALUE";
-                        propertyWWrongValue.add(name);
+            if (entry.getKey().startsWith("property-")) {
+                String newProperty = ((String[]) entry.getValue())[0];
+                String oldProperty = entry.getKey().replaceFirst("property-", "");
+                
+                if (!oldProperty.equals(newProperty)) {
+                    try {
+                        report.changeEnvProperty(oldProperty, newProperty);
+                    } catch (IllegalArgumentException ex) {
+                        problems.add(ex.getMessage());
                     }
-                } else {
-                    result = "PROPERTY";
-                    wrongProperty = true;
                 }
-
-
-                if (env_status.containsKey(name) == false) {
-                    env_status.put(name, new Hashtable<String, String>());
-                }
-                env_status.get(name).put(val, result);
-
-
             }
         }
-
-        this.env_check_problems = problems;
-
-        rsp.sendRedirect("../" + Definitions.__URL_NAME);
+        
+        return problems;
     }
 
+    // refactor
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException {
+            IOException, InterruptedException, TcmsException {
 
         if (req.getParameter("Submit").equals("update")) {
             // update build name
@@ -664,11 +447,9 @@ public class TcmsReviewAction implements Action {
                     }
                 }
 
-                connectAndUpload(gatherer,credentials,serverUrl);
-                
-            } catch (XmlRpcFault ex) {
-                Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (MalformedURLException ex) {
+                connectAndUpload(gatherer, credentials, serverUrl);
+
+            } catch (TcmsException ex) {
                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
             }
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
@@ -676,13 +457,13 @@ public class TcmsReviewAction implements Action {
 
     }
 
-    public static void connectAndUpload(TcmsGatherer gathered,TcmsAccessCredentials credentials,String serverUrl) throws MalformedURLException, XmlRpcFault, IOException{
-               TcmsConnection connection = null;
-               connection =connect(serverUrl, credentials);
-               upload(gathered, connection);
+    public static void connectAndUpload(TcmsGatherer gathered, TcmsAccessCredentials credentials, String serverUrl) throws TcmsException  {
+        TcmsConnection connection = null;
+        connection = TcmsConnection.connect(serverUrl, credentials);
+        upload(gathered, connection);
     }
-    
-    public static void upload(TcmsGatherer gathered, TcmsConnection connection)  {
+
+    public static void upload(TcmsGatherer gathered, TcmsConnection connection) {
         boolean at_least_one;
         boolean at_least_one_not_duplicate;
         do {
@@ -709,5 +490,28 @@ public class TcmsReviewAction implements Action {
 
             }
         } while (at_least_one && at_least_one_not_duplicate);
+    }
+
+    
+    private static TcmsAccessCredentials parseCredentialsFromRequest(StaplerRequest req){
+        String username = req.getParameter("_.username");
+        String password = req.getParameter("_.password");
+        String serverUrl = req.getParameter("_.serverUrl");
+        return new TcmsAccessCredentials(serverUrl, username, password);
+    }
+    
+    private static TcmsProperties parsePropertiesFromRequest(StaplerRequest req){
+        String plan = req.getParameter("_.plan");
+        String product = req.getParameter("_.product");
+        String product_v = req.getParameter("_.product_v");
+        String category = req.getParameter("_.category");
+        String priority = req.getParameter("_.priority");
+        String manager = req.getParameter("_.manager");
+        return new TcmsProperties(plan, product, product_v, category, priority, manager);
+    }
+    
+    private static TcmsEnvironment parseEnvironmentFromRequest(StaplerRequest req){
+        String env = req.getParameter("_.environment");
+        return new TcmsEnvironment(env);    
     }
 }

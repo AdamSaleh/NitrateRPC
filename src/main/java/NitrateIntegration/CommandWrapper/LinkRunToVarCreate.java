@@ -9,6 +9,7 @@ import NitrateIntegration.TcmsProperties;
 import NitrateIntegration.TcmsReviewAction;
 import com.redhat.nitrate.TcmsCommand;
 import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import com.redhat.nitrate.command.Env;
 import com.redhat.nitrate.command.TestRun;
 import java.util.Hashtable;
@@ -50,7 +51,7 @@ public class LinkRunToVarCreate extends CommandWrapper {
                     return o;
                 }
             }
-        } catch (XmlRpcFault ex) {
+        } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;

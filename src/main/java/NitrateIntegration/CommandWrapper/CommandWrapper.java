@@ -6,19 +6,12 @@ package NitrateIntegration.CommandWrapper;
 
 import NitrateIntegration.TcmsEnvironment;
 import NitrateIntegration.TcmsProperties;
-import NitrateIntegration.TcmsReviewAction;
-import com.redhat.nitrate.command.TestCase;
-import com.redhat.nitrate.command.TestCaseRun;
-import com.redhat.nitrate.command.TestRun;
-import com.redhat.nitrate.command.Env;
-import com.redhat.nitrate.command.Build;
-import com.redhat.nitrate.*;
+import com.redhat.nitrate.TcmsCommand;
+import com.redhat.nitrate.TcmsConnection;
+import com.redhat.nitrate.TcmsException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import redstone.xmlrpc.XmlRpcArray;
 import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
 
@@ -195,6 +188,7 @@ public abstract class CommandWrapper {
         }
     }
 
+    // FIXME: not sure what is going on here
     public boolean perform(TcmsConnection connection) {
         if (processDependecies()) {
             setPerforming();
@@ -202,7 +196,7 @@ public abstract class CommandWrapper {
             if (o == null) {
                 try {
                     o = connection.invoke(current());
-                } catch (XmlRpcFault ex) {
+                } catch (TcmsException ex) {
                     setResult(ex);
                 }
                 setResult(o);
