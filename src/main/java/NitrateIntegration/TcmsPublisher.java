@@ -218,7 +218,6 @@ public class TcmsPublisher extends Recorder {
                 environment.setConnection(connection);
                 environment.reloadEnvId();
 
-                //FIXME WTF??
                 if (!environment.env.isEmpty() && environment.getEnvId() == null) {
                     throw new TcmsException("Possibly wrong environment group: \"" + environment.env + "\"");
                 }

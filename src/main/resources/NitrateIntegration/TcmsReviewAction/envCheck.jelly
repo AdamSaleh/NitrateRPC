@@ -10,8 +10,17 @@
                 <j:forEach var="envProperty" items="${it.report.envProperties}">
                     <tr>
                         <td colspan="2">
-                            <strong>${envProperty}</strong>
+                            <j:choose>
+                                <j:when test="${it.report.getOldPropertyName(envProperty) != null}">
+                                    <strong>${it.report.getOldPropertyName(envProperty)}</strong>
+                                </j:when>
+                                <j:otherwise>
+                                    <strong>${envProperty}</strong>
+                                </j:otherwise>
+                            </j:choose>
+                            
                         </td>
+                        <td class="tdSmall"></td>
                         <td>
                             <j:choose>
                                 <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
@@ -21,6 +30,7 @@
                                     <f:textbox name="property-${envProperty}" clazz="required" style="width: 100px" value="${envProperty}" /> 
                                 </j:when>
                                 <j:otherwise>
+                                    ${envProperty}
                                 </j:otherwise>
                             </j:choose>
                         </td>
@@ -40,8 +50,16 @@
                         <tr>    
                             <td class="tdSmall"></td>
                             <td>
-                                ${envValue}
+                                <j:choose>
+                                <j:when test="${it.report.getOldValueName(envValue) != null}">
+                                    <strong>${it.report.getOldValueName(envValue)}</strong>
+                                </j:when>
+                                <j:otherwise>
+                                    <strong>${envValue}</strong>
+                                </j:otherwise>
+                            </j:choose>
                             </td>
+                            <td class="tdSmall"></td>
                             <td>
                                 <j:choose>
                                     <!-- If envProperty is wrong, we also want to display textbox for values -->
@@ -53,13 +71,21 @@
                                             <j:when test="${it.report.isWrongEnvValue(envValue)}">
                                                 <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
                                             </j:when>
+                                           
                                             <j:otherwise>
+                                                <!--
                                                 <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
-                                                    alt="${%Property checked}" tooltip="${%Property checked}"
-                                                    style="visibility: visible" width="16" height="16" align="center" />
-                                                <j:if test="${it.environmentCheck.change_axis}">
-                                                    <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
-                                                </j:if>
+                                                     alt="${%Property checked}" tooltip="${%Property checked}"
+                                                     style="visibility: visible" width="16" height="16" align="center" />
+                                                     -->
+                                                <j:choose>
+                                                    <j:when test="${it.environmentCheck.change_axis}">
+                                                        <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
+                                                    </j:when>
+                                                    <j:otherwise>
+                                                        ${envValue}
+                                                    </j:otherwise>
+                                                </j:choose>                                                        
                                             </j:otherwise>
                                         </j:choose>
                                     </j:otherwise>

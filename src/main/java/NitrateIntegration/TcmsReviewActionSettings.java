@@ -31,7 +31,6 @@ public class TcmsReviewActionSettings {
     public TcmsProperties properties;
     public TcmsEnvironment environment;
     
-   
 
     public TcmsReviewActionSettings(String serverUrl,
             String plan,
@@ -43,9 +42,7 @@ public class TcmsReviewActionSettings {
             String env,
             String testPath) {
         
-            this.serverUrl = serverUrl;
-
-        
+            this.serverUrl = serverUrl;        
             this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
             this.environment = new TcmsEnvironment(env);
             this.credentials = new TcmsAccessCredentials();
@@ -100,12 +97,11 @@ public class TcmsReviewActionSettings {
     public void setUpdateException(String updateException) {
         this.updateException = updateException;
     }
+    
     public void clearUpdateException() {
         this.updateException = "";
     }
-    
 
-    
     public boolean updateExceptionOccured() {
         if (updateException == null) {
             return false;
@@ -140,10 +136,7 @@ public class TcmsReviewActionSettings {
 
             environment.setConnection(connection);
             environment.reloadEnvId();
-            
-            if(!environment.isEmpty()){
-                report.checkEnvironmentMapping(environment);
-            }
+            report.checkEnvironmentMapping(environment);
 
             properties.setConnection(connection);
             properties.reload();

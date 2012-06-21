@@ -23,7 +23,11 @@ public class TcmsReport {
     private Set<String> wrongEnvProperties;
     private Set<String> wrongEnvValues;
     private Set<String> envPropertiesWithWrongValues;
-    public final TcmsReport.PropertyTransform property = new TcmsReport.PropertyTransform();
+    
+    /* Store mapping current name -> old Jenkins name */
+    private Map<String, String> propertyNameTransformations;
+    private Map<String, String> valueNameTransformations;
+    
 
     
     /**
@@ -57,6 +61,8 @@ public class TcmsReport {
         wrongEnvProperties = new HashSet<String>();
         wrongEnvValues = new HashSet<String>();
         envPropertiesWithWrongValues = new HashSet<String>();
+        propertyNameTransformations = new HashMap<String, String>();
+        valueNameTransformations = new HashMap<String, String>();
     }
     
     public Set<String> getEnvProperties(){
@@ -75,15 +81,22 @@ public class TcmsReport {
         if (environmentMapping.containsKey(newProperty)) {
             throw new IllegalArgumentException("Duplicate property " + newProperty);
         }
-
+        
         environmentMapping.put(newProperty, environmentMapping.get(oldProperty));
         environmentMapping.remove(oldProperty);
         for (TestRunResults testRunRes : testRuns) {
             testRunRes.variables.put(newProperty, testRunRes.variables.get(oldProperty));
             testRunRes.variables.remove(oldProperty);
         }
-
+        
+        if (propertyNameTransformations.containsKey(oldProperty)) {
+            propertyNameTransformations.put(newProperty, propertyNameTransformations.get(oldProperty));
+            propertyNameTransformations.remove(oldProperty);
+        } else {
+            propertyNameTransformations.put(newProperty, oldProperty);
+        }
     }
+    
 
     public void changeEnvValue(String envProperty, String oldValue, String newValue) {
         if (!environmentMapping.containsKey(envProperty)) {
@@ -105,7 +118,13 @@ public class TcmsReport {
                 testRunRes.variables.put(envProperty, newValue);
             }
         }
-
+        
+        if (valueNameTransformations.containsKey(oldValue)) {
+            valueNameTransformations.put(newValue, valueNameTransformations.get(oldValue));
+            valueNameTransformations.remove(oldValue);
+        } else {
+            valueNameTransformations.put(newValue, oldValue);
+        }
     }
 
     /**
@@ -129,15 +148,20 @@ public class TcmsReport {
         }
     }    
    
-    public void checkEnvironmentMapping(TcmsEnvironment environment) throws TcmsException{          
-        if(!environment.isEmpty()){
+    public void checkEnvironmentMapping(TcmsEnvironment environment) throws TcmsException {
+        if (!environment.isEmpty()) {
+            wrongEnvValues.clear();
+            wrongEnvProperties.clear();
+            envPropertiesWithWrongValues.clear();
             environment.fetchAvailableProperties();
 
-            for(String envProperty : environmentMapping.keySet()){
-                if(environment.containsProperty(envProperty)){
-                    /* When property is OK, check its values */
-                    environment.reloadProperty(envProperty);                
-                    for(String value : environmentMapping.get(envProperty)) {
+            for (String envProperty : environmentMapping.keySet()) {
+                if (environment.containsProperty(envProperty)) {
+                    /*
+                     * When property is OK, check its values
+                     */
+                    environment.reloadProperty(envProperty);
+                    for (String value : environmentMapping.get(envProperty)) {
                         if (!environment.containsValue(envProperty, value)) {
                             wrongEnvValues.add(value);
                             envPropertiesWithWrongValues.add(envProperty);
@@ -147,9 +171,9 @@ public class TcmsReport {
                     wrongEnvProperties.add(envProperty);
                 }
             }
-            }
+        }
     }
-    
+
     public boolean existsWrongEnvProperty(){
         return !wrongEnvProperties.isEmpty();
     }
@@ -183,61 +207,12 @@ public class TcmsReport {
         return testRuns;
     }
     
-     /**
-     * Class that defines transformations (key, value) -> (key, value). This is
-     * used in case when user renames Jenkins`s axes to some new names - new
-     * transformation from original names and values to new ones is added.
-     */
-    private class PropertyTransform {
-
-        private class Touple<K, V> implements Map.Entry<K, V> {
-
-            private K key;
-            private V val;
-
-            public Touple(K key, V val) {
-                this.key = key;
-                this.val = val;
-            }
-
-            public K getKey() {
-                return key;
-            }
-
-            public V getValue() {
-                return val;
-            }
-
-            public Object setValue(Object v) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        }
-
-        public void clearTransformations() {
-            propertyTransform.clear();
-        }
-
-        public void addTransformation(String oldprop, String oldval, String newprop, String newval) {
-            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
-        }
-        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform;
-
-        public Map<String, String> transformVariables(Map<String, String> old) {
-
-            HashMap<String, String> transformed = new HashMap<String, String>();
-
-            for (Map.Entry<String, String> prop_value : old.entrySet()) {
-
-                Map.Entry<String, String> newprop_value = prop_value;
-                if (propertyTransform.containsKey(prop_value)) {
-                    newprop_value = propertyTransform.get(prop_value);
-                }
-
-
-                transformed.put(newprop_value.getKey(), newprop_value.getValue());
-            }
-            return transformed;
-        }
+    public String getOldPropertyName(String property){
+        return propertyNameTransformations.get(property);
+    }
+    
+    public String getOldValueName(String value){
+        return valueNameTransformations.get(value);
     }
     
 }

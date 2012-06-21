@@ -6,7 +6,9 @@ package NitrateIntegration;
 
 import com.redhat.nitrate.TcmsException;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
