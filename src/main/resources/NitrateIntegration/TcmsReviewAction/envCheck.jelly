@@ -17,7 +17,7 @@
                                 <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
                                     <f:textbox name="property-${envProperty}" clazz="required" style="width: 100px" value="${envProperty}" /> 
                                 </j:when>
-                                <j:when test="${it.change_axis}">
+                                <j:when test="${it.environmentCheck.change_axis}">
                                     <f:textbox name="property-${envProperty}" clazz="required" style="width: 100px" value="${envProperty}" /> 
                                 </j:when>
                                 <j:otherwise>
@@ -53,14 +53,14 @@
                                             <j:when test="${it.report.isWrongEnvValue(envValue)}">
                                                 <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
                                             </j:when>
-                                            <otherwise>
+                                            <j:otherwise>
                                                 <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png"
                                                     alt="${%Property checked}" tooltip="${%Property checked}"
                                                     style="visibility: visible" width="16" height="16" align="center" />
-                                                <j:if test="${it.change_axis}">
+                                                <j:if test="${it.environmentCheck.change_axis}">
                                                     <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
                                                 </j:if>
-                                            </otherwise>
+                                            </j:otherwise>
                                         </j:choose>
                                     </j:otherwise>
                                 </j:choose>
@@ -109,12 +109,12 @@
                 <br />
             </j:forEach>
             <br/>
-            <j:if test="${it.envCheckExceptionOccured()}">
-                <span class="exception" style="font-weight: bold">Error:</span> ${it.envCheckException} 
+            <j:if test="${it.environmentCheck.envCheckExceptionOccured()}">
+                <span class="exception" style="font-weight: bold">Error:</span> ${it.environmentCheck.envCheckException} 
             </j:if>
             <br/>
             <ul>
-                <j:forEach var="val" items="${it.envCheckProblems}">
+                <j:forEach var="val" items="${it.environmentCheck.envCheckProblems}">
                     <li> ${val}</li>
                 </j:forEach>             
             </ul>
