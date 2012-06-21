@@ -30,10 +30,8 @@ import org.kohsuke.stapler.StaplerResponse;
 public class TcmsReviewAction implements Action {
 
     public AbstractBuild<?, ?> build;
-    public TcmsProperties properties;
-    public TcmsEnvironment environment;
     public TcmsReport report;
-    public List<String> update_problems = new LinkedList<String>();
+    public TcmsReviewActionSettings settings;
     public HashSet<String> envCheckProblems = new HashSet<String>();
     /**
      * Stores mapping from old properties/Jenkins axes(names and values) to new
@@ -41,13 +39,10 @@ public class TcmsReviewAction implements Action {
      */
     public final PropertyTransform property = new PropertyTransform();
     private TcmsGatherer gatherer;
-    private String serverUrl;
-    private TcmsAccessCredentials credentials;
     private LinkedHashMap<String, Hashtable<String, String>> env_status;
     private boolean wrongProperty;
     private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
-    boolean setting_updated = false;
     boolean envVarsChecked = false;
 
     /*
@@ -55,7 +50,6 @@ public class TcmsReviewAction implements Action {
      * not ugly long exception. Shown under Update settings and Check
      * Environmental vars
      */
-    private String updateException;
     private String envCheckException;
 
 
@@ -127,14 +121,13 @@ public class TcmsReviewAction implements Action {
             String env,
             String testPath) {
 
-        this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-        this.credentials = new TcmsAccessCredentials();
-        this.report = new TcmsReport();
-
-        this.serverUrl = serverUrl;
-        this.environment = new TcmsEnvironment(env);
         this.build = build;
-        gatherer = new TcmsGatherer(properties, environment);
+        
+        this.report = new TcmsReport();
+        this.settings = new TcmsReviewActionSettings(serverUrl, plan, product, product_v, category, priority, manager, env, testPath);
+        
+        
+        gatherer = new TcmsGatherer(this.settings.getProperties(), this.settings.getEnvironment());
         env_status = new LinkedHashMap<String, Hashtable<String, String>>();
         wrongProperty = false;
         propertyWWrongValue = new HashSet<String>();
@@ -144,28 +137,12 @@ public class TcmsReviewAction implements Action {
         return change_axis;
     }
 
-    public String getServerUrl() {
-        return serverUrl;
-    }
-
-    public boolean isSetting_updated() {
-        return setting_updated;
-    }
-
-    public List<String> getUpdate_problems() {
-        return update_problems;
+    public TcmsReviewActionSettings getSettings() {
+        return settings;
     }
 
     public HashSet<String> getEnvCheckProblems() {
         return envCheckProblems;
-    }
-
-    public String getUsername() {
-        return credentials.getUsername();
-    }
-
-    public String getPassword() {
-        return credentials.getPassword();
     }
     
     public HashSet<String> getPropertyWWrongValue() {
@@ -200,24 +177,13 @@ public class TcmsReviewAction implements Action {
         return wrongProperty;
     }
 
-//    public HashSet<String> getPropertyWWrongValue() {
-//        return propertyWWrongValue;
-//    }
 
-    public TcmsEnvironment getEnvironment() {
-        return environment;
-    }
 
     public AbstractBuild getBuild() {
         return build;
     }
 
-    public boolean updateExceptionOccured() {
-        if (updateException == null) {
-            return false;
-        }
-        return !updateException.isEmpty();
-    }
+    
 
     public boolean envCheckExceptionOccured() {
         if (envCheckException == null) {
@@ -226,9 +192,6 @@ public class TcmsReviewAction implements Action {
         return !envCheckException.isEmpty();
     }
 
-    public String getUpdateException() {
-        return updateException;
-    }
 
     public String getEnvCheckException() {
         return envCheckException;
@@ -236,14 +199,13 @@ public class TcmsReviewAction implements Action {
 
     // FIXME: javadoc
     public void doGather(StaplerRequest req, StaplerResponse rsp) throws IOException {
-         updateException = "";
+        settings.clearUpdateException();
         gatherer.clear();
         
         try {
             
             if (req.getParameter("Submit").equals("Gather report from test-files")) {
-                credentials.setUsername(req.getParameter("_.username"));
-                credentials.setPassword(req.getParameter("_.password"));
+                settings.updateCredentialsFromRequest(req);
                 
                 /*
                  * This part may be omitted, because bad credentials would still
@@ -253,23 +215,17 @@ public class TcmsReviewAction implements Action {
                  * response could not be parsed." is thrown)
                  */
                 // FIXME: doesn`t work, connect throws exception sooner than textTcmsConnection
-                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
-                boolean test = connection.testTcmsConnection();
+                //TcmsConnection connection = settings.getConnection();
+                //boolean test = connection.testTcmsConnection();
             } 
 
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
-            if(!environment.isEmpty()){
-                environment.setConnection(connection);
-                environment.reloadEnvId();
-                environment.fetchAvailableProperties();
-                report.checkEnvironmentMapping(environment);
-            }
+            settings.getConnectionAndUpdate();
+            settings.getEnvironment().reloadEnvId();
+            report.checkEnvironmentMapping(settings.getEnvironment());
+            settings.getProperties().reload();
 
-            properties.setConnection(connection);
-            properties.reload();
-
-            gatherer.setProperties(properties);
-            gatherer.setEnvironment(environment);
+            gatherer.setProperties(settings.getProperties());
+            gatherer.setEnvironment(settings.getEnvironment());
 
             for (TcmsReport.TestRunResults r : report.getTestRuns()) {
                 gatherer.gather(r.results, build, r.build, r.variables);
@@ -277,10 +233,10 @@ public class TcmsReviewAction implements Action {
 
         } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.getMessage();
+            settings.setUpdateException(ex.getMessage());
         } catch (IOException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.toString();
+            settings.setUpdateException( ex.toString());
         } finally {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
@@ -290,52 +246,7 @@ public class TcmsReviewAction implements Action {
 
     // FIXME: javadoc
     public void doUpdateSettings(StaplerRequest req, StaplerResponse rsp) throws IOException {
-        this.update_problems.clear();
-        setting_updated = false;
-        List<String> problems = new LinkedList<String>();
-        updateException = "";
-
-        credentials = parseCredentialsFromRequest(req);
-        TcmsEnvironment environment = parseEnvironmentFromRequest(req);
-        TcmsProperties properties = parsePropertiesFromRequest(req);
-
-        try {
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
-
-            if (!this.environment.env.equals(environment.env)) {
-                environment.setConnection(connection);
-                environment.reloadEnvId();
-            }
-            
-            if(!environment.isEmpty()){
-                report.checkEnvironmentMapping(environment);
-            }
-
-            properties.setConnection(connection);
-            properties.reload();
-
-            problems = TcmsProperties.checkUsersetProperties(properties);
-
-            if (!environment.env.isEmpty() && environment.getEnvId() == null) {
-                problems.add("Possibly wrong environment group: " + environment.env);
-            }
-
-            if (problems.isEmpty()) {
-                this.properties = properties;
-                this.environment = environment;
-                setting_updated = true;
-            }
-
-            this.update_problems = problems;
-
-        } catch (TcmsException ex) {
-            Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
-            updateException = ex.getMessage();
-        } finally {
-            rsp.sendRedirect("../" + Definitions.__URL_NAME);
-            return;
-        }
-
+       settings.doUpdateSettings(req, rsp, report);
     }    
     
     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException  {
@@ -352,9 +263,9 @@ public class TcmsReviewAction implements Action {
         problems = updateReportFromReq(req);
         
         try {
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
-            environment.setConnection(connection);
-            report.checkEnvironmentMapping(environment);
+            settings.getConnectionAndUpdate();
+
+            report.checkEnvironmentMapping(settings.getEnvironment());
         } catch (TcmsException ex){
             envCheckException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
@@ -446,8 +357,11 @@ public class TcmsReviewAction implements Action {
                         c.setChecked(false);
                     }
                 }
-
-                connectAndUpload(gatherer, credentials, serverUrl);
+                
+                
+                TcmsConnection connection = null;
+                connection = settings.getConnection();
+                upload(gatherer,connection);
 
             } catch (TcmsException ex) {
                 Logger.getLogger(TcmsPublisher.class.getName()).log(Level.SEVERE, null, ex);
@@ -455,12 +369,6 @@ public class TcmsReviewAction implements Action {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
         }
 
-    }
-
-    public static void connectAndUpload(TcmsGatherer gathered, TcmsAccessCredentials credentials, String serverUrl) throws TcmsException  {
-        TcmsConnection connection = null;
-        connection = TcmsConnection.connect(serverUrl, credentials);
-        upload(gathered, connection);
     }
 
     public static void upload(TcmsGatherer gathered, TcmsConnection connection) {
@@ -491,27 +399,5 @@ public class TcmsReviewAction implements Action {
             }
         } while (at_least_one && at_least_one_not_duplicate);
     }
-
     
-    private static TcmsAccessCredentials parseCredentialsFromRequest(StaplerRequest req){
-        String username = req.getParameter("_.username");
-        String password = req.getParameter("_.password");
-        String serverUrl = req.getParameter("_.serverUrl");
-        return new TcmsAccessCredentials(serverUrl, username, password);
-    }
-    
-    private static TcmsProperties parsePropertiesFromRequest(StaplerRequest req){
-        String plan = req.getParameter("_.plan");
-        String product = req.getParameter("_.product");
-        String product_v = req.getParameter("_.product_v");
-        String category = req.getParameter("_.category");
-        String priority = req.getParameter("_.priority");
-        String manager = req.getParameter("_.manager");
-        return new TcmsProperties(plan, product, product_v, category, priority, manager);
-    }
-    
-    private static TcmsEnvironment parseEnvironmentFromRequest(StaplerRequest req){
-        String env = req.getParameter("_.environment");
-        return new TcmsEnvironment(env);    
-    }
 }

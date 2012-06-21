@@ -44,52 +44,59 @@ public class TcmsEnvironment {
     public void setConnection(TcmsConnection connection) {
         this.connection = connection;
     }
-    
+
     /**
-     * Performs full reload of Environment - be sure to setConnection first. 
-     * 
-     * @throws TcmsException 
+     * Performs full reload of Environment - be sure to setConnection first.
+     *
+     * @throws TcmsException
      */
-    public void reload() throws TcmsException{
-        reloadEnvId();
-        fetchAvailableProperties();
-        reloadAllProperties();
+    public void reload() throws TcmsException {
+        if (!isEmpty()) {
+
+            reloadEnvId();
+            fetchAvailableProperties();
+            reloadAllProperties();
+        }
     }
 
     /**
-     * Gets EnvID of <code>env</code> from tcms server. Call this if you need to 
-     * check whether <code>env</code> is present on server - don`t do 
+     * Gets EnvID of
+     * <code>env</code> from tcms server. Call this if you need to check whether
+     * <code>env</code> is present on server - don`t do
      * <code>reload</code>.
-     * 
-     * @throws TcmsException 
+     *
+     * @throws TcmsException
      */
-    public void reloadEnvId() throws TcmsException  {
-        envId = null;
-        Env.filter_groups get = new Env.filter_groups();
-        get.name = env;
-        Object o = connection.invoke(get);
-        if (o instanceof XmlRpcArray) {
-            if (((XmlRpcArray) o).size() == 0) {
-                envId = null;
-                return;
+    public void reloadEnvId() throws TcmsException {
+        if (!isEmpty()) {
+
+            envId = null;
+            Env.filter_groups get = new Env.filter_groups();
+            get.name = env;
+            Object o = connection.invoke(get);
+            if (o instanceof XmlRpcArray) {
+                if (((XmlRpcArray) o).size() == 0) {
+                    envId = null;
+                    return;
+                }
+                o = ((XmlRpcArray) o).get(0);
             }
-            o = ((XmlRpcArray) o).get(0);
-        }
-        if (o instanceof XmlRpcStruct) {
-            env_obj = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Env.Group.class);
-            envId = env_obj.id;
+            if (o instanceof XmlRpcStruct) {
+                env_obj = TcmsConnection.rpcStructToFields((XmlRpcStruct) o, Env.Group.class);
+                envId = env_obj.id;
+            }
         }
     }
-    
-    
 
     /**
-     * Gets all availables properties of <code>env</code> from server.
-     * 
-     * @throws TcmsException 
+     * Gets all availables properties of
+     * <code>env</code> from server.
+     *
+     * @throws TcmsException
      */
-    public void fetchAvailableProperties() throws TcmsException  {
-        if (env_obj != null) {
+    public void fetchAvailableProperties() throws TcmsException {
+        if (!isEmpty()) {
+
             Env.get_properties get = new Env.get_properties();
             get.env_group_id = env_obj.id;
             Object o = connection.invoke(get);
@@ -108,10 +115,11 @@ public class TcmsEnvironment {
     }
 
     /**
-     * Gets all values of all properties of <code>env</code> from server. 
-     * Might be inefficient - consider using <code>reloadProperty</code> instead.
-     * 
-     * @throws TcmsException 
+     * Gets all values of all properties of
+     * <code>env</code> from server. Might be inefficient - consider using
+     * <code>reloadProperty</code> instead.
+     *
+     * @throws TcmsException
      */
     public void reloadAllProperties() throws TcmsException {
         for (Env.Property property : properties.values()) {
@@ -133,19 +141,18 @@ public class TcmsEnvironment {
             values.put(property.name, value_set);
         }
     }
-    
-    
+
     /**
-     * Gets all values available for property specified. 
-     * 
+     * Gets all values available for property specified.
+     *
      * @param property
-     * @throws TcmsException 
+     * @throws TcmsException
      */
-    public void reloadProperty(String property) throws TcmsException { 
-        if(!properties.containsKey(property)){
+    public void reloadProperty(String property) throws TcmsException {
+        if (!properties.containsKey(property)) {
             throw new IllegalArgumentException("No such property");
         }
-        
+
         Env.get_values get = new Env.get_values();
         get.env_property_id = properties.get(property).id;
         Object o = connection.invoke(get);
@@ -167,8 +174,8 @@ public class TcmsEnvironment {
     public Hashtable<String, Hashtable<String, Value>> getValues() {
         return values;
     }
-    
-    public Hashtable<String, Env.Property> getProperties(){
+
+    public Hashtable<String, Env.Property> getProperties() {
         return properties;
     }
 
@@ -189,13 +196,14 @@ public class TcmsEnvironment {
         }
         return values.get(property).containsKey(value);
     }
-    
-    
+
     /*
      * Returns true if environment is not initialized with any value
      */
-    public boolean isEmpty(){
-        if(env != null) return env.isEmpty();
+    public boolean isEmpty() {
+        if (env != null) {
+            return env.isEmpty();
+        }
         return true;
     }
 }

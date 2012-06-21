@@ -11,46 +11,46 @@
     When submitted, it will be passed to the corresponding constructor parameter.
   -->
     <f:entry title="Url" field="serverUrl" >
-        <f:textbox  value="${it.serverUrl}"  />
+        <f:textbox  value="${it.settings.serverUrl}"  />
     </f:entry>
     <f:entry title="Username" field="username">
-        <f:textbox value="${it.username}"  />
+        <f:textbox value="${it.settings.username}"  />
     </f:entry>
     <f:entry title="Password" field="password">
-        <f:password value="${it.password}"/>
+        <f:password value="${it.settings.password}"/>
     </f:entry>
     <f:entry title="Plan Id" field="plan">
-        <f:textbox value="${it.properties.plan}"/>
+        <f:textbox value="${it.settings.properties.plan}"/>
     </f:entry>
     <f:entry title="Product" field="product">
-        <f:textbox value="${it.properties.product}"/>
+        <f:textbox value="${it.settings.properties.product}"/>
     </f:entry>
     <f:entry title="Product version" field="product_v">
-        <f:textbox value="${it.properties.product_v}"/>
+        <f:textbox value="${it.settings.properties.product_v}"/>
     </f:entry>
     <f:entry title="Category" field="category">
-        <f:textbox value="${it.properties.category}"/>
+        <f:textbox value="${it.settings.properties.category}"/>
     </f:entry>
     <f:entry title="Priority" field="priority">
-        <f:textbox value="${it.properties.priority}"/>
+        <f:textbox value="${it.settings.properties.priority}"/>
     </f:entry>
     <f:entry title="Manager" field="manager">
-        <f:textbox value="${it.properties.manager}"/>
+        <f:textbox value="${it.settings.properties.manager}"/>
     </f:entry>
     <f:entry title="Environment group" field="environment">
-        <f:textbox value="${it.environment.env}"/>
+        <f:textbox value="${it.settings.environment.env}"/>
     </f:entry>
 
     <f:entry>
-        <j:if test="${it.updateExceptionOccured()}">
-            <span class="exception" style="font-weight: bold">Error:</span> ${it.updateException} 
+        <j:if test="${it.settings.updateExceptionOccured()}">
+            <span class="exception" style="font-weight: bold">Error:</span> ${it.settings.updateException} 
         </j:if>
         <ul>
-            <j:forEach var="val" items="${it.update_problems}">
+            <j:forEach var="val" items="${it.settings.update_problems}">
                 <li> ${val}</li>
             </j:forEach>             
         </ul>
-        <j:if test="${it.isSetting_updated()}">
+        <j:if test="${it.settings.isSetting_updated()}">
             Settings updated
         </j:if>
     </f:entry>

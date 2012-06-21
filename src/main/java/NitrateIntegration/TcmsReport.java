@@ -128,22 +128,25 @@ public class TcmsReport {
     }    
    
     public void checkEnvironmentMapping(TcmsEnvironment environment) throws TcmsException{          
-        environment.fetchAvailableProperties();
-        
-        for(String envProperty : environmentMapping.keySet()){
-            if(environment.containsProperty(envProperty)){
-                /* When property is OK, check its values */
-                environment.reloadProperty(envProperty);                
-                for(String value : environmentMapping.get(envProperty)) {
-                    if (!environment.containsValue(envProperty, value)) {
-                        wrongEnvValues.add(value);
-                        envPropertiesWithWrongValues.add(envProperty);
+        if(!environment.isEmpty()){
+            environment.reload();
+            //environment.fetchAvailableProperties();
+
+            for(String envProperty : environmentMapping.keySet()){
+                if(environment.containsProperty(envProperty)){
+                    /* When property is OK, check its values */
+                    environment.reloadProperty(envProperty);                
+                    for(String value : environmentMapping.get(envProperty)) {
+                        if (!environment.containsValue(envProperty, value)) {
+                            wrongEnvValues.add(value);
+                            envPropertiesWithWrongValues.add(envProperty);
+                        }
                     }
+                } else {
+                    wrongEnvProperties.add(envProperty);
                 }
-            } else {
-                wrongEnvProperties.add(envProperty);
             }
-        }
+            }
     }
     
     public boolean existsWrongEnvProperty(){

@@ -36,7 +36,4 @@ public class FunctionalTest{
     public FunctionalTest() {
     }
 
-   /* 
-
-*/
 }

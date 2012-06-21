@@ -113,13 +113,13 @@ function toggleSubitems(prefix, code){
 
                     <f:form method="post" action="gather" name="nitrateplugin-gather">
                         <f:entry title="Username" field="username">
-                            <f:textbox value="${it.username}" style="width: 200px"/>
+                            <f:textbox value="${it.settings.username}" style="width: 200px"/>
                         </f:entry>
                         <f:entry title="Password" field="password">
-                            <f:password value="${it.password}" style="width: 200px"/>
+                            <f:password value="${it.settings.password}" style="width: 200px"/>
                         </f:entry>
                         <f:entry help="help-gather">
-                            <j:if test="${it.updateExceptionOccured()}">
+                            <j:if test="${it.settings.updateExceptionOccured()}">
                                 <span class="exception" style="font-weight: bold">Error:</span> ${it.updateException} 
                                 <br/>
                                 <br/>

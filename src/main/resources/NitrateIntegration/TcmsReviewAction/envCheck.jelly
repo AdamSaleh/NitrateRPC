@@ -4,7 +4,7 @@
        
        
     <j:choose>
-        <j:when test="${!it.environment.isEmpty()}">
+        <j:when test="${!it.settings.environment.isEmpty()}">
             <table >                       
                         
                 <j:forEach var="envProperty" items="${it.report.envProperties}">
@@ -29,7 +29,7 @@
                             <j:choose>
                                 <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
                                     Property is not linked to 
-                                    <strong>${it.environment.env}</strong>. 
+                                    <strong>${it.settings.environment.env}</strong>. 
                                 </j:when>
                             </j:choose>
                     
@@ -86,9 +86,9 @@
             <j:choose>
                 <j:when test="${it.report.existsWrongEnvProperty()}">
                     Available properties for group 
-                    <strong>${it.environment.env}</strong>: 
+                    <strong>${it.settings.environment.env}</strong>: 
                     <br/>                      
-                    <j:forEach var="posible_val" items="${it.environment.properties.keySet()}">
+                    <j:forEach var="posible_val" items="${it.settings.environment.properties.keySet()}">
                         ${posible_val},
                         <st:nbsp/> 
                     </j:forEach>
@@ -102,7 +102,7 @@
                 Available values for property 
                 <strong>${prop}:</strong> 
                 <br/>
-                <j:forEach var="posible_val" items="${it.environment.values.get(prop).keySet()}">
+                <j:forEach var="posible_val" items="${it.settings.environment.values.get(prop).keySet()}">
                     ${posible_val},
                     <st:nbsp/>
                 </j:forEach>
