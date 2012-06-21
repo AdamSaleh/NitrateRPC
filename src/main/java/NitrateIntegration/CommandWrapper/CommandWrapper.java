@@ -9,11 +9,13 @@ import NitrateIntegration.TcmsProperties;
 import com.redhat.nitrate.TcmsCommand;
 import com.redhat.nitrate.TcmsConnection;
 import com.redhat.nitrate.TcmsException;
-import com.redhat.nitrate.command.*;
+import com.redhat.nitrate.command.Build;
+import com.redhat.nitrate.command.TestCase;
+import com.redhat.nitrate.command.TestCaseRun;
+import com.redhat.nitrate.command.TestRun;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import redstone.xmlrpc.XmlRpcFault;
 import redstone.xmlrpc.XmlRpcStruct;
 
 /**

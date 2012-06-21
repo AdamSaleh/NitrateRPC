@@ -7,7 +7,6 @@ package NitrateIntegration;
 import com.redhat.nitrate.TcmsAccessCredentials;
 import com.redhat.nitrate.TcmsConnection;
 import com.redhat.nitrate.TcmsException;
-import hudson.model.AbstractBuild;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;

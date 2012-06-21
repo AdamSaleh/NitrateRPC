@@ -9,6 +9,7 @@ import com.redhat.nitrate.TcmsConnection;
 import com.redhat.nitrate.TcmsException;
 import com.redhat.nitrate.command.Build;
 import com.redhat.nitrate.command.TestRun;
+import hudson.matrix.AxisList;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import java.io.IOException;
@@ -34,6 +35,7 @@ public class TcmsReviewAction implements Action {
      * names and values possibly changed by user
      */
     private TcmsGatherer gatherer;
+    private AxisList axisList;
         
     public TcmsReviewAction(AbstractBuild build, String serverUrl,
             String plan,
@@ -53,6 +55,22 @@ public class TcmsReviewAction implements Action {
         
         gatherer = new TcmsGatherer(this.settings.getProperties(), this.settings.getEnvironment());
         
+    }
+    
+    /**
+     * Constructor for multiconf project (contains AxisList)
+     */
+    public TcmsReviewAction(AbstractBuild build, AxisList axisList, String serverUrl,
+            String plan,
+            String product,
+            String product_v,
+            String category,
+            String priority,
+            String manager,
+            String env,
+            String testPath) {
+        this(build, serverUrl, plan, product, product_v, category, priority, manager, env, testPath);
+        this.axisList = axisList;
     }
 
     public TcmsReviewActionSettings getSettings() {
@@ -95,18 +113,7 @@ public class TcmsReviewAction implements Action {
         try {
             
             if (req.getParameter("Submit").equals("Gather report from test-files")) {
-                settings.updateCredentialsFromRequest(req);
-                
-                /*
-                 * This part may be omitted, because bad credentials would still
-                 * generate exception (see TcmsConnection.invoke), but testTcmsConnection
-                 * can precisely identify HTTP 401, while TcmsConnection.invoke 
-                 * just guesses (in case of HTTP 401 XmlRpcException "The 
-                 * response could not be parsed." is thrown)
-                 */
-                // FIXME: doesn`t work, connect throws exception sooner than textTcmsConnection
-                //TcmsConnection connection = settings.getConnection();
-                //boolean test = connection.testTcmsConnection();
+                settings.updateCredentialsFromRequest(req);                
             } 
 
             settings.getConnectionAndUpdate();
@@ -171,8 +178,7 @@ public class TcmsReviewAction implements Action {
                         c.setExecutable(false);
                         c.setChecked(false);
                     }
-                }
-                
+                }                
                 
                 TcmsConnection connection = null;
                 connection = settings.getConnection();

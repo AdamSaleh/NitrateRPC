@@ -98,7 +98,7 @@ public class TcmsPublisher extends Recorder {
         }
         synchronized (lock) {
             if (agregateBuild.getAction(TcmsReviewAction.class) == null) {
-                agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild,
+                agregateBuild.getActions().add(new TcmsReviewAction(agregateBuild,                         
                         serverUrl,
                         plan,
                         product,
@@ -152,11 +152,16 @@ public class TcmsPublisher extends Recorder {
         TcmsReviewAction action = build instanceof MatrixRun
                 ? ((MatrixRun) build).getParentBuild().getAction(TcmsReviewAction.class)
                 : ((MatrixBuild) build).getAction(TcmsReviewAction.class);
-
-        Map<String, String> vars = new HashMap<String, String>();
-        vars.putAll(build.getBuildVariables());
-
-        action.report.addTestRun(results, build, vars);
+//
+//        Map<String, String> vars = new HashMap<String, String>();
+//        vars.putAll(build.getBuildVariables());
+        
+        // FIXME: test please
+        if(build instanceof MatrixRun){
+            action.report.addTestRun(results, build, ((MatrixRun)build).getParent().getCombination());
+        } else {
+            action.report.addTestRun(results, build, null);
+        }
 
         return true;
     }
