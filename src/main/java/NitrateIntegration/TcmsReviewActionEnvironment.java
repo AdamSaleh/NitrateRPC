@@ -17,13 +17,8 @@ import org.kohsuke.stapler.StaplerResponse;
 public class TcmsReviewActionEnvironment {
 
     public HashSet<String> envCheckProblems = new HashSet<String>();
-    public final TcmsReviewActionEnvironment.PropertyTransform property = new TcmsReviewActionEnvironment.PropertyTransform();
-    private LinkedHashMap<String, Hashtable<String, String>> env_status;
-    private boolean wrongProperty;
-    private HashSet<String> propertyWWrongValue;
     boolean change_axis = false;
-    boolean envVarsChecked = false;
-
+   
     /*
      * Used to store exception, if occurs, and print it in reasonable format,
      * not ugly long exception. Shown under Update settings and Check
@@ -32,9 +27,6 @@ public class TcmsReviewActionEnvironment {
     private String envCheckException;
 
     public TcmsReviewActionEnvironment() {
-        env_status = new LinkedHashMap<String, Hashtable<String, String>>();
-        wrongProperty = false;
-        propertyWWrongValue = new HashSet<String>();
     }
     
     public boolean isChange_axis() {
@@ -44,25 +36,13 @@ public class TcmsReviewActionEnvironment {
     public HashSet<String> getEnvCheckProblems() {
         return envCheckProblems;
     }
-    
-    public HashSet<String> getPropertyWWrongValue() {
-        return propertyWWrongValue;
-    }
-        public LinkedHashMap<String, Hashtable<String, String>> getEnv_status() {
-        return env_status;
-    }
-
-    public boolean existsWrongProperty() {
-        return wrongProperty;
-    }
-    
+        
     public boolean envCheckExceptionOccured() {
         if (envCheckException == null) {
             return false;
         }
         return !envCheckException.isEmpty();
     }
-
 
     public String getEnvCheckException() {
         return envCheckException;
@@ -92,8 +72,7 @@ public class TcmsReviewActionEnvironment {
         }
 
         this.envCheckProblems = problems;
-        envVarsChecked = true;
-
+  
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
     
@@ -145,60 +124,5 @@ public class TcmsReviewActionEnvironment {
         
         return problems;
     }
-    /**
-     * Class that defines transformations (key, value) -> (key, value). This is
-     * used in case when user renames Jenkins`s axes to some new names - new
-     * transformation from original names and values to new ones is added.
-     */
-    private class PropertyTransform {
-
-        private class Touple<K, V> implements Map.Entry<K, V> {
-
-            private K key;
-            private V val;
-
-            public Touple(K key, V val) {
-                this.key = key;
-                this.val = val;
-            }
-
-            public K getKey() {
-                return key;
-            }
-
-            public V getValue() {
-                return val;
-            }
-
-            public Object setValue(Object v) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        }
-
-        public void clearTransformations() {
-            propertyTransform.clear();
-        }
-
-        public void addTransformation(String oldprop, String oldval, String newprop, String newval) {
-            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
-        }
-        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform;
-
-        public Map<String, String> transformVariables(Map<String, String> old) {
-
-            HashMap<String, String> transformed = new HashMap<String, String>();
-
-            for (Map.Entry<String, String> prop_value : old.entrySet()) {
-
-                Map.Entry<String, String> newprop_value = prop_value;
-                if (propertyTransform.containsKey(prop_value)) {
-                    newprop_value = propertyTransform.get(prop_value);
-                }
-
-
-                transformed.put(newprop_value.getKey(), newprop_value.getValue());
-            }
-            return transformed;
-        }
-    }
+   
 }

@@ -23,6 +23,8 @@ public class TcmsReport {
     private Set<String> wrongEnvProperties;
     private Set<String> wrongEnvValues;
     private Set<String> envPropertiesWithWrongValues;
+    public final TcmsReport.PropertyTransform property = new TcmsReport.PropertyTransform();
+
     
     /**
      * Formerly known as GatherFiles
@@ -129,8 +131,7 @@ public class TcmsReport {
    
     public void checkEnvironmentMapping(TcmsEnvironment environment) throws TcmsException{          
         if(!environment.isEmpty()){
-            environment.reload();
-            //environment.fetchAvailableProperties();
+            environment.fetchAvailableProperties();
 
             for(String envProperty : environmentMapping.keySet()){
                 if(environment.containsProperty(envProperty)){
@@ -182,6 +183,61 @@ public class TcmsReport {
         return testRuns;
     }
     
-    
+     /**
+     * Class that defines transformations (key, value) -> (key, value). This is
+     * used in case when user renames Jenkins`s axes to some new names - new
+     * transformation from original names and values to new ones is added.
+     */
+    private class PropertyTransform {
+
+        private class Touple<K, V> implements Map.Entry<K, V> {
+
+            private K key;
+            private V val;
+
+            public Touple(K key, V val) {
+                this.key = key;
+                this.val = val;
+            }
+
+            public K getKey() {
+                return key;
+            }
+
+            public V getValue() {
+                return val;
+            }
+
+            public Object setValue(Object v) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+
+        public void clearTransformations() {
+            propertyTransform.clear();
+        }
+
+        public void addTransformation(String oldprop, String oldval, String newprop, String newval) {
+            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
+        }
+        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform;
+
+        public Map<String, String> transformVariables(Map<String, String> old) {
+
+            HashMap<String, String> transformed = new HashMap<String, String>();
+
+            for (Map.Entry<String, String> prop_value : old.entrySet()) {
+
+                Map.Entry<String, String> newprop_value = prop_value;
+                if (propertyTransform.containsKey(prop_value)) {
+                    newprop_value = propertyTransform.get(prop_value);
+                }
+
+
+                transformed.put(newprop_value.getKey(), newprop_value.getValue());
+            }
+            return transformed;
+        }
+    }
     
 }

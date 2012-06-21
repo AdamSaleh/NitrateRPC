@@ -49,7 +49,6 @@ public class TcmsReviewActionSettings {
             this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
             this.environment = new TcmsEnvironment(env);
             this.credentials = new TcmsAccessCredentials();
-            
        
     }
 
@@ -116,6 +115,7 @@ public class TcmsReviewActionSettings {
     public TcmsConnection getConnection() throws TcmsException {
         return TcmsConnection.connect(getServerUrl(), getCredentials());
     }
+    //FIXME javadoc
     public TcmsConnection getConnectionAndUpdate() throws TcmsException {
        TcmsConnection connection = null;
        connection = getConnection();
@@ -139,9 +139,7 @@ public class TcmsReviewActionSettings {
             TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
 
             environment.setConnection(connection);
-            if (!this.environment.env.equals(environment.env)) {
-                environment.reloadEnvId();
-            }
+            environment.reloadEnvId();
             
             if(!environment.isEmpty()){
                 report.checkEnvironmentMapping(environment);

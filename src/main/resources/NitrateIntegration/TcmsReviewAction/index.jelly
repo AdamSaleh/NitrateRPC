@@ -120,7 +120,7 @@ function toggleSubitems(prefix, code){
                         </f:entry>
                         <f:entry help="help-gather">
                             <j:if test="${it.settings.updateExceptionOccured()}">
-                                <span class="exception" style="font-weight: bold">Error:</span> ${it.updateException} 
+                                <span class="exception" style="font-weight: bold">Error:</span> ${it.settings.updateException} 
                                 <br/>
                                 <br/>
                             </j:if>

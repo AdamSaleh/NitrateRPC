@@ -46,20 +46,6 @@ public class TcmsEnvironment {
     }
 
     /**
-     * Performs full reload of Environment - be sure to setConnection first.
-     *
-     * @throws TcmsException
-     */
-    public void reload() throws TcmsException {
-        if (!isEmpty()) {
-
-            reloadEnvId();
-            fetchAvailableProperties();
-            reloadAllProperties();
-        }
-    }
-
-    /**
      * Gets EnvID of
      * <code>env</code> from tcms server. Call this if you need to check whether
      * <code>env</code> is present on server - don`t do
