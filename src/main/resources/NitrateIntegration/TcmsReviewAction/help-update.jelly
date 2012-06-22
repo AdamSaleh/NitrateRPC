@@ -1,10 +1,13 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        TODO
-        
+        <p>
         Environment group is not mandatory, but without it you can`t link
         Jenkins`s axes to env. vars in TCMS. Fill in the field and check 
         env. vars.
-        
+        </p>
+        <p>
+        All other settings work the same as in global project settings, with one notable exception,
+        that they won't get updated, if they don't pass the check against data in TCMS.
+        </p>
     </div>
 </j:jelly>

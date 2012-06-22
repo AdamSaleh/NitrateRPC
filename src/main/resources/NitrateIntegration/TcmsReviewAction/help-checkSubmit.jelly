@@ -1,10 +1,17 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        TODO
-        
+        <p>
+        Click this button to check whether values and properties used in build 
+        map to values and properties stored in TCMS. You will then be able to correct properties, that are not in TCMS.
+        On second check it will aply them.
+        </p>
+        <p>
+            If you have valid properties, but you want to change them anyway, first click Change button, make changes and then click Check button.
+        </p>
+        <p>
         After you succesfuly check environmental variables, commnads that link
         Jenkins`s axes to envirnment variables will be added to report (under 
         Create Test Run). 
-        
+        </p>
     </div>
 </j:jelly>

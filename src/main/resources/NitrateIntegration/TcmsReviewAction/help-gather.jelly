@@ -1,8 +1,11 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        TODO
-        
-        Submit you Kerberos Name and password
+        <p>
+            Submit you Kerberos Name and password to gather new report from test results of this build and TCMS.
+        </p>
+        <p>
+            After first gather, you will be able to review the report, change settings and check env-vars.
+        </p>
         
     </div>
 </j:jelly>

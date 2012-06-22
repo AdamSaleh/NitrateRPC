@@ -35,7 +35,6 @@ public class TcmsReviewAction implements Action {
      * names and values possibly changed by user
      */
     private TcmsGatherer gatherer;
-    private AxisList axisList;
         
     public TcmsReviewAction(AbstractBuild build, String serverUrl,
             String plan,
@@ -70,7 +69,6 @@ public class TcmsReviewAction implements Action {
             String env,
             String testPath) {
         this(build, serverUrl, plan, product, product_v, category, priority, manager, env, testPath);
-        this.axisList = axisList;
     }
 
     public TcmsReviewActionSettings getSettings() {

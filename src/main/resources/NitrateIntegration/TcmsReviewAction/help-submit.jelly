@@ -1,12 +1,23 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        TODO
-        
+        <p>
         Check and uncheck command that you want to send to TCMS. Note that some
         commands depend on others (e.g. you can`t create TestRun without having parent
         test build), which is ilustrated by tree hierarchy. 
-        
-        
-        
+        </p>
+        <p>
+        Some commands have multiple dependencies i.e. TestCaseRun requires coresponding TestCase, TestRun and Build
+        </p>
+        <p>
+        Upload works like this:<br />
+        For each checked upload command:
+        <ul>
+            <li>Checks whether command has dependencies satisfied</li>
+            <li>If so,checks if there is already duplicate in TCMS</li>
+            <li>Issues the command</li>
+            <li>Stores the result (or download the duplicate) to be used as dependecies for other commands</li>
+        </ul>    
+        Then repeats the cycle until all commands are issued.   
+        </p>
     </div>
 </j:jelly>

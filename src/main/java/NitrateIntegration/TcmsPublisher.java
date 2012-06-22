@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -152,16 +153,22 @@ public class TcmsPublisher extends Recorder {
         TcmsReviewAction action = build instanceof MatrixRun
                 ? ((MatrixRun) build).getParentBuild().getAction(TcmsReviewAction.class)
                 : ((MatrixBuild) build).getAction(TcmsReviewAction.class);
-//
-//        Map<String, String> vars = new HashMap<String, String>();
-//        vars.putAll(build.getBuildVariables());
+
+        Map<String, String> vars = new HashMap<String, String>();
+        vars.putAll(build.getBuildVariables());
         
-        // FIXME: test please
         if(build instanceof MatrixRun){
-            action.report.addTestRun(results, build, ((MatrixRun)build).getParent().getCombination());
-        } else {
-            action.report.addTestRun(results, build, null);
-        }
+            //check if combination is included in build-vars
+            Map<String, String> combination = ((MatrixRun)build).getParent().getCombination();
+            for(Entry<String,String> e:combination.entrySet()){
+                if(vars.entrySet().contains(e)==false){
+                    vars.put(e.getKey(),e.getValue());
+                }
+            }
+        } 
+        
+        action.report.addTestRun(results, build, vars);
+        
 
         return true;
     }
