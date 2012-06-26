@@ -1,10 +1,14 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        TODO
+        <p><strong>Check environmental variables: </strong> queries Nitrate server 
+        and checks, that environmental group contains variables with names and values as specified. </p>
         
-        After you succesfuly check environmental variables, commnads that link
-        Jenkins`s axes to envirnment variables will be added to report (under 
-        Create Test Run). 
+        <p><strong>Change: </strong> displays textboxes, which will allow you to 
+        set name of Nitrate`s environmental variable`s name/value.</p>
         
+        <p>NitrateRPC plugin maps Jenkins`s build variables to Nitrate`s environmental variables.
+        You can change this mapping by setting names and values of environmental variables to axes. </p>
+               
+        <p>After you change names and succesfully verify mapping, don`t forget to renew report. </p>
     </div>
 </j:jelly>

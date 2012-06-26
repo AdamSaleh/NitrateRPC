@@ -184,7 +184,7 @@ function toggleSubitems(prefix, code){
                     <br/>
                     <br/>
                     <br/>
-                    <table id="review-report" >
+                    <table id="review-report" width="700">
                         <tr>
                             <td>
                                 <f:form method="post" action="gather" name="nitrateplugin-gather">

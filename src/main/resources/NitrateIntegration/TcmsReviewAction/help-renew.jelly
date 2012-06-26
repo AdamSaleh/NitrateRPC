@@ -1,0 +1,35 @@
+<j:jelly trim="false" xmlns:j="jelly:core">
+    <div>
+        
+        <p> <strong>Renew report: </strong> Performs full scan of build - 
+        locates and saves report files, parses them, gathers results and 
+        generates commands that are displayed </p> <br/>
+        
+        <p>After processing build (locating, saving and parsing test files), 
+        NitrateRPC plugin generates commands to be sent to Nitrate server. These
+        commands usually have dependencies, e.g. you must create new Build in TCMS
+        before you can create new Test Run. Commands are displayed below in hierarchical
+        way, 
+        </p>
+                
+        <p>Check and uncheck command that you want to send to TCMS. Note that some
+        commands depend on others (e.g. you can`t create TestRun without having 
+        already created parent test build), which is ilustrated by tree hierarchy. 
+        One exception is Create Test Case command (see below).
+        </p>
+        
+        Commands and their description: 
+        
+        <dl>
+            <dt>Create Build</dt>
+            <dd>This command creates new build in TCMS. You can change name of the 
+            build in details.</dd>
+            <dt>Create Test Case</dt>
+            <dd>This command has somewhat ambiguous name: since test cases are 
+            independent from builds and are part of test plan, it may be the case 
+            that such test case already exists in TCMS. </dd>
+        </dl>
+        
+        
+    </div>
+</j:jelly>
