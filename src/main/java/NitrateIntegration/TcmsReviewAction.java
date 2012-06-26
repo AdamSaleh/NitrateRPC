@@ -122,7 +122,7 @@ public class TcmsReviewAction implements Action {
             gatherer.setProperties(settings.getProperties());
             gatherer.setEnvironment(settings.getEnvironment());
 
-            for (TcmsReport.TestRunResults r : report.getTestRuns()) {
+            for (TcmsReport.TestRunResults r : report.getTestRuns_withAppliedVariableTransformations()) {
                 gatherer.gather(r.results, build, r.build, r.variables);
             }
 

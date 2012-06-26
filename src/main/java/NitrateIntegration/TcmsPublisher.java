@@ -196,7 +196,7 @@ public class TcmsPublisher extends Recorder {
             try {
                 TcmsAccessCredentials credentials = new TcmsAccessCredentials(serverUrl, username, password);
                 TcmsProperties properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
-                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials,Definitions.krbv);
                 boolean test = connection.testTcmsConnection();
 
                 properties.setConnection(connection);
@@ -225,7 +225,7 @@ public class TcmsPublisher extends Recorder {
             TcmsEnvironment environment = new TcmsEnvironment(env);
             
             try {
-                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials);
+                TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials,Definitions.krbv);
 
                 environment.setConnection(connection);
                 environment.reloadEnvId();

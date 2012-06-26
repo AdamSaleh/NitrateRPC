@@ -4,13 +4,12 @@
  */
 package NitrateIntegration;
 
+import NitrateIntegration.TcmsReport.PropertyTransform.Touple;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.TcmsException;
 import hudson.model.AbstractBuild;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  *
@@ -19,16 +18,105 @@ import java.util.Set;
 public class TcmsReport {
     
     private Set<TestRunResults> testRuns;
-    private Map<String, Set<String>> environmentMapping;
-    private Set<String> wrongEnvProperties;
-    private Set<String> wrongEnvValues;
-    private Set<String> envPropertiesWithWrongValues;
     
+    private HashSet<Map.Entry<String,String>> propertyValueSet;
+    private HashMap<Map.Entry<String,String>,String> wrongPropertyValueMap;
+    boolean wrongProperty;
+    Set<String> propertyWithWrongValue = new HashSet<String>();
     /* Store mapping current name -> old Jenkins name */
-    private Map<String, String> propertyNameTransformations;
-    private Map<String, String> valueNameTransformations;
-    
+    private PropertyTransform propertyTransformations;
+        
+    /**
+    * Class that defines transformations (key, value) -> (key, value). This is
+    * used in case when user renames Jenkins`s axes to some new names - new
+    * transformation from original names and values to new ones is added.
+    */
+    public static  class PropertyTransform {
 
+        public static class Touple<K, V> implements Map.Entry<K, V> {
+
+            private K key;
+            private V val;
+
+            public Touple(K key, V val) {
+                this.key = key;
+                this.val = val;
+            }
+
+            public K getKey() {
+                return key;
+            }
+
+            public V getValue() {
+                return val;
+            }
+
+            public Object setValue(Object v) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+
+        public void clearTransformations() {
+            propertyTransform.clear();
+        }
+
+        public void addTransformation(String oldprop, String oldval, String newprop, String newval) {
+            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
+        }
+        
+        public void editTransformation(String oldprop, String oldval, String newprop, String newval) {
+            if(propertyTransform.containsKey(new Touple(oldprop, oldval)) == false){
+                 throw new IllegalArgumentException("Nonexistent property");
+            }
+            if(newprop==null){
+                newprop = getTransformation(oldprop, oldval).getKey();
+            }
+            if(newval==null){
+                newval = getTransformation(oldprop, oldval).getValue();
+            }
+            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
+        }
+        
+        public  Map.Entry<String, String> getTransformation(String oldprop, String oldval) {
+            return propertyTransform.get(new Touple(oldprop, oldval));
+        }
+        
+        public  Map.Entry<String, String> getTransformation(Map.Entry<String, String> l) {
+            return propertyTransform.get(l);
+        }
+        
+        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform;
+
+        public Set<Map.Entry<String, String>> transformVariables(Set<Map.Entry<String, String>> old) {
+
+            HashSet<Map.Entry<String, String>> transformed = new HashSet<Map.Entry<String, String>>();
+
+            for (Map.Entry<String, String> prop_value : old) {
+
+                Map.Entry<String, String> newprop_value = prop_value;
+                if (propertyTransform.containsKey(prop_value)) {
+                    newprop_value = propertyTransform.get(prop_value);
+                }
+
+                transformed.add(new Touple(newprop_value.getKey(), newprop_value.getValue()));
+            }
+            return transformed;
+        }
+        
+        public Map<String, String> transformVariables(Map<String, String> old) {
+
+            Map<String, String> transformed = new HashMap<String, String>();
+            for(Map.Entry<String,String> e:transformVariables(old.entrySet())){
+                transformed.put(e.getKey(), e.getValue());
+            }
+            return transformed;
+            
+        }
+        
+        public Map.Entry<String, String> transformVariable(Map.Entry<String, String> prop_value){
+            return propertyTransform.get(prop_value);
+        }
+    }
     
     /**
      * Formerly known as GatherFiles
@@ -57,75 +145,17 @@ public class TcmsReport {
     
     public TcmsReport(){
         testRuns = new HashSet<TestRunResults>();
-        environmentMapping = new HashMap<String, Set<String>>();
-        wrongEnvProperties = new HashSet<String>();
-        wrongEnvValues = new HashSet<String>();
-        envPropertiesWithWrongValues = new HashSet<String>();
-        propertyNameTransformations = new HashMap<String, String>();
-        valueNameTransformations = new HashMap<String, String>();
-    }
-    
-    public Set<String> getEnvProperties(){
-        return environmentMapping.keySet();
-    }
-    
-    public Set<String> getEnvValues(String property){
-        return environmentMapping.get(property);                
-    }
-    
-    public void changeEnvProperty(String oldProperty, String newProperty) {
-        if (!environmentMapping.containsKey(oldProperty)) {
-            throw new IllegalArgumentException("Nonexistent property");
-        }
-
-        if (environmentMapping.containsKey(newProperty)) {
-            throw new IllegalArgumentException("Duplicate property " + newProperty);
-        }
         
-        environmentMapping.put(newProperty, environmentMapping.get(oldProperty));
-        environmentMapping.remove(oldProperty);
-        for (TestRunResults testRunRes : testRuns) {
-            testRunRes.variables.put(newProperty, testRunRes.variables.get(oldProperty));
-            testRunRes.variables.remove(oldProperty);
-        }
-        
-        if (propertyNameTransformations.containsKey(oldProperty)) {
-            propertyNameTransformations.put(newProperty, propertyNameTransformations.get(oldProperty));
-            propertyNameTransformations.remove(oldProperty);
-        } else {
-            propertyNameTransformations.put(newProperty, oldProperty);
-        }
+        propertyTransformations = new PropertyTransform();        
     }
     
-
-    public void changeEnvValue(String envProperty, String oldValue, String newValue) {
-        if (!environmentMapping.containsKey(envProperty)) {
-            throw new IllegalArgumentException("Nonexistent property");
-        }
-
-        if (!environmentMapping.get(envProperty).contains(oldValue)) {
-            throw new IllegalArgumentException("Nonexistent value");
-        }
-
-        if (environmentMapping.get(envProperty).contains(newValue)) {
-            throw new IllegalArgumentException("Duplicate value " + newValue);
-        }
-
-        environmentMapping.get(envProperty).remove(oldValue);
-        environmentMapping.get(envProperty).add(newValue);
-        for (TestRunResults testRunRes : testRuns) {
-            if (testRunRes.variables.containsKey(envProperty) && testRunRes.variables.get(envProperty).equals(oldValue)) {
-                testRunRes.variables.put(envProperty, newValue);
-            }
-        }
-        
-        if (valueNameTransformations.containsKey(oldValue)) {
-            valueNameTransformations.put(newValue, valueNameTransformations.get(oldValue));
-            valueNameTransformations.remove(oldValue);
-        } else {
-            valueNameTransformations.put(newValue, oldValue);
-        }
+    public HashSet<Entry<String, String>> getPropertyValueSet(){
+        return propertyValueSet;
     }
+    public Map.Entry<String,String> transformPropertyValue(Map.Entry<String,String> property_value){
+        return propertyTransformations.transformVariable(property_value);
+    }
+  
 
     /**
      * Adds one TestRun to report. Formerly known as addGatherPath
@@ -136,83 +166,135 @@ public class TcmsReport {
      */
     public void addTestRun(TestResults results, AbstractBuild build, Map<String, String> variables){
         testRuns.add(new TestRunResults(results, build, variables));
-        for(String envProperty: variables.keySet()){
-            if(!environmentMapping.containsKey(envProperty)){
-                environmentMapping.put(envProperty, new HashSet<String>());
-                environmentMapping.get(envProperty).add(variables.get(envProperty));
-            } else {
-                if(!environmentMapping.get(envProperty).contains(variables.get(envProperty))){
-                    environmentMapping.get(envProperty).add(variables.get(envProperty));
-                }
-            }
+        for(Map.Entry<String,String> envProperty: variables.entrySet()){
+            propertyValueSet.add(envProperty);
+            propertyTransformations.addTransformation(envProperty.getKey(), envProperty.getValue(),envProperty.getKey(), envProperty.getValue());
         }
     }    
    
+     public HashSet<String> updateReportFromReq(Map params){
+        
+        HashSet<String> problems = new HashSet<String>();
+        
+        /*
+         * update values first
+         */
+        for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
+            
+            if (entry.getKey().startsWith("value-")) {
+                String newValue = ((String[]) entry.getValue())[0];
+                String property = entry.getKey().replaceFirst("value-", "");
+                String value = property.split("=>")[1];
+                property = property.split("=>")[0];
+
+                if (!value.equals(newValue)) {
+                    try {
+                        propertyTransformations.editTransformation(property, value, null, newValue);
+                    } catch (IllegalArgumentException ex) {
+                        problems.add(ex.getMessage());
+                    }
+                }
+            }
+        }
+        
+        /*
+         * change property-names second
+         */
+        for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
+            
+            if (entry.getKey().startsWith("property-")) {
+                String newProperty = ((String[]) entry.getValue())[0];
+                String property = entry.getKey().replaceFirst("property-", "");
+                String value = property.split("=>")[1];
+                property = property.split("=>")[0];
+                
+                if (!property.equals(newProperty)) {
+                    try {
+                        propertyTransformations.editTransformation(property, value, newProperty, null);
+                    } catch (IllegalArgumentException ex) {
+                        problems.add(ex.getMessage());
+                    }
+                }
+            }
+        }
+        
+        return problems;
+    }
+    
     public void checkEnvironmentMapping(TcmsEnvironment environment) throws TcmsException {
         if (!environment.isEmpty()) {
-            wrongEnvValues.clear();
-            wrongEnvProperties.clear();
-            envPropertiesWithWrongValues.clear();
+            wrongPropertyValueMap.clear();
+            wrongProperty = false;
+            propertyWithWrongValue.clear();
             environment.fetchAvailableProperties();
 
-            for (String envProperty : environmentMapping.keySet()) {
-                if (environment.containsProperty(envProperty)) {
+            Set<String> reloaded=new HashSet<String>();
+            for (Map.Entry<String,String> envProperty :propertyTransformations.transformVariables( propertyValueSet )) {
+                if (environment.containsProperty(envProperty.getKey())) {
                     /*
                      * When property is OK, check its values
                      */
-                    environment.reloadProperty(envProperty);
-                    for (String value : environmentMapping.get(envProperty)) {
-                        if (!environment.containsValue(envProperty, value)) {
-                            wrongEnvValues.add(value);
-                            envPropertiesWithWrongValues.add(envProperty);
-                        }
+                    if(reloaded.contains(envProperty.getKey())){
+                        environment.reloadProperty(envProperty.getKey());
+                        reloaded.add(envProperty.getKey());
                     }
+                    
+                    if (!environment.containsValue(envProperty.getKey(), envProperty.getValue())) {
+                        wrongPropertyValueMap.put(envProperty, "WRONG VALUE");
+                        propertyWithWrongValue.add(envProperty.getKey());
+                    }
+
                 } else {
-                    wrongEnvProperties.add(envProperty);
+                    wrongPropertyValueMap.put(envProperty, "WRONG PROPERTY");
+                    wrongProperty = true;
                 }
             }
         }
     }
 
     public boolean existsWrongEnvProperty(){
-        return !wrongEnvProperties.isEmpty();
+        return wrongProperty;
     }
     
     public boolean existWrongEnvValue(){
-        return !wrongEnvValues.isEmpty();
+        return !propertyWithWrongValue.isEmpty();
     }
     
-    public boolean isWrongEnvProperty(String envProperty){
-        return wrongEnvProperties.contains(envProperty);
+    public boolean isWrongEnvPropertyValue(String envProperty,String envValue){
+        return wrongPropertyValueMap.containsKey(new Touple(envProperty,envValue));
+    }
+    public String getWrongEnvPropertyValue(String envProperty,String envValue){
+        return wrongPropertyValueMap.get(new Touple(envProperty,envValue));
+    }
+    public String getWrongEnvPropertyValue(Map.Entry<String,String> pv){
+        return wrongPropertyValueMap.get(pv);
     }
     
-    
-    public boolean isWrongEnvValue(String envProperty){
-        return wrongEnvValues.contains(envProperty);
+    public Set getWrongEnvPropertyValues(){
+        return wrongPropertyValueMap.keySet();
     }
     
-    public Set getWrongEnvProperties(){
-        return wrongEnvProperties;
-    }
-    
-    public Set getWrongEnvValues(){
-        return wrongEnvValues;
-    }
     
     public Set getEnvPropertiesWithWrongValues(){
-        return envPropertiesWithWrongValues;
+        return propertyWithWrongValue;
     }
-    
+    /*
     public Set<TestRunResults> getTestRuns(){
         return testRuns;
     }
+    */
     
-    public String getOldPropertyName(String property){
-        return propertyNameTransformations.get(property);
-    }
-    
-    public String getOldValueName(String value){
-        return valueNameTransformations.get(value);
+    public Set<TestRunResults> getTestRuns_withAppliedVariableTransformations(){
+        HashSet<TestRunResults> transformed = new HashSet<TestRunResults>();
+        for(TestRunResults r:testRuns){
+            transformed.add(new TestRunResults(r.results,r.build, 
+                    propertyTransformations.transformVariables(r.variables)
+                    )
+            );
+        }
+        return transformed;
     }
     
 }

@@ -61,7 +61,7 @@ public class TcmsReviewActionEnvironment {
             return;
         }
 
-        problems = updateReportFromReq(req,report);
+        problems = report.updateReportFromReq(req.getParameterMap());
         
         try {
             settings.getConnectionAndUpdate();
@@ -78,53 +78,6 @@ public class TcmsReviewActionEnvironment {
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
     
-      private HashSet<String> updateReportFromReq(StaplerRequest req,TcmsReport report){
-        Map params = req.getParameterMap();
-        HashSet<String> problems = new HashSet<String>();
-        
-        /*
-         * update values first
-         */
-        for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
-            
-            if (entry.getKey().startsWith("value-")) {
-                String newValue = ((String[]) entry.getValue())[0];
-                String property = entry.getKey().replaceFirst("value-", "");
-                String oldValue = property.split("=>")[1];
-                property = property.split("=>")[0];
-
-                if (!oldValue.equals(newValue)) {
-                    try {
-                        report.changeEnvValue(property, oldValue, newValue);
-                    } catch (IllegalArgumentException ex) {
-                        problems.add(ex.getMessage());
-                    }
-                }
-            }
-        }
-        
-        /*
-         * change property-names second
-         */
-        for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
-            
-            if (entry.getKey().startsWith("property-")) {
-                String newProperty = ((String[]) entry.getValue())[0];
-                String oldProperty = entry.getKey().replaceFirst("property-", "");
-                
-                if (!oldProperty.equals(newProperty)) {
-                    try {
-                        report.changeEnvProperty(oldProperty, newProperty);
-                    } catch (IllegalArgumentException ex) {
-                        problems.add(ex.getMessage());
-                    }
-                }
-            }
-        }
-        
-        return problems;
-    }
+     
    
 }
