@@ -2,7 +2,7 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
              
              
-        <table cellspacing="0px" cellpadding="2px" >
+        <table cellspacing="0px" cellpadding="0px" width="100%">
             <tr>
                 <th align="left" class="tdSmallCheckbox"><f:checkbox name="allCheck" id="1" onclick="toggleAll()" checked="true" /></th>
                 <th style="width: 40px; ">
@@ -17,7 +17,7 @@
                         style="visibility: visible" width="16" height="16" 
                         onclick="showAll('subitems-')" />
                 </th>
-                <th  width="300px">Action</th> 
+                <th  width="250px">Action</th> 
                 <th>Description</th>
                 <th>
                     <img id="allDetailColl"

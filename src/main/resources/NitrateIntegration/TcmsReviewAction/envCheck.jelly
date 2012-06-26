@@ -24,10 +24,10 @@
                         <td>
                             <j:choose>
                                 <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
-                                    <f:textbox name="property-${envProperty}" clazz="required" style="width: 100px" value="${envProperty}" /> 
+                                    <f:textbox name="property-${envProperty}"  style="width: 150px" value="${envProperty}" /> 
                                 </j:when>
                                 <j:when test="${it.environmentCheck.change_axis}">
-                                    <f:textbox name="property-${envProperty}" clazz="required" style="width: 100px" value="${envProperty}" /> 
+                                    <f:textbox name="property-${envProperty}"  style="width: 150px" value="${envProperty}" /> 
                                 </j:when>
                                 <j:otherwise>
                                     ${envProperty}
@@ -64,12 +64,12 @@
                                 <j:choose>
                                     <!-- If envProperty is wrong, we also want to display textbox for values -->
                                     <j:when test="${it.report.isWrongEnvProperty(envProperty)}">
-                                        <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
+                                        <f:textbox name="value-${envProperty}=>${envValue}"  style="width: 150px" value="${envValue}" />
                                     </j:when>
                                     <j:otherwise>
                                         <j:choose>
                                             <j:when test="${it.report.isWrongEnvValue(envValue)}">
-                                                <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
+                                                <f:textbox name="value-${envProperty}=>${envValue}"  style="width: 150px" value="${envValue}" />
                                             </j:when>
                                            
                                             <j:otherwise>
@@ -80,7 +80,7 @@
                                                      -->
                                                 <j:choose>
                                                     <j:when test="${it.environmentCheck.change_axis}">
-                                                        <f:textbox name="value-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envValue}" />
+                                                        <f:textbox name="value-${envProperty}=>${envValue}"  style="width: 150px" value="${envValue}" />
                                                     </j:when>
                                                     <j:otherwise>
                                                         ${envValue}
@@ -107,34 +107,44 @@
                         </td>
                     </tr>
                 </j:forEach>
+                <tr >
+                    <td colspan="5">
+                        <br/>
+                        <j:choose>
+                            <j:when test="${it.report.existsWrongEnvProperty()}">
+                                Available properties for group 
+                                <strong>${it.settings.environment.env}</strong>: 
+                                <br/>                      
+                                <j:forEach var="posible_val" items="${it.settings.environment.properties.keySet()}">
+                                    ${posible_val},
+                                    <st:nbsp/> 
+                                </j:forEach>
+                                <br />
+                            </j:when>
+                        </j:choose>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5">
+                        <j:forEach var="prop" items="${it.report.envPropertiesWithWrongValues}">
+                            <br/>
+                            Available values for property 
+                            <strong>${prop}:</strong> 
+                            <br/>
+                            <j:forEach var="posible_val" items="${it.settings.environment.values.get(prop).keySet()}">
+                                ${posible_val},
+                                <st:nbsp/>
+                            </j:forEach>
+                            <br />
+                        </j:forEach>
+                        <br/>
+                    </td>                        
+                </tr>
             </table> 
-            <br/>
-            <j:choose>
-                <j:when test="${it.report.existsWrongEnvProperty()}">
-                    Available properties for group 
-                    <strong>${it.settings.environment.env}</strong>: 
-                    <br/>                      
-                    <j:forEach var="posible_val" items="${it.settings.environment.properties.keySet()}">
-                        ${posible_val},
-                        <st:nbsp/> 
-                    </j:forEach>
-                    <br />
-                </j:when>
-            </j:choose>
+            
 
     
-            <j:forEach var="prop" items="${it.report.envPropertiesWithWrongValues}">
-                <br/>
-                Available values for property 
-                <strong>${prop}:</strong> 
-                <br/>
-                <j:forEach var="posible_val" items="${it.settings.environment.values.get(prop).keySet()}">
-                    ${posible_val},
-                    <st:nbsp/>
-                </j:forEach>
-                <br />
-            </j:forEach>
-            <br/>
+            
             <j:if test="${it.environmentCheck.envCheckExceptionOccured()}">
                 <span class="exception" style="font-weight: bold">Error:</span> ${it.environmentCheck.envCheckException} 
             </j:if>

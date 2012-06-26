@@ -5,9 +5,9 @@
                 
                 <td class="tdSmall"></td><td class="tdSmall"></td>
                 <td colspan="6">
-                    <table  style="width: 100%" cellspacing="0px" cellpadding="2px">
-                        <tr>
-                            <td class="commandHeader tdSmallCheckbox">
+                    <table  style="width: 100%" cellspacing="0px" cellpadding="0px" >
+                        <tr style="margin-top: 8px">
+                            <td class="commandHeader tdSmallCheckbox" >
                                 <j:choose>
                                     <j:when test="${testRunLinkEnv.isChecked()}">
                                         <f:checkbox name="${testRunLinkEnv.hashCode()}" checked="true" 
@@ -64,7 +64,7 @@
                         </tr>       
                         <tr>
                             <td></td><td></td> <td class="tdSmall"></td> 
-                            <td width="220px">
+                            <td width="130px">
                                 <st:nbsp/> 
                             </td>
 

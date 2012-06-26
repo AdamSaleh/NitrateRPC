@@ -150,12 +150,15 @@ function toggleSubitems(prefix, code){
                                 </f:form>
                             </td>
                             <td width="20px"></td>
-                            <td>
+                            <td width="450">
                                 
                                 <f:form method="post" action="checkSubmit" name="envCheck" >
-                                    <f:entry help="help-checkSubmit">
+                                    <f:entry >
+                                        <st:include page="envCheck.jelly"/>                                        
+                                    </f:entry>
 
-                                        <st:include page="envCheck.jelly"/>
+                                        
+                                    <f:entry help="help-checkSubmit">
                                         <f:submit value="Check environmental vars" />
                                         <f:submit value="Change" />
                                     </f:entry>
@@ -181,23 +184,27 @@ function toggleSubitems(prefix, code){
                     <br/>
                     <br/>
                     <br/>
-                    <div id="review-report">
-                        <f:form method="post" action="gather" name="nitrateplugin-gather">
-                            <f:entry>
-                                <f:submit value="Renew report" />
-                            </f:entry>
-                        </f:form>
-                        <br/>
-                        <f:form method="post" action="reportSubmit" name="dataUpload">
-                            <f:entry>
-                                <st:include page="report.jelly"/>
-                            </f:entry>
+                    <table id="review-report" >
+                        <tr>
+                            <td>
+                                <f:form method="post" action="gather" name="nitrateplugin-gather">
+                                    <f:entry help="help-renew">
+                                        <f:submit value="Renew report" />
+                                    </f:entry>
+                                </f:form>
+                                <br/>
+                                <f:form method="post" action="reportSubmit" name="dataUpload">
+                                    <f:entry>
+                                        <st:include page="report.jelly"/>
+                                    </f:entry>
                                 
-                            <f:entry help="help-submit">
-                                <f:submit value="Submit Report" />
-                            </f:entry>
-                        </f:form>
-                    </div>
+                                    <f:entry help="help-submit">
+                                        <f:submit value="Submit Report" />
+                                    </f:entry>
+                                </f:form>
+                            </td>
+                        </tr>
+                    </table>
                 </j:otherwise>
 
             </j:choose>
