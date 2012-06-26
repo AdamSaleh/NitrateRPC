@@ -1,12 +1,6 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        TODO
-        
-        Check and uncheck command that you want to send to TCMS. Note that some
-        commands depend on others (e.g. you can`t create TestRun without having parent
-        test build), which is ilustrated by tree hierarchy. 
-        
-        
-        
+        <strong>Submit report: </strong> checked commands are performed - sent to Nitrate server. If problem occurs, it is indicated by
+        icon besides name of each command. 
     </div>
 </j:jelly>

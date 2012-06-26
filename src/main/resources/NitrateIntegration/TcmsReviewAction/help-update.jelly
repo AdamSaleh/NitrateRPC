@@ -1,10 +1,14 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        TODO
+        <p>Change settings for this report. These settings are copied from configuration
+        page of project during build, however, they are significant only for this build. 
+        This means that if you change settings in configuration page of project, 
+        they will not appear in old builds, and if you change settings in this 
+        build, they won`t update settings in configuration page of project.</p>
         
-        Environment group is not mandatory, but without it you can`t link
-        Jenkins`s axes to env. vars in TCMS. Fill in the field and check 
-        env. vars.
+        <p>Environment group is not mandatory, but without it you can`t link
+        Jenkins`s build variables to environmental variables in TCMS. Fill in the 
+        field and check environmental variables.</p>
         
     </div>
 </j:jelly>
