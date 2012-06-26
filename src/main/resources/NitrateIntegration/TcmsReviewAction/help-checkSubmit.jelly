@@ -1,17 +1,14 @@
 <j:jelly trim="false" xmlns:j="jelly:core">
     <div>
-        <p>
-        Click this button to check whether values and properties used in build 
-        map to values and properties stored in TCMS. You will then be able to correct properties, that are not in TCMS.
-        On second check it will aply them.
-        </p>
-        <p>
-            If you have valid properties, but you want to change them anyway, first click Change button, make changes and then click Check button.
-        </p>
-        <p>
-        After you succesfuly check environmental variables, commnads that link
-        Jenkins`s axes to envirnment variables will be added to report (under 
-        Create Test Run). 
-        </p>
+        <p><strong>Check environmental variables: </strong> queries Nitrate server 
+        and checks, that environmental group contains variables with names and values as specified. </p>
+        
+        <p><strong>Change: </strong> displays textboxes, which will allow you to 
+        set name of Nitrate`s environmental variable`s name/value.</p>
+        
+        <p>NitrateRPC plugin maps Jenkins`s build variables to Nitrate`s environmental variables.
+        You can change this mapping by setting names and values of environmental variables to axes. </p>
+               
+        <p>After you change names and succesfully verify mapping, don`t forget to renew report. </p>
     </div>
 </j:jelly>

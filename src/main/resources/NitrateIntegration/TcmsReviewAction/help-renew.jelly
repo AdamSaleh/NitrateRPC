@@ -1,0 +1,48 @@
+<j:jelly trim="false" xmlns:j="jelly:core">
+    <div>
+        
+        <p> <strong>Renew report: </strong> Performs full scan of build - 
+        locates and saves report files, parses them, gathers results and 
+        generates commands that are displayed.  </p> <br/>
+        
+        <p>After processing build (locating, saving and parsing test files), 
+        NitrateRPC plugin generates commands to be sent to Nitrate server. 
+        If you provide correct TCMS Environment group and check mapping (Check 
+        environmental variables), report will contain commands that link Test Runs 
+        to environmental variables. </p>
+        
+        <p>Check commands that you want to send to TCMS. Note that some commands depend 
+        on others (e.g. you can`t create TestRun without having 
+        already created parent test build), which is ilustrated by tree hierarchy. 
+        One exception is Create Test Case command (see below). 
+        </p>
+        
+        <p>Expand details of each command and check all it`s parameters. Most of them
+        can be changed, either in report, or in Manage Settings menu. Numbers in
+        brackets after values are not part of value - they are IDs from Nitrate 
+        server (-1 indicates undefined - this field is not yet in TCMS).</p>
+        
+        Commands and their description: 
+        
+        <dl>
+            <dt>Create Build</dt>
+            <dd>This command creates new build in TCMS. You can change name of the 
+            build in details.</dd>
+            <dt>Create Test Case</dt>
+            <dd>This command has somewhat ambiguous name: since test cases are 
+            independent from builds and are part of test plan, test case may 
+            already exist in TCMS. In such case, this command only searches test case 
+            on server and binds it to Test Case Runs.</dd>
+            <dt>Create Test Run</dt>
+            <dd>This command creates new Test Run in Nitrate. You can change it`s 
+            name in details. If you uncheck
+            </dd>
+            <dt>Create Test Case Run</dt>
+            <dd>This command creates new Test Case Run in Nitrate.</dd> 
+            <dt>Link Run to Env. Variable</dt>
+            <dd>This command links Test Run to appropriate environment variables and their values.</dd>
+        </dl>
+        
+        
+    </div>
+</j:jelly>

@@ -6,7 +6,7 @@
         <td></td>
         <td></td>
         <td colspan="8">
-            <table width="100%" cellspacing="0px" cellpadding="2px" align="right" >
+            <table width="100%" cellspacing="0px" cellpadding="0px" align="right" >
                 <tr>
                     <td class="commandHeader tdSmall">
                         <j:choose>
@@ -85,7 +85,7 @@
                     <td></td>
                     <td></td>
                     <td class="tdSmall"></td>
-                    <td width="240px">
+                    <td width="170px">
                         <st:nbsp/> 
                     </td>
 
@@ -142,7 +142,7 @@
                     </td>
                 </tr>
                 <tr><td colspan="6">
-                    <table id="subitems-${testRunCreate.hashCode()}"  width="100%" style="visibility: hidden; display: none;">
+                    <table id="subitems-${testRunCreate.hashCode()}"  width="100%" style="visibility: hidden; display: none;" cellspacing="0px" cellpadding="0px">
                         <tr><td>
                             <!-- Iterate over all environmental variables to be lined with this run -->
                             <j:forEach var="testRunLinkEnv" items="${it.gatherer.getCommandList('TestRun.link_env_value', testRunCreate.hashCode())}">

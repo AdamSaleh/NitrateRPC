@@ -109,6 +109,6 @@ public class LinkRunToVarCreate extends CommandWrapper {
     }
 
     public String toString() {
-        return "Link Run to Environmental Variable";
+        return "Link Run to Env. Variable";
     }
 }

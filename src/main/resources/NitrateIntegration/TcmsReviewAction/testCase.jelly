@@ -5,7 +5,7 @@
         <tr>
             <td class="tdSmall"></td><td class="tdSmall"></td>
             <td colspan="8">
-                <table  style="width: 100%" cellspacing="0px" cellpadding="2px"> 
+                <table  style="width: 100%" cellspacing="0px" cellpadding="0px"> 
                     <tr>
                         <td class="commandHeader tdSmallCheckbox">
                             <j:choose>
@@ -63,7 +63,7 @@
                     </tr>
                     <tr>
                         <td></td><td></td><td class="tdSmall"></td>
-                        <td width="240px">
+                        <td width="170px">
                             <st:nbsp/> 
                         </td>
 
@@ -71,7 +71,7 @@
                     <tr>
                         <td></td><td></td><td></td>
                         <td colspan="3" align="left">
-                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display:none"  width="100%">
+                            <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display:none"  width="100%" cellspacing="0px">
                                 <j:if test="${testCaseRunCreate.exception()}">
                                    <tr class="exception">
                                         <td>
