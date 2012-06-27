@@ -1,7 +1,14 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2012 Red Hat, Inc.     
+ * 
+ * This copyrighted material is made available to anyone wishing to use, 
+ * modify, copy, or redistribute it subject to the terms and conditions of the 
+ * GNU General Public License v.2.
+ * 
+ * Authors: Adam Saleh (asaleh at redhat dot com)
+ *          Jan Rusnacko (jrusnack at redhat dot com)
  */
+
 package NitrateIntegration;
 
 import com.redhat.nitrate.TcmsConnection;

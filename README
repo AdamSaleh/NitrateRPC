@@ -1,0 +1,34 @@
+NitrateRPC plugin for Jenkins
+=============================
+Adam Saleh <asaleh at redhat dot com>, Jan Rusnacko <jrusnack at redhat dot com>
+v1.0, 2012-06
+
+This plugin allows easy upload of test results to Nitrate TCMS 
+(http://fedoraproject.org/wiki/Nitrate). After initial configuration, after each 
+build new action appears, from where you can review, change and upload results 
+directly to TCMS server. Results are parsed from TestNG xml files. 
+
+Features
+--------
+* Supports both freestyle and multiconfiguration projects
+* Jenkins`s build variables (and build axes in multiconf project) are mapped to 
+  environment variables in TCMS - user can create custom mapping (deselect some, 
+  rename)
+* Supports Kerberos authentication
+
+Release notes
+-------------
+
+=== v1.0
+Initial release
+
+Licensing
+---------
+This plugin is released under GNU General Public License v.2 (see COPYING).
+
+
+For developers
+--------------
+Communication between Jenkins (Java) and Nitrate`s XMLRPC is handled by external
+TcmsRpcLibrary (hosted at https://github.com/AdamSaleh/TcmsRpcLibrary), which is 
+dependency for this plugin.  

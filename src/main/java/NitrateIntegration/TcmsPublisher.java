@@ -1,3 +1,14 @@
+/*
+ * Copyright (C) 2012 Red Hat, Inc.     
+ * 
+ * This copyrighted material is made available to anyone wishing to use, 
+ * modify, copy, or redistribute it subject to the terms and conditions of the 
+ * GNU General Public License v.2.
+ * 
+ * Authors: Adam Saleh (asaleh at redhat dot com)
+ *          Jan Rusnacko (jrusnack at redhat dot com)
+ */
+
 package NitrateIntegration;
 
 import com.redhat.engineering.jenkins.testparser.Parser;
@@ -15,7 +26,6 @@ import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Builder;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import java.io.IOException;
@@ -30,18 +40,8 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- * Sample {@link Builder}.
- *
- * <p> When the user configures the project and enables this builder,
- * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked and a new {@link HelloWorldBuilder}
- * is created. The created instance is persisted to the project configuration
- * XML by using XStream, so this allows you to use instance fields (like {@link #name})
- * to remember the configuration.
- *
- * <p> When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)}
- * method will be invoked.
- *
- * @author Kohsuke Kawaguchi
+ * @author asaleh
+ * @author jrusnack
  */
 public class TcmsPublisher extends Recorder {
 
