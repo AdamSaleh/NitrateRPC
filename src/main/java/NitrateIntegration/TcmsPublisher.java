@@ -168,8 +168,6 @@ public class TcmsPublisher extends Recorder {
         } 
         
         action.report.addTestRun(results, build, vars);
-        
-
         return true;
     }
 

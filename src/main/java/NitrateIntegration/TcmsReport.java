@@ -4,7 +4,7 @@
  */
 package NitrateIntegration;
 
-import NitrateIntegration.TcmsReport.PropertyTransform.Touple;
+import NitrateIntegration.TcmsReport.PropertyTransform.Tuple;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.TcmsException;
 import hudson.model.AbstractBuild;
@@ -33,12 +33,12 @@ public class TcmsReport {
     */
     public static  class PropertyTransform {
 
-        public static class Touple<K, V> implements Map.Entry<K, V> {
+        public static class Tuple<K, V> implements Map.Entry<K, V> {
 
             private K key;
             private V val;
 
-            public Touple(K key, V val) {
+            public Tuple(K key, V val) {
                 this.key = key;
                 this.val = val;
             }
@@ -61,11 +61,11 @@ public class TcmsReport {
         }
 
         public void addTransformation(String oldprop, String oldval, String newprop, String newval) {
-            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
+            propertyTransform.put(new Tuple(oldprop, oldval), new Tuple(newprop, newval));
         }
         
         public void editTransformation(String oldprop, String oldval, String newprop, String newval) {
-            if(propertyTransform.containsKey(new Touple(oldprop, oldval)) == false){
+            if(propertyTransform.containsKey(new Tuple(oldprop, oldval)) == false){
                  throw new IllegalArgumentException("Nonexistent property");
             }
             if(newprop==null){
@@ -74,11 +74,11 @@ public class TcmsReport {
             if(newval==null){
                 newval = getTransformation(oldprop, oldval).getValue();
             }
-            propertyTransform.put(new Touple(oldprop, oldval), new Touple(newprop, newval));
+            propertyTransform.put(new Tuple(oldprop, oldval), new Tuple(newprop, newval));
         }
         
         public  Map.Entry<String, String> getTransformation(String oldprop, String oldval) {
-            return propertyTransform.get(new Touple(oldprop, oldval));
+            return propertyTransform.get(new Tuple(oldprop, oldval));
         }
         
         public  Map.Entry<String, String> getTransformation(Map.Entry<String, String> l) {
@@ -98,7 +98,7 @@ public class TcmsReport {
                     newprop_value = propertyTransform.get(prop_value);
                 }
 
-                transformed.add(new Touple(newprop_value.getKey(), newprop_value.getValue()));
+                transformed.add(new Tuple(newprop_value.getKey(), newprop_value.getValue()));
             }
             return transformed;
         }
@@ -128,12 +128,6 @@ public class TcmsReport {
 
         public TestResults results;
         public AbstractBuild build;
-        /* FIXME: Total MESS !! we can`t store axes and their value as variables
-         * or expect they will be only variables present for build. Fetch axes 
-         * from multiconf project and work around freestyle project. 
-         * 
-         * THIS IS TEMPORARY
-         */
         public Map<String, String> variables;
 
         public TestRunResults(TestResults results, AbstractBuild build, Map<String, String> variables) {
@@ -170,7 +164,7 @@ public class TcmsReport {
             propertyValueSet.add(envProperty);
             propertyTransformations.addTransformation(envProperty.getKey(), envProperty.getValue(),envProperty.getKey(), envProperty.getValue());
         }
-    }    
+    }
    
      public HashSet<String> updateReportFromReq(Map params){
         
@@ -263,10 +257,10 @@ public class TcmsReport {
     }
     
     public boolean isWrongEnvPropertyValue(String envProperty,String envValue){
-        return wrongPropertyValueMap.containsKey(new Touple(envProperty,envValue));
+        return wrongPropertyValueMap.containsKey(new Tuple(envProperty,envValue));
     }
     public String getWrongEnvPropertyValue(String envProperty,String envValue){
-        return wrongPropertyValueMap.get(new Touple(envProperty,envValue));
+        return wrongPropertyValueMap.get(new Tuple(envProperty,envValue));
     }
     public String getWrongEnvPropertyValue(Map.Entry<String,String> pv){
         return wrongPropertyValueMap.get(pv);

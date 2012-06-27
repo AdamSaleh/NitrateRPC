@@ -16,12 +16,12 @@
                             <td>
                                 ${envPV.getValue()}
                             </td>
-                        
+                            
                             <td>
                                 =&gt;
                             </td>
                             <j:choose>
-                                <j:when test="${it.report.isWrongEnvPropertyValue(envTR) || it.environmentCheck.change_axis">
+                                <j:when test="${it.report.isWrongEnvPropertyValue(envTR) || it.environmentCheck.change_axis}">
                                     <td>
                                         <f:textbox name="property-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envTR.getKey()}" /> 
                                  
@@ -45,7 +45,9 @@
                        
                                 </j:otherwise>
                             </j:choose>
+                            
                         </tr>
+                        
                     
                     <!--
                     <tr>
@@ -143,7 +145,6 @@
                             <st:nbsp/>
                         </td>
                     </tr>
-                </j:forEach>
                 <tr >
                     <td colspan="5">
                         <br/>
