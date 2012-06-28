@@ -112,6 +112,9 @@ function toggleSubitems(prefix, code){
                     <h1>Gather Report</h1>
 
                     <f:form method="post" action="gather" name="nitrateplugin-gather">
+                        <f:entry title="URL" field="url">
+                            <f:textbox value="${it.settings.serverUrl}" style="width: 200px"/>
+                        </f:entry>
                         <f:entry title="Username" field="username">
                             <f:textbox value="${it.settings.username}" style="width: 200px"/>
                         </f:entry>

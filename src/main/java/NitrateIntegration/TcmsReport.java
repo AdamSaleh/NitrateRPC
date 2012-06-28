@@ -105,9 +105,9 @@ public class TcmsReport {
             return out;
         }
         
-        public  Tuple<String,String> getTransformation(Map.Entry<String, String> l) {
-            Tuple<String,String> out = propertyTransform.get(l);
-            return out;
+        public  Map.Entry<String, String> getTransformation(Map.Entry<String, String> l) {
+            Map.Entry<String,String> a = propertyTransform.get(l);
+            return a;
         }
         /*Map.Entry<String, String>, Map.Entry<String, String>*/
         private HashMap<Tuple<String,String>,Tuple<String,String>> propertyTransform = new HashMap<Tuple<String,String>,Tuple<String,String>>();

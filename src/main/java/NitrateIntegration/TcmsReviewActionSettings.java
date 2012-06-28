@@ -31,7 +31,7 @@ public class TcmsReviewActionSettings {
     boolean setting_updated = false;
     private String updateException;
     
-    String serverUrl;
+    public String serverUrl;
     private TcmsAccessCredentials credentials;
     public TcmsProperties properties;
     public TcmsEnvironment environment;
@@ -68,6 +68,11 @@ public class TcmsReviewActionSettings {
     public String getPassword() {
         return credentials.getPassword();
     }
+    
+    /**
+     * Updates server URL, username and password
+     * @param req 
+     */
    public void updateCredentialsFromRequest(StaplerRequest req){
         if(req.hasParameter("_.username")){
             String username = req.getParameter("_.username");
@@ -76,6 +81,9 @@ public class TcmsReviewActionSettings {
         if(req.hasParameter("_.password")){
             String password = req.getParameter("_.password");
             credentials.setPassword(password);
+        }
+        if(req.hasParameter("_.url")){
+            serverUrl = req.getParameter("_.url");
         }
     }
 
@@ -114,7 +122,7 @@ public class TcmsReviewActionSettings {
         return !updateException.isEmpty();
     }
     public TcmsConnection getConnection() throws TcmsException {
-        return TcmsConnection.connect(getServerUrl(), getCredentials(),Definitions.krbv);
+        return TcmsConnection.connect(getServerUrl(), getCredentials(), Definitions.krbv, Definitions.enforceHttps);
     }
     //FIXME javadoc
     public TcmsConnection getConnectionAndUpdate() throws TcmsException {
@@ -137,7 +145,7 @@ public class TcmsReviewActionSettings {
         TcmsProperties properties = parsePropertiesFromRequest(req);
 
         try {
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials,Definitions.krbv);
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials, Definitions.krbv, Definitions.enforceHttps);
 
             environment.setConnection(connection);
             environment.reloadEnvId();

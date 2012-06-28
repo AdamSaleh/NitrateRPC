@@ -10,7 +10,7 @@
                   <j:set var="envTR" value="${it.report.getTransformation(envPV)}" />
                         <tr>
                             <td>
-                                ${envPV.getKey()}
+                                ${envPV.getKey()} 
                             </td>
                         
                             <td>

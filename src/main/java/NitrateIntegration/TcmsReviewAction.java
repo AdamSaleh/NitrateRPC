@@ -117,7 +117,7 @@ public class TcmsReviewAction implements Action {
         try {
             
             if (req.getParameter("Submit").equals("Gather report from test-files")) {
-                settings.updateCredentialsFromRequest(req);                
+                settings.updateCredentialsFromRequest(req);
             } 
 
             settings.getConnectionAndUpdate();
