@@ -60,6 +60,23 @@ public class TcmsReport {
             public Object setValue(Object v) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
+            
+            @Override
+            public boolean equals(Object obj) {
+                 return obj.hashCode() == hashCode();
+            }
+
+            @Override
+            public String toString() {
+                return key.toString()+"=>"+val.toString();
+            }
+
+            
+            /* copied for compatibility with Entry from http://docs.oracle.com/javase/7/docs/api/java/util/Map.Entry.html#hashCode%28%29 */
+            @Override
+            public int hashCode() {
+                return (this.getKey()==null   ? 0 : this.getKey().hashCode()) ^ (this.getValue()==null ? 0 : this.getValue().hashCode());
+            }
         }
 
         public void clearTransformations() {
@@ -83,23 +100,25 @@ public class TcmsReport {
             propertyTransform.put(new Tuple(oldprop, oldval), new Tuple(newprop, newval));
         }
         
-        public  Map.Entry<String, String> getTransformation(String oldprop, String oldval) {
-            return propertyTransform.get(new Tuple(oldprop, oldval));
+        public  Tuple<String,String> getTransformation(String oldprop, String oldval) {
+            Tuple<String,String> out = propertyTransform.get(new Tuple(oldprop, oldval));
+            return out;
         }
         
-        public  Map.Entry<String, String> getTransformation(Map.Entry<String, String> l) {
-            return propertyTransform.get(l);
+        public  Tuple<String,String> getTransformation(Map.Entry<String, String> l) {
+            Tuple<String,String> out = propertyTransform.get(l);
+            return out;
         }
-        
-        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform = new HashMap<Entry<String, String>, Entry<String, String>>();
+        /*Map.Entry<String, String>, Map.Entry<String, String>*/
+        private HashMap<Tuple<String,String>,Tuple<String,String>> propertyTransform = new HashMap<Tuple<String,String>,Tuple<String,String>>();
 
-        public Set<Map.Entry<String, String>> transformVariables(Set<Map.Entry<String, String>> old) {
+        public Set<Map.Entry<String,String>> transformVariables(Set<Map.Entry<String,String>> old) {
 
-            HashSet<Map.Entry<String, String>> transformed = new HashSet<Map.Entry<String, String>>();
+            HashSet<Map.Entry<String,String>> transformed = new HashSet<Map.Entry<String,String>>();
 
-            for (Map.Entry<String, String> prop_value : old) {
+            for (Map.Entry<String,String> prop_value : old) {
 
-                Map.Entry<String, String> newprop_value = prop_value;
+                Map.Entry<String,String> newprop_value = prop_value;
                 if (propertyTransform.containsKey(prop_value)) {
                     newprop_value = propertyTransform.get(prop_value);
                 }
@@ -119,7 +138,7 @@ public class TcmsReport {
             
         }
         
-        public Map.Entry<String, String> transformVariable(Map.Entry<String, String> prop_value){
+        public Map.Entry<String,String> transformVariable(Map.Entry<String,String> prop_value){
             return propertyTransform.get(prop_value);
         }
     }
@@ -173,7 +192,6 @@ public class TcmsReport {
      public HashSet<String> updateReportFromReq(Map params){
         
         HashSet<String> problems = new HashSet<String>();
-        
         /*
          * update values first
          */
@@ -186,13 +204,11 @@ public class TcmsReport {
                 String value = property.split("=>")[1];
                 property = property.split("=>")[0];
 
-                if (!value.equals(newValue)) {
-                    try {
+                try {
                         propertyTransformations.editTransformation(property, value, null, newValue);
                     } catch (IllegalArgumentException ex) {
                         problems.add(ex.getMessage());
                     }
-                }
             }
         }
         
@@ -208,13 +224,12 @@ public class TcmsReport {
                 String value = property.split("=>")[1];
                 property = property.split("=>")[0];
                 
-                if (!property.equals(newProperty)) {
                     try {
                         propertyTransformations.editTransformation(property, value, newProperty, null);
                     } catch (IllegalArgumentException ex) {
                         problems.add(ex.getMessage());
                     }
-                }
+                
             }
         }
         
@@ -262,6 +277,9 @@ public class TcmsReport {
     
     public boolean isWrongEnvPropertyValue(String envProperty,String envValue){
         return wrongPropertyValueMap.containsKey(new Tuple(envProperty,envValue));
+    }
+    public boolean isWrongEnvPropertyValue(Map.Entry<String,String> pv){
+        return wrongPropertyValueMap.containsKey(pv);
     }
     public String getWrongEnvPropertyValue(String envProperty,String envValue){
         return wrongPropertyValueMap.get(new Tuple(envProperty,envValue));
