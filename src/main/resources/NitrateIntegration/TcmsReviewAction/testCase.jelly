@@ -72,13 +72,13 @@
                         <td></td><td></td><td></td>
                         <td colspan="3" align="left">
                             <table id="details-${testCaseCreate.hashCode()}" style="visibility:hidden; display:none"  width="100%" cellspacing="0px">
-                                <j:if test="${testCaseRunCreate.exception()}">
+                                <j:if test="${testCaseCreate.exception()}">
                                    <tr class="exception">
                                         <td>
                                             Exception: 
                                         </td>
                                         <td>
-                                            ${testCaseRunCreate.unexpected}
+                                            ${testCaseCreate.unexpected}
                                         </td>
                                     </tr>
                                 </j:if>

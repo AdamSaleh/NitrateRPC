@@ -200,14 +200,16 @@ public abstract class CommandWrapper {
     public boolean perform(TcmsConnection connection) {
         if (processDependecies()) {
             setPerforming();
-            Object o = getResultIfDuplicate(connection);
+            Object o = null;
+            o = getResultIfDuplicate(connection);
             if (o == null) {
                 try {
                     o = connection.invoke(current());
+                    setResult(o);
                 } catch (TcmsException ex) {
-                    setResult(ex);
+                    setResult(ex.getMessage());
                 }
-                setResult(o);
+                
                 if (status == Status.UNKNOWN) {
                     setCompleted();
                 }

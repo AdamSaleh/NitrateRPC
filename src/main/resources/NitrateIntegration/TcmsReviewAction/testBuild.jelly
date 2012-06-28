@@ -90,13 +90,13 @@
                             <td></td><td></td><td></td>
                             <td colspan="5" align="left">
                                 <table id="details-${buildCreate.hashCode()}" style="visibility:hidden; display:none" width="100%">
-                                    <j:if test="${testCaseRunCreate.exception()}">
+                                    <j:if test="${buildCreate.exception()}">
                                        <tr class="exception">
                                             <td>
                                                 Exception: 
                                             </td>
                                             <td>
-                                                ${testCaseRunCreate.unexpected}
+                                                ${buildCreate.unexpected}
                                             </td>
                                         </tr>
                                     </j:if>
