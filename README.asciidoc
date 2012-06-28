@@ -31,4 +31,5 @@ For developers
 --------------
 Communication between Jenkins (Java) and Nitrate`s XMLRPC is handled by external
 TcmsRpcLibrary (hosted at https://github.com/AdamSaleh/TcmsRpcLibrary), which is 
-dependency for this plugin.  
+dependency for this plugin. For building use Maven >3, older versions may have 
+problems with downloading dependencies from Jenkins repository.

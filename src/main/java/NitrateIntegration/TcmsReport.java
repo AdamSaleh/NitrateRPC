@@ -88,7 +88,8 @@ public class TcmsReport {
         }
         
         public  Map.Entry<String, String> getTransformation(Map.Entry<String, String> l) {
-            return propertyTransform.get(l);
+            Map.Entry<String,String> a = propertyTransform.get(l);
+            return a;
         }
         
         private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform = new HashMap<Entry<String, String>, Entry<String, String>>();

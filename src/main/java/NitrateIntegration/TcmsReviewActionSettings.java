@@ -114,7 +114,7 @@ public class TcmsReviewActionSettings {
         return !updateException.isEmpty();
     }
     public TcmsConnection getConnection() throws TcmsException {
-        return TcmsConnection.connect(getServerUrl(), getCredentials(),Definitions.krbv);
+        return TcmsConnection.connect(getServerUrl(), getCredentials(), Definitions.krbv, Definitions.enforceHttps);
     }
     //FIXME javadoc
     public TcmsConnection getConnectionAndUpdate() throws TcmsException {
@@ -137,7 +137,7 @@ public class TcmsReviewActionSettings {
         TcmsProperties properties = parsePropertiesFromRequest(req);
 
         try {
-            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials,Definitions.krbv);
+            TcmsConnection connection = TcmsConnection.connect(serverUrl, credentials, Definitions.krbv, Definitions.enforceHttps);
 
             environment.setConnection(connection);
             environment.reloadEnvId();

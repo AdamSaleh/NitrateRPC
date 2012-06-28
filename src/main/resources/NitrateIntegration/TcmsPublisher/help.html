@@ -3,6 +3,9 @@
     <p>Allow upload of test results to TCMS directly from Jenkins. </p>
     
     <dl>
+        <dt>Server URL</dt>
+        <dd>URL of TCMS server. Make sure you use HTTPS - otherwise access 
+        credentials would be sent to server unencrypted(also with Kerberos authentication).</dd>
         <dt>Username and Password</dt>
         <dd>Due to security concerns, these fields are not stored (they would be 
             stored as plaintext in build config file). You will have to
