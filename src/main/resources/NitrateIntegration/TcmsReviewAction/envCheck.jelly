@@ -7,47 +7,60 @@
             <table >                       
                         
                 <j:forEach var="envPV" items="${it.report.propertyValueSet}">
-                  <j:set var="envTR" value="${it.report.getTransformation(envPV)}" />
-                        <tr>
-                            <td>
-                                ${envPV.getKey()} 
-                            </td>
-                        
-                            <td>
-                                ${envPV.getValue()}
-                            </td>
-                            
-                            <td>
-                                =&gt;
-                            </td>
+                    <j:set var="envTR" value="${it.report.getTransformation(envPV)}" />
+                    <tr>
+                        <td>
                             <j:choose>
-                                <j:when test="${it.report.isWrongEnvPropertyValue(envTR) || it.environmentCheck.change_axis}">
-                                    <td>
-                                        <f:textbox name="property-${envPV.getKey()}=>${envPV.getValue()}"  style="width: 100px" value="${envTR.getKey()}" /> 
-                                 
-                                    </td>
-                                    <td>
-                                        <f:textbox name="value-${envPV.getKey()}=>${envPV.getValue()}" style="width: 100px" value="${envTR.getValue()}" /> 
 
-                                 
-                                    </td>
-                                    <td>
-                                        ${it.report.getWrongEnvPropertyValue(envTR)}
-                                    </td>
+                                <j:when test="${it.report.isPVInUse(envPV)}">     
+                                    <f:checkbox name="use-${envPV.getKey()}=>${envPV.getValue()}" checked="true" 
+                                        id="use-${envPV.getKey()}=>${envPV.getValue()}"/>
+                           
                                 </j:when>
                                 <j:otherwise>
-                                    <td>
-                                        ${it.report.getTransformation(envPV).getKey()}
-                                    </td>
-                        
-                                    <td>
-                                        ${it.report.getTransformation(envPV).getValue()}
-                                    </td>
-                       
+                                         <f:checkbox name="use-${envPV.getKey()}=>${envPV.getValue()}" checked="false" 
+                                        id="use-${envPV.getKey()}=>${envPV.getValue()}"/>
                                 </j:otherwise>
                             </j:choose>
+                        </td>
+                        <td>
+                            ${envPV.getKey()} 
+                        </td>
+                        
+                        <td>
+                            ${envPV.getValue()}
+                        </td>
                             
-                        </tr>
+                        <td>
+                            =&gt;
+                        </td>
+                        <j:choose>
+                            <j:when test="${it.report.isWrongEnvPropertyValue(envTR) || it.environmentCheck.change_axis}">
+                                <td>
+                                    <f:textbox name="property-${envPV.getKey()}=>${envPV.getValue()}"  style="width: 100px" value="${envTR.getKey()}" /> 
+                                 
+                                </td>
+                                <td>
+                                    <f:textbox name="value-${envPV.getKey()}=>${envPV.getValue()}" style="width: 100px" value="${envTR.getValue()}" /> 
+
+                                </td>
+                                <td>
+                                    ${it.report.getWrongEnvPropertyValue(envTR)}
+                                </td>
+                            </j:when>
+                            <j:otherwise>
+                                <td>
+                                    ${it.report.getTransformation(envPV).getKey()}
+                                </td>
+                        
+                                <td>
+                                    ${it.report.getTransformation(envPV).getValue()}
+                                </td>
+                       
+                            </j:otherwise>
+                        </j:choose>
+                            
+                    </tr>
                         
                     
                     <!--
@@ -140,12 +153,12 @@
                             </td>
                         </tr>
                         -->
-                    </j:forEach>
-                    <tr>
-                        <td>
-                            <st:nbsp/>
-                        </td>
-                    </tr>
+                </j:forEach>
+                <tr>
+                    <td>
+                        <st:nbsp/>
+                    </td>
+                </tr>
                 <tr >
                     <td colspan="5">
                         <br/>

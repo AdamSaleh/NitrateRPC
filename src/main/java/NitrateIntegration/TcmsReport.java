@@ -10,6 +10,7 @@
  */
 package NitrateIntegration;
 
+import NitrateIntegration.CommandWrapper.CommandWrapper;
 import NitrateIntegration.TcmsReport.PropertyTransform.Tuple;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.TcmsException;
@@ -38,6 +39,10 @@ public class TcmsReport {
     * transformation from original names and values to new ones is added.
     */
     public static  class PropertyTransform {
+
+        private boolean isPVInUse(Entry<String, String> pv) {
+            return inUse.contains(pv);
+        }
 
         public static class Tuple<K, V> implements Map.Entry<K, V> {
 
@@ -111,7 +116,36 @@ public class TcmsReport {
         }
         /*Map.Entry<String, String>, Map.Entry<String, String>*/
         private HashMap<Tuple<String,String>,Tuple<String,String>> propertyTransform = new HashMap<Tuple<String,String>,Tuple<String,String>>();
+        private HashSet<Map.Entry<String,String>> inUse = new  HashSet<Map.Entry<String,String>>();
+        public void clearInUse(){
+            inUse.clear();
+        }
+        public void addToUse(Map.Entry<String,String> pv){
+            inUse.add(pv);
+        }
+        
+        public Set<Map.Entry<String,String>> filterVariables(Set<Map.Entry<String,String>> old) { 
+            HashSet<Map.Entry<String,String>> transformed = new HashSet<Map.Entry<String,String>>();
 
+            for (Map.Entry<String,String> prop_value : old) {
+
+                if (inUse.contains(prop_value)) {
+                    transformed.add(new Tuple(prop_value.getKey(), prop_value.getValue()));
+                }
+
+                
+            }
+            return transformed;
+        }
+         public Map<String, String> filterVariables(Map<String, String> old) {
+
+            Map<String, String> transformed = new HashMap<String, String>();
+            for(Map.Entry<String,String> e:filterVariables(old.entrySet())){
+                transformed.put(e.getKey(), e.getValue());
+            }
+            return transformed;
+            
+        }
         public Set<Map.Entry<String,String>> transformVariables(Set<Map.Entry<String,String>> old) {
 
             HashSet<Map.Entry<String,String>> transformed = new HashSet<Map.Entry<String,String>>();
@@ -185,12 +219,12 @@ public class TcmsReport {
         testRuns.add(new TestRunResults(results, build, variables));
         for(Map.Entry<String,String> envProperty: variables.entrySet()){
             propertyValueSet.add(envProperty);
+            propertyTransformations.addToUse(envProperty);
             propertyTransformations.addTransformation(envProperty.getKey(), envProperty.getValue(),envProperty.getKey(), envProperty.getValue());
         }
     }
    
      public HashSet<String> updateReportFromReq(Map params){
-        
         HashSet<String> problems = new HashSet<String>();
         /*
          * update values first
@@ -232,6 +266,16 @@ public class TcmsReport {
                 
             }
         }
+        /*Filter property-value pairs with the checkboxes*/
+        propertyTransformations.clearInUse();
+        for(Map.Entry<String,String> pv:propertyValueSet){
+             Object input = null;
+             String a = "use-"+pv.getKey()+"=>"+pv.getValue();
+             input = params.get(a);
+                    if (input != null) {
+                        propertyTransformations.addToUse(pv);
+                    }
+        }
         
         return problems;
     }
@@ -244,7 +288,7 @@ public class TcmsReport {
             environment.fetchAvailableProperties();
 
             Set<String> reloaded=new HashSet<String>();
-            for (Map.Entry<String,String> envProperty :propertyTransformations.transformVariables( propertyValueSet )) {
+            for (Map.Entry<String,String> envProperty :propertyTransformations.transformVariables(propertyTransformations.filterVariables(propertyValueSet) )) {
                 if (environment.containsProperty(envProperty.getKey())) {
                     /*
                      * When property is OK, check its values
@@ -273,6 +317,10 @@ public class TcmsReport {
     
     public boolean existWrongEnvValue(){
         return !propertyWithWrongValue.isEmpty();
+    }
+    
+    public boolean isPVInUse(Map.Entry<String,String> pv){
+        return propertyTransformations.isPVInUse(pv);
     }
     
     public boolean isWrongEnvPropertyValue(String envProperty,String envValue){
@@ -305,17 +353,11 @@ public class TcmsReport {
             return propertyTransformations.getTransformation(old);
         }
     
-    /*
-    public Set<TestRunResults> getTestRuns(){
-        return testRuns;
-    }
-    */
-    
     public Set<TestRunResults> getTestRuns_withAppliedVariableTransformations(){
         HashSet<TestRunResults> transformed = new HashSet<TestRunResults>();
         for(TestRunResults r:testRuns){
             transformed.add(new TestRunResults(r.results,r.build, 
-                    propertyTransformations.transformVariables(r.variables)
+                    propertyTransformations.transformVariables(propertyTransformations.filterVariables(r.variables))
                     )
             );
         }
