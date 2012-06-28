@@ -25,8 +25,8 @@ public class TcmsReport {
     
     private Set<TestRunResults> testRuns;
     
-    private HashSet<Map.Entry<String,String>> propertyValueSet;
-    private HashMap<Map.Entry<String,String>,String> wrongPropertyValueMap;
+    private HashSet<Map.Entry<String,String>> propertyValueSet = new HashSet<Entry<String, String>>();
+    private HashMap<Map.Entry<String,String>,String> wrongPropertyValueMap = new HashMap<Entry<String, String>, String>();
     boolean wrongProperty;
     Set<String> propertyWithWrongValue = new HashSet<String>();
     /* Store mapping current name -> old Jenkins name */
@@ -91,7 +91,7 @@ public class TcmsReport {
             return propertyTransform.get(l);
         }
         
-        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform;
+        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform = new HashMap<Entry<String, String>, Entry<String, String>>();
 
         public Set<Map.Entry<String, String>> transformVariables(Set<Map.Entry<String, String>> old) {
 
@@ -236,7 +236,7 @@ public class TcmsReport {
                     /*
                      * When property is OK, check its values
                      */
-                    if(reloaded.contains(envProperty.getKey())){
+                    if(!reloaded.contains(envProperty.getKey())){
                         environment.reloadProperty(envProperty.getKey());
                         reloaded.add(envProperty.getKey());
                     }

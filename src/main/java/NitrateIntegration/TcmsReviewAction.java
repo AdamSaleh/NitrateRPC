@@ -135,7 +135,7 @@ public class TcmsReviewAction implements Action {
         } catch (TcmsException ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             settings.setUpdateException(ex.getMessage());
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(TcmsReviewAction.class.getName()).log(Level.SEVERE, null, ex);
             settings.setUpdateException( ex.toString());
         } finally {
