@@ -23,14 +23,14 @@ import java.util.Map.Entry;
  */
 public class TcmsReport {
     
-    private Set<TestRunResults> testRuns;
+    private Set<TestRunResults> testRuns=new HashSet<TestRunResults>();
     
-    private HashSet<Map.Entry<String,String>> propertyValueSet;
-    private HashMap<Map.Entry<String,String>,String> wrongPropertyValueMap;
+    private HashSet<Map.Entry<String,String>> propertyValueSet=new HashSet<Map.Entry<String,String>>();
+    private HashMap<Map.Entry<String,String>,String> wrongPropertyValueMap =new HashMap<Map.Entry<String,String>,String>();
     boolean wrongProperty;
     Set<String> propertyWithWrongValue = new HashSet<String>();
     /* Store mapping current name -> old Jenkins name */
-    private PropertyTransform propertyTransformations;
+    private PropertyTransform propertyTransformations=new PropertyTransform();
         
     /**
     * Class that defines transformations (key, value) -> (key, value). This is
@@ -91,7 +91,7 @@ public class TcmsReport {
             return propertyTransform.get(l);
         }
         
-        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform;
+        private HashMap<Map.Entry<String, String>, Map.Entry<String, String>> propertyTransform=new HashMap<Map.Entry<String, String>, Map.Entry<String, String>>();
 
         public Set<Map.Entry<String, String>> transformVariables(Set<Map.Entry<String, String>> old) {
 
@@ -144,9 +144,7 @@ public class TcmsReport {
     }
     
     public TcmsReport(){
-        testRuns = new HashSet<TestRunResults>();
-        
-        propertyTransformations = new PropertyTransform();        
+       
     }
     
     public HashSet<Entry<String, String>> getPropertyValueSet(){
@@ -236,17 +234,17 @@ public class TcmsReport {
                     /*
                      * When property is OK, check its values
                      */
-                    if(reloaded.contains(envProperty.getKey())){
+                    if(!reloaded.contains(envProperty.getKey())){
                         environment.reloadProperty(envProperty.getKey());
                         reloaded.add(envProperty.getKey());
                     }
-                    
-                    if (!environment.containsValue(envProperty.getKey(), envProperty.getValue())) {
+                    boolean contains = environment.containsValue(envProperty.getKey(), envProperty.getValue());
+                    if (contains == false){
                         wrongPropertyValueMap.put(envProperty, "WRONG VALUE");
                         propertyWithWrongValue.add(envProperty.getKey());
                     }
 
-                } else {
+                }else{
                     wrongPropertyValueMap.put(envProperty, "WRONG PROPERTY");
                     wrongProperty = true;
                 }
@@ -280,6 +278,15 @@ public class TcmsReport {
     public Set getEnvPropertiesWithWrongValues(){
         return propertyWithWrongValue;
     }
+    
+    public  Map.Entry<String, String> getTransformation(String oldprop, String oldval) {
+            return propertyTransformations.getTransformation(oldprop, oldval);
+        }
+        
+        public  Map.Entry<String, String> getTransformation(Map.Entry<String, String> old) {
+            return propertyTransformations.getTransformation(old);
+        }
+    
     /*
     public Set<TestRunResults> getTestRuns(){
         return testRuns;

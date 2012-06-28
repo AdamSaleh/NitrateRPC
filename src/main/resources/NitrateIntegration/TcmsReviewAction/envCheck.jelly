@@ -7,7 +7,7 @@
             <table >                       
                         
                 <j:forEach var="envPV" items="${it.report.propertyValueSet}">
-                    <j:set var="envTR" value="${it.report.getTransformation(envPV)}" />
+                    <!--<j:set var="envTR" value="${it.report.getTransformation(envPV)}" />--
                         <tr>
                             <td>
                                 ${envPV.getKey()}
@@ -23,11 +23,11 @@
                             <j:choose>
                                 <j:when test="${it.report.isWrongEnvPropertyValue(envTR) || it.environmentCheck.change_axis}">
                                     <td>
-                                        <f:textbox name="property-${envProperty}=>${envValue}" clazz="required" style="width: 100px" value="${envTR.getKey()}" /> 
+                                        <f:textbox name="property-${envPV.getKey()}=>${envPV.getValue()}"  style="width: 100px" value="${envTR.getKey()}" /> 
                                  
                                     </td>
                                     <td>
-                                        <f:textbox name="value-${envPV.getKey()}SEPARATOR-${envPV.getValue()}" clazz="required" style="width: 100px" value="${envTR.getValue()}" /> 
+                                        <f:textbox name="value-${envPV.getKey()}=>${envPV.getValue()}" style="width: 100px" value="${envTR.getValue()}" /> 
                                  
                                     </td>
                                     <td>
