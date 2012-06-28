@@ -27,7 +27,11 @@
                                  
                                     </td>
                                     <td>
+<<<<<<< HEAD
                                         <f:textbox name="value-${envPV.getKey()}=>${envPV.getValue()}" style="width: 100px" value="${envTR.getValue()}" /> 
+=======
+                                        <f:textbox name="value-${envPV.getKey()}=>${envPV.getValue()}"  style="width: 100px" value="${envTR.getValue()}" /> 
+>>>>>>> b2446ff98c7a8fc0e1368c2ce0d7553ee57fc4c2
                                  
                                     </td>
                                     <td>
