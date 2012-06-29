@@ -78,6 +78,6 @@ public class TestCaseCreate extends CommandWrapper {
     }
 
     public String toString() {
-        return "Create Test Case";
+        return "Ensure Test Case exists";
     }
 }

@@ -152,7 +152,7 @@ public class TcmsPublisher extends Recorder {
 
         TcmsReviewAction action = build instanceof MatrixRun
                 ? ((MatrixRun) build).getParentBuild().getAction(TcmsReviewAction.class)
-                : ((MatrixBuild) build).getAction(TcmsReviewAction.class);
+                :  build.getAction(TcmsReviewAction.class);
 
         Map<String, String> vars = new HashMap<String, String>();
         vars.putAll(build.getBuildVariables());

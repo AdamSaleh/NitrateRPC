@@ -9,6 +9,9 @@
         <p>NitrateRPC plugin maps Jenkins`s build variables to Nitrate`s environmental variables.
         You can change this mapping by setting names and values of environmental variables to axes. </p>
                
-        <p>After you change names and succesfully verify mapping, don`t forget to renew report. </p>
+        <p>After you change names and succesfully verify mapping, don`t forget to <b>renew report</b>. </p>
+    
+        <p>If you want to apply only a subset of ev-properties, use checkboxes and then you have to <b>check env-vars</b>
+        (a bit weird choice,but we didn't want to add another button) and <b>renew report</b>.</p>
     </div>
 </j:jelly>
