@@ -24,7 +24,7 @@ import java.util.Map.Entry;
  */
 public class TcmsReport {
     
-    private Set<TestRunResults> testRuns=new HashSet<TestRunResults>();
+    private Set<TestRunResults> testRuns = new HashSet<TestRunResults>();
     
     private HashSet<Map.Entry<String,String>> propertyValueSet = new HashSet<Entry<String, String>>();
     private HashMap<Map.Entry<String,String>,String> wrongPropertyValueMap = new HashMap<Entry<String, String>, String>();

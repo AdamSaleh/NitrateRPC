@@ -163,10 +163,12 @@ public class TcmsReviewAction implements Action {
             Build.create buildCreate = (Build.create) gatherer.getCommandList("Build.create").getFirst().current;
             buildCreate.name = req.getParameter("buildName");
 
-            // update testRun summary
-            TestRun.create testRunCreate = (TestRun.create) gatherer.getCommandList("TestRun.create").getFirst().current;
-            testRunCreate.summary = req.getParameter("testRunSummary");
-
+            for(CommandWrapper c : gatherer.getCommandList("TestRun.create")){
+                TestRun.create testRunCreate = (TestRun.create) c.current;
+                if(req.getParameter("testRunSummary-" + c.hashCode()) != null )
+                    testRunCreate.summary = req.getParameter("testRunSummary-" + c.hashCode());
+            }
+            
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
         } else {
             try {
