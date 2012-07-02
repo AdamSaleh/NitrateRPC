@@ -30,7 +30,7 @@
                                         style="visibility: visible" width="16" height="16" align="right" />
                                 </j:when>                           
                                 <j:when test="${testCaseCreate.duplicate()}">
-                                    <img src="${rootURL}/plugin/NitrateIntegration/images/duplicate.png" 
+                                    <img src="${rootURL}/plugin/NitrateIntegration/images/completed.png" 
                                         alt="${%Already present in TCMS}" tooltip="${%Already present in TCMS}"
                                         style="visibility: visible" width="16" height="16" align="right" />
                                 </j:when>
@@ -43,7 +43,7 @@
                             
                         </td>
                         <td class="commandTitle" colspan="2">
-                            ${testCaseCreate.toString()}
+                            <st:nbsp/>${testCaseCreate.toString()}
                         </td>
                         <td class="commandHeader">
                             ${testCaseCreate.summary()}

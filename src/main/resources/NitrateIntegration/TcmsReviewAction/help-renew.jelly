@@ -28,11 +28,11 @@
             <dt>Create Build</dt>
             <dd>This command creates new build in TCMS. You can change name of the 
             build in details.</dd>
-            <dt>Create Test Case</dt>
-            <dd>This command has somewhat ambiguous name: since test cases are 
-            independent from builds and are part of test plan, test case may 
-            already exist in TCMS. In such case, this command only searches test case 
-            on server and binds it to Test Case Runs.</dd>
+            <dt>Ensure Test Case exists</dt>
+            <dd>Test cases are independent from builds and are part of test plan,
+            therefore they may already exist in TCMS. In such case this command 
+            searches for it and allows binding of Test Case Runs, otherwise 
+            (if test case is missing) it creates new one in TCMS.</dd>
             <dt>Create Test Run</dt>
             <dd>This command creates new Test Run in Nitrate. You can change it`s 
             name in details. If you uncheck

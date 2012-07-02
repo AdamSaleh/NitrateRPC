@@ -63,7 +63,7 @@
                         
                     </td>
                     <td colspan="2" class="commandTitle">
-                        ${testRunCreate.toString()}
+                        <st:nbsp/>${testRunCreate.toString()}
                     </td>
                     <td class="commandHeader">
                         ${testRunCreate.summary()}
