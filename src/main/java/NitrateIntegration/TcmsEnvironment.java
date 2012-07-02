@@ -31,6 +31,7 @@ public class TcmsEnvironment {
     private Hashtable<String, Env.Property> properties;
     private Hashtable<Integer, Env.Value> values_by_id;
     private Hashtable<String, Hashtable<String, Env.Value>> values;
+    private TcmsConnection connection;
 
     public TcmsEnvironment(String env) {
         properties = new Hashtable<String, Env.Property>();
@@ -46,7 +47,6 @@ public class TcmsEnvironment {
     public Integer getEnvId() {
         return envId;
     }
-    TcmsConnection connection;
 
     public void setConnection(TcmsConnection connection) {
         this.connection = connection;

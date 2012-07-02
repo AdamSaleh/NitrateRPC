@@ -41,7 +41,7 @@ public class TcmsProperties {
     private Integer category_id = null;
     private Integer priority_id = null;
     private Integer manager_id = null;
-    TcmsConnection connection;
+    private TcmsConnection connection;
 
     public TcmsProperties(String plan, String product, String product_v, String category, String priority, String manager) {
         this.plan = plan;

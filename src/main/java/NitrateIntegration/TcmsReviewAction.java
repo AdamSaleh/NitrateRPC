@@ -153,7 +153,7 @@ public class TcmsReviewAction implements Action {
        environmentCheck.doCheckSubmit(req, rsp, report, settings);
     }
 
-    // refactor
+    
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException, TcmsException {
 

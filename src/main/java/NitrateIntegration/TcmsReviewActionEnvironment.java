@@ -13,8 +13,6 @@ package NitrateIntegration;
 import com.redhat.nitrate.TcmsException;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -55,12 +53,12 @@ public class TcmsReviewActionEnvironment {
     public String getEnvCheckException() {
         return envCheckException;
     }
-    
-     public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp,TcmsReport report,TcmsReviewActionSettings settings) throws IOException  {
+
+    public void doCheckSubmit(StaplerRequest req, StaplerResponse rsp, TcmsReport report, TcmsReviewActionSettings settings) throws IOException {
         HashSet<String> problems = new HashSet<String>();
         envCheckException = "";
         change_axis = false;
-        
+
         if (req.getParameter("Submit").equals("Change")) {
             change_axis = true;
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
@@ -68,22 +66,20 @@ public class TcmsReviewActionEnvironment {
         }
 
         problems = report.updateReportFromReq(req.getParameterMap());
-        
+
         try {
             settings.getConnectionAndUpdate();
 
             report.checkEnvironmentMapping(settings.getEnvironment());
-        } catch (TcmsException ex){
+        } catch (TcmsException ex) {
             envCheckException = ex.getMessage();
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
 
         this.envCheckProblems = problems;
-  
+
         rsp.sendRedirect("../" + Definitions.__URL_NAME);
     }
-    
-     
    
 }

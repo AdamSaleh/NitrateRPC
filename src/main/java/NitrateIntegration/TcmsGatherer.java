@@ -32,11 +32,11 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
     private int run_id;
     private int build_id;
     private TcmsProperties properties;
-    CommandWrapper build_s;
+    private CommandWrapper build_s;
     private TcmsEnvironment environment;
     
-    LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
-    HashMap<String, LinkedList<CommandWrapper>> commands_sorted = new HashMap<String, LinkedList<CommandWrapper>>();
+    private LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
+    private HashMap<String, LinkedList<CommandWrapper>> commands_sorted = new HashMap<String, LinkedList<CommandWrapper>>();
 
     public TcmsGatherer(TcmsProperties properties, TcmsEnvironment env) {
         this.properties = properties;
