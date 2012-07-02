@@ -10,13 +10,12 @@
  */
 package NitrateIntegration;
 
-import NitrateIntegration.CommandWrapper.CommandWrapper;
 import NitrateIntegration.TcmsReport.PropertyTransform.Tuple;
 import com.redhat.engineering.jenkins.testparser.results.TestResults;
 import com.redhat.nitrate.TcmsException;
 import hudson.model.AbstractBuild;
-import java.util.*;
 import java.util.Map.Entry;
+import java.util.*;
 
 /**
  * @author jrusnack
@@ -24,7 +23,7 @@ import java.util.Map.Entry;
  */
 public class TcmsReport {
     
-    private Set<TestRunResults> testRuns = new HashSet<TestRunResults>();
+    private Set<TestRunResults> testRuns = Collections.synchronizedSet(new HashSet<TestRunResults>());
     
     private HashSet<Map.Entry<String,String>> propertyValueSet = new HashSet<Entry<String, String>>();
     private HashMap<Map.Entry<String,String>,String> wrongPropertyValueMap = new HashMap<Entry<String, String>, String>();

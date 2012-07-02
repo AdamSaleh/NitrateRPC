@@ -142,7 +142,6 @@ public class TcmsReviewAction implements Action {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
-
     }
 
     // FIXME: javadoc
