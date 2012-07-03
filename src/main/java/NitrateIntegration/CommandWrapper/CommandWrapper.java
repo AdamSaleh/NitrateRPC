@@ -56,6 +56,7 @@ public abstract class CommandWrapper {
         public CommandWrapper create(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env);
     }
     protected static HashMap<Class<TcmsCommand>,WrapperConstructor> wrapperMap = new HashMap<Class<TcmsCommand>, WrapperConstructor>();
+    
     protected static void enlistWrapper(Class commandType,WrapperConstructor wrapper) throws RuntimeException{
         if(wrapperMap.containsKey(commandType)) throw new RuntimeException("Command wrapper already present");
         wrapperMap.put(commandType, wrapper);

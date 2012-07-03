@@ -13,7 +13,6 @@ import com.redhat.nitrate.TcmsException;
 import com.redhat.nitrate.command.TestRun;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import redstone.xmlrpc.XmlRpcArray;
 import redstone.xmlrpc.XmlRpcStruct;
 
 /**

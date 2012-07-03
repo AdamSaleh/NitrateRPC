@@ -255,6 +255,10 @@ public class TcmsProperties {
 
 
     public void reloadManagerId() throws TcmsException  {
+        
+        /* Don`t reload if manager is not set, it would download all users from TCMS */
+        if(manager.isEmpty()) return;
+            
         manager_id = null;
         User.filter get = new User.filter();
         get.username__startswith = manager;
