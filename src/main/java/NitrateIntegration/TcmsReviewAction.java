@@ -162,6 +162,7 @@ public class TcmsReviewAction implements Action {
             Build.create buildCreate = (Build.create) gatherer.getCommandList("Build.create").getFirst().current;
             buildCreate.name = req.getParameter("buildName");
 
+            // update test run names
             for(CommandWrapper c : gatherer.getCommandList("TestRun.create")){
                 TestRun.create testRunCreate = (TestRun.create) c.current;
                 if(req.getParameter("testRunSummary-" + c.hashCode()) != null )
@@ -176,7 +177,7 @@ public class TcmsReviewAction implements Action {
                 for (CommandWrapper c : gatherer) {
                     String a = new Integer(c.hashCode()).toString();
                     input = req.getParameter(a);
-                    if (input != null) {
+                    if (input != null || c.current instanceof TestRun.update) {
                         c.setExecutable(true);
                         c.setChecked(true);
                     } else {

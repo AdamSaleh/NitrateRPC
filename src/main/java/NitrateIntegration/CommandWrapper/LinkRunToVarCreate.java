@@ -30,16 +30,16 @@ import redstone.xmlrpc.XmlRpcStruct;
  */
 public class LinkRunToVarCreate extends CommandWrapper {
 
-     static{
+    static {
         CommandWrapper.enlistWrapper(TestRun.link_env_value.class, new WrapperConstructor() {
 
-            public CommandWrapper create(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
+            public CommandWrapper create(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
                 return new LinkRunToVarCreate(current, result_type, properties, env);
             }
         });
     }
 
-    public LinkRunToVarCreate(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env) {
+    public LinkRunToVarCreate(TcmsCommand current, Class result_type, TcmsProperties properties, TcmsEnvironment env) {
         super(current, result_type, properties, env);
     }
 
