@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.7" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>NitrateRPC plugin for Jenkins</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -415,12 +419,6 @@ div.unbreakable { page-break-inside: avoid; }
  *
  * */
 
-tt {
-  font-family: "Courier New", Courier, monospace;
-  font-size: inherit;
-  color: navy;
-}
-
 div.tableblock {
   margin-top: 1.0em;
   margin-bottom: 1.5em;
@@ -453,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: "Courier New", Courier, monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -539,6 +531,8 @@ body.manpage div.sectionbody {
 @media print {
   body.manpage div#toc { display: none; }
 }
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -752,6 +746,35 @@ directly to TCMS server. Results are parsed from TestNG xml files.</p></div>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_installation">Installation</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Plugin is currently not in Jenkins repo, so manual instalation is required, you may find prebuilt .hpi file in Downloads section on github (<a href="https://github.com/AdamSaleh/NitrateRPC/downloads">https://github.com/AdamSaleh/NitrateRPC/downloads</a>).
+</p>
+</li>
+<li>
+<p>
+Plugin currently supports only connection to kerberized Nitrate.
+</p>
+</li>
+<li>
+<p>
+If your nitrate instance has self-signed certificate, you first need to add it to java-keystore:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+sudo keytool -import -alias tcms -file SELFSIGNED_CERT.crt -keystore /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/jre/lib/security/cacerts
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_features">Features</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
@@ -795,7 +818,8 @@ Supports Kerberos authentication
 <div class="sectionbody">
 <div class="paragraph"><p>Communication between Jenkins (Java) and Nitrate`s XMLRPC is handled by external
 TcmsRpcLibrary (hosted at <a href="https://github.com/AdamSaleh/TcmsRpcLibrary">https://github.com/AdamSaleh/TcmsRpcLibrary</a>), which is
-dependency for this plugin.</p></div>
+dependency for this plugin. For building use Maven &gt;3, older versions may have
+problems with downloading dependencies from Jenkins repository.</p></div>
 </div>
 </div>
 </div>
@@ -803,7 +827,7 @@ dependency for this plugin.</p></div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br />
-Last updated 2012-06-27 15:25:10 CEST
+Last updated 2012-07-20 10:46:26 CEST
 </div>
 </div>
 </body>

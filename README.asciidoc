@@ -8,6 +8,14 @@ This plugin allows easy upload of test results to Nitrate TCMS
 build new action appears, from where you can review, change and upload results 
 directly to TCMS server. Results are parsed from TestNG xml files. 
 
+Installation
+------------
+* Plugin is currently not in Jenkins repo, so manual instalation is required, you may find prebuilt .hpi file in Downloads section on github (https://github.com/AdamSaleh/NitrateRPC/downloads).
+* Plugin currently supports only connection to kerberized Nitrate.
+* If your nitrate instance has self-signed certificate, you first need to add it to java-keystore:
+**  sudo keytool -import -alias tcms -file SELFSIGNED_CERT.crt -keystore /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/jre/lib/security/cacerts
+
+
 Features
 --------
 * Supports both freestyle and multiconfiguration projects
