@@ -32,11 +32,11 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
     private int run_id;
     private int build_id;
     private TcmsProperties properties;
-    CommandWrapper build_s;
+    private CommandWrapper build_s;
     private TcmsEnvironment environment;
     
-    LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
-    HashMap<String, LinkedList<CommandWrapper>> commands_sorted = new HashMap<String, LinkedList<CommandWrapper>>();
+    private LinkedList<CommandWrapper> list = new LinkedList<CommandWrapper>();
+    private HashMap<String, LinkedList<CommandWrapper>> commands_sorted = new HashMap<String, LinkedList<CommandWrapper>>();
 
     public TcmsGatherer(TcmsProperties properties, TcmsEnvironment env) {
         this.properties = properties;
@@ -140,6 +140,13 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
         }
         return null;
     }
+    
+    private static TestRun.update tcmsUpdateRunStatusToFinished(){
+        TestRun.update u = new TestRun.update();
+        u.id = -1;
+        u.values.status = 1;
+        return u;
+    }
 
     private void CreateTestCaseRun(MethodResult result, int status, CommandWrapper run, CommandWrapper build) {
 
@@ -192,7 +199,10 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
             build_s = add(tcmsCreateBuild(build, properties), Build.class);
         }
         CommandWrapper run_s = add(tcmsCreateRun(run, properties, variables), TestRun.class);
-        run_s.addDependecy(build_s);
+        run_s.addDependecy(build_s);        
+        
+        CommandWrapper upd_s = add(tcmsUpdateRunStatusToFinished(), TestRun.class);
+        upd_s.addDependecy(run_s);
 
         for (Map.Entry<String, String> variable : variables.entrySet()) {
             CommandWrapper link = add(tcmsLinkValue(environment, variable.getKey(), variable.getValue()), Object.class);

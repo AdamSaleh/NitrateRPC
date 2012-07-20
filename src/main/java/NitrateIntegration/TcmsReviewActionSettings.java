@@ -26,16 +26,15 @@ import org.kohsuke.stapler.StaplerResponse;
  * @author asaleh
  */
 public class TcmsReviewActionSettings {
-    
-    public List<String> update_problems = new LinkedList<String>();
-    boolean setting_updated = false;
-    private String updateException;
-    
-    public String serverUrl;
-    private TcmsAccessCredentials credentials;
+ 
     public TcmsProperties properties;
     public TcmsEnvironment environment;
+    public String serverUrl;
+    public List<String> update_problems = new LinkedList<String>();
     
+    private boolean setting_updated = false;
+    private String updateException;    
+    private TcmsAccessCredentials credentials;
 
     public TcmsReviewActionSettings(String serverUrl,
             String plan,
@@ -51,7 +50,7 @@ public class TcmsReviewActionSettings {
             this.properties = new TcmsProperties(plan, product, product_v, category, priority, manager);
             this.environment = new TcmsEnvironment(env);
             this.credentials = new TcmsAccessCredentials();
-       
+    
     }
 
     public TcmsEnvironment getEnvironment() {
@@ -61,14 +60,15 @@ public class TcmsReviewActionSettings {
     public TcmsAccessCredentials getCredentials() {
         return credentials;
     }
-     public String getUsername() {
+
+    public String getUsername() {
         return credentials.getUsername();
     }
 
     public String getPassword() {
         return credentials.getPassword();
     }
-    
+
     /**
      * Updates server URL, username and password
      * @param req 
@@ -121,9 +121,11 @@ public class TcmsReviewActionSettings {
         }
         return !updateException.isEmpty();
     }
+    
     public TcmsConnection getConnection() throws TcmsException {
         return TcmsConnection.connect(getServerUrl(), getCredentials(), Definitions.krbv, Definitions.enforceHttps);
     }
+    
     //FIXME javadoc
     public TcmsConnection getConnectionAndUpdate() throws TcmsException {
        TcmsConnection connection = null;

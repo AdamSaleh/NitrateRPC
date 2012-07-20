@@ -142,7 +142,6 @@ public class TcmsReviewAction implements Action {
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
             return;
         }
-
     }
 
     // FIXME: javadoc
@@ -154,7 +153,7 @@ public class TcmsReviewAction implements Action {
        environmentCheck.doCheckSubmit(req, rsp, report, settings);
     }
 
-    // refactor
+    
     public void doReportSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
             IOException, InterruptedException, TcmsException {
 
@@ -163,10 +162,13 @@ public class TcmsReviewAction implements Action {
             Build.create buildCreate = (Build.create) gatherer.getCommandList("Build.create").getFirst().current;
             buildCreate.name = req.getParameter("buildName");
 
-            // update testRun summary
-            TestRun.create testRunCreate = (TestRun.create) gatherer.getCommandList("TestRun.create").getFirst().current;
-            testRunCreate.summary = req.getParameter("testRunSummary");
-
+            // update test run names
+            for(CommandWrapper c : gatherer.getCommandList("TestRun.create")){
+                TestRun.create testRunCreate = (TestRun.create) c.current;
+                if(req.getParameter("testRunSummary-" + c.hashCode()) != null )
+                    testRunCreate.summary = req.getParameter("testRunSummary-" + c.hashCode());
+            }
+            
             rsp.sendRedirect("../" + Definitions.__URL_NAME);
         } else {
             try {
@@ -175,7 +177,7 @@ public class TcmsReviewAction implements Action {
                 for (CommandWrapper c : gatherer) {
                     String a = new Integer(c.hashCode()).toString();
                     input = req.getParameter(a);
-                    if (input != null) {
+                    if (input != null || c.current instanceof TestRun.update) {
                         c.setExecutable(true);
                         c.setChecked(true);
                     } else {

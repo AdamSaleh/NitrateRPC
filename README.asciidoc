@@ -27,8 +27,12 @@ Features
 Release notes
 -------------
 
-=== v1.0
-Initial release
+=== v1.0-RC1
+
+=== v1.0-RC2
+* TestRuns are now set to finished after upload
+* Fixed bugs #67, #68, #69
+
 
 Licensing
 ---------

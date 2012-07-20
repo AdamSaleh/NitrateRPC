@@ -22,6 +22,7 @@ import com.redhat.nitrate.command.TestRun;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import redstone.xmlrpc.XmlRpcArray;
 import redstone.xmlrpc.XmlRpcStruct;
 
 /**
@@ -34,8 +35,8 @@ import redstone.xmlrpc.XmlRpcStruct;
 public abstract class CommandWrapper {
 
     public TcmsCommand current;
-    private boolean executable;
-    private boolean checked;
+    protected boolean executable;
+    protected boolean checked;
     private boolean performed;
 
     enum Status {
@@ -55,6 +56,7 @@ public abstract class CommandWrapper {
         public CommandWrapper create(TcmsCommand current, Class result_type,TcmsProperties properties,TcmsEnvironment env);
     }
     protected static HashMap<Class<TcmsCommand>,WrapperConstructor> wrapperMap = new HashMap<Class<TcmsCommand>, WrapperConstructor>();
+    
     protected static void enlistWrapper(Class commandType,WrapperConstructor wrapper) throws RuntimeException{
         if(wrapperMap.containsKey(commandType)) throw new RuntimeException("Command wrapper already present");
         wrapperMap.put(commandType, wrapper);
@@ -173,7 +175,12 @@ public abstract class CommandWrapper {
                 result = o;
                 unexpected = null;
                 return;
-            } else if (o instanceof XmlRpcStruct) {
+            }
+            
+            // sometimes we get XmlRpcArray with just one XmlRpcStruct
+            if (o instanceof XmlRpcArray) o = (XmlRpcStruct) ((XmlRpcArray)o).get(0);
+            
+            if (o instanceof XmlRpcStruct) {
                 XmlRpcStruct struct = (XmlRpcStruct) o;
                 if (struct.containsKey("args")) { // usualy when query shows no results
                     result = null;
@@ -269,6 +276,8 @@ public abstract class CommandWrapper {
             return new BuildCreate(current, result_type, properties, env);
         } else if (current instanceof TestRun.link_env_value) {
             return new LinkRunToVarCreate(current, result_type, properties, env);
+        } else if (current instanceof TestRun.update){
+            return new SetTestRunToFinished(current, result_type, properties, env);
         }
 
         return new Generic(current, result_type, properties, env);

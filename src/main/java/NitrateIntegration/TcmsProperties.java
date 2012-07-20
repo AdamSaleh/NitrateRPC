@@ -41,7 +41,7 @@ public class TcmsProperties {
     private Integer category_id = null;
     private Integer priority_id = null;
     private Integer manager_id = null;
-    TcmsConnection connection;
+    private TcmsConnection connection;
 
     public TcmsProperties(String plan, String product, String product_v, String category, String priority, String manager) {
         this.plan = plan;
@@ -255,6 +255,10 @@ public class TcmsProperties {
 
 
     public void reloadManagerId() throws TcmsException  {
+        
+        /* Don`t reload if manager is not set, it would download all users from TCMS */
+        if(manager.isEmpty()) return;
+            
         manager_id = null;
         User.filter get = new User.filter();
         get.username__startswith = manager;

@@ -44,7 +44,7 @@
                                 </j:choose>
                             </td>
                             <td colspan="2" class="commandTitle">
-                                ${testCaseRunCreate.toString()}
+                                <st:nbsp/>${testCaseRunCreate.toString()}
                             </td>
                             <td class="commandHeader">
                                 ${testCaseRunCreate.summary()}
