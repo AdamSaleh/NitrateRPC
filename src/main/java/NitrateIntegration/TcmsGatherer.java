@@ -62,6 +62,7 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
         if (result.getParent() != null) {
             create.summary += result.getParent().getName() + ".";
         }
+        
         if (result.getParameters() != null) {
             String args = "";
             for (String param : result.getParameters()) {
@@ -69,7 +70,9 @@ public class TcmsGatherer implements Iterable<CommandWrapper>{
             }
             create.arguments = args;
         }
-
+        if(result.getDescription()!=null && result.getDescription().isEmpty()==false){
+            create.action =result.getDescription();
+        }
         create.summary += result.getDisplayName();
         create.plan = properties.getPlanID();
         create.is_automated = 1;
